@@ -17,3 +17,4 @@ Then run npm install commend to install node dependencies.
 Finally, to run the project, use npm run dev command.
 
 
+![Capture frontend](https://github.com/user-attachments/assets/5d99958c-8754-491a-8195-346f8dedf918)
