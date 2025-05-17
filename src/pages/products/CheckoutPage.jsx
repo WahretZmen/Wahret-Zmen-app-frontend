@@ -63,15 +63,15 @@ const CheckoutPage = () => {
   const result = await createOrder(newOrder).unwrap();
   if (result) {
     Swal.fire({
-      title: t("checkout.order_confirmed"),
-      text: t("checkout.success_message"),
-      icon: "success",
-      confirmButtonColor: "#A67C52",
-      confirmButtonText: t("checkout.go_to_orders"),
-    }).then(() => {
-      navigate("/orders");
-      setTimeout(() => window.scrollTo(0, 0), 0); // ✅ scroll after rendering OrderPage
-    });
+  title: t("checkout.order_confirmed"),
+  text: t("checkout.success_message"),
+  icon: "success",
+  confirmButtonColor: "#A67C52",
+  confirmButtonText: t("checkout.go_to_orders"),
+}).then(() => {
+  window.location.href = "/orders";
+});
+
   }
 } catch (error) {
   Swal.fire({
