@@ -92,3 +92,10 @@ label input[type="checkbox"]:checked + span {
 .product-card {
   margin: 0 auto; /* ✅ Center it */
 }
+
+
+@media (max-width: 480px) {
+  .products-title {
+    margin-top: 2.5rem !important; /* = mt-10 */
+  }
+}
