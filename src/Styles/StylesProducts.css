@@ -71,6 +71,7 @@ label input[type="checkbox"]:checked + span {
   }
 }
 
+}
 
 @media (max-width: 480px) {
   .loader-wrapper {
