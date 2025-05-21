@@ -590,7 +590,7 @@ i18n
           logout: "تسجيل الخروج",
 
           
-          Welcome_Banner_title: "مرحبًا بكم في وهرة لزّمان",
+          Welcome_Banner_title: "مرحبًا بكم في وهرة الزّمان",
           banner_img_alt: "لافتة وهرة الزّمان التقليدية",
 
           loading: {
