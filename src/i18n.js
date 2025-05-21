@@ -589,9 +589,7 @@ i18n
           orders: "الطلبات",
           logout: "تسجيل الخروج",
 
-          Welcome_Banner_title: "مرحبًا بك في وهرة الزّمان",
-          banner_img_alt: "لافتة وهرة الزّمان التقليدية",
-
+          
           Welcome_Banner_title: "مرحبًا بكم في وهرة لزّمان",
           banner_img_alt: "لافتة وهرة الزّمان التقليدية",
 
