@@ -138,7 +138,8 @@ const Products = () => {
   return (
     <FadeInSection>
       <div className="main-content">
-        <div className="container mx-auto py-10 px-4 sm:px-6 md:px-10 lg:px-20 max-w-[1440px]">
+        <div className="container mx-auto py-4 sm:py-6 px-4 sm:px-6 md:px-10 lg:px-20 max-w-[1440px]">
+
           <Helmet>
             <title>{t("products_page.title")} - Wahret Zmen</title>
           </Helmet>
@@ -156,7 +157,8 @@ const Products = () => {
           </FadeInSection>
 
           <FadeInSection delay={0.3} duration={0.6}>
-            <div className="mb-8 flex flex-col items-center space-y-4">
+            <div className="mb-6 sm:mb-8 flex flex-col items-center space-y-3 sm:space-y-4">
+
               <SelectorsPageProducts
                 options={categories}
                 onSelect={setSelectedCategories}
@@ -226,3 +228,6 @@ const Products = () => {
 
 export default Products;
 
+
+<div className="container mx-auto py-10 px-4 sm:px-6 md:px-10 lg:px-20 max-w-[1440px]"></div>
+<div className="mb-8 flex flex-col items-center space-y-4"></div>
