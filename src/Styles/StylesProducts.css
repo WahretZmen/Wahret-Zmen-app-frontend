@@ -1,7 +1,9 @@
+/* === Base Container === */
 .container-Products {
   width: 100%;
 }
 
+/* === Buttons === */
 .wahret-zmen-btn {
   background-color: #a67c52;
   color: white;
@@ -16,6 +18,33 @@
   background-color: #8a5d3b;
 }
 
+/* === Checkbox style === */
+label input[type="checkbox"]:checked + span {
+  font-weight: bold;
+}
+
+/* === Main Content === */
+.main-content {
+  min-height: 50vh;
+  padding-top: 1rem;
+}
+
+/* === Loader Wrapper === */
+.loader-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50px;
+  margin-top: 20px;
+}
+
+/* === Responsive Grid (default) === */
+.grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+/* === Responsive Products Grid for mobile === */
 @media (max-width: 768px) {
   .category-title {
     font-size: 1.1rem;
@@ -25,70 +54,39 @@
     padding: 0.6rem 1.5rem;
     font-size: 0.95rem;
   }
-}
 
-/* Optional: Add smooth selection transition */
-label input[type="checkbox"]:checked + span {
-  font-weight: bold;
-}
+  .main-content {
+    min-height: 45vh;
+    padding-top: 0.5rem;
+    padding-bottom: 2rem;
+  }
 
-/* Make sure main content doesn't push footer too far when loading */
-.main-content {
-  min-height: 80vh;
-}
+  .loader-wrapper {
+    height: 40px;
+    margin-top: 16px;
+  }
 
-/* 🌀 WZ Loader spacing from top */
-.loader-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100px;
-  margin-top: 100px; /* ⬅️ Spacing under Navbar */
-}
-
-/* 🌐 Responsive Products Grid */
-@media (max-width: 768px) {
   .grid {
-    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+    grid-template-columns: 1fr !important;
+    justify-items: center;
+    padding: 0 1rem;
     gap: 1.25rem !important;
   }
-
-  .main-content {
-  min-height: 50vh;
-}
-
-.loader-wrapper {
-  margin-top: 40px;
 }
 
 @media (max-width: 480px) {
   .main-content {
-    padding-top: 1rem;
+    padding-top: 0.5rem !important;
+    min-height: 40vh !important;
   }
 
   .loader-wrapper {
-    margin-top: 20px;
+    height: 35px;
+    margin-top: 12px;
   }
 }
 
-}
-
-@media (max-width: 480px) {
-  .loader-wrapper {
-    margin-top: 60px;
-  }
-}
-
-/* Ensure mobile cards are centered */
-@media (max-width: 768px) {
-  .grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    justify-items: center; /* ✅ Center cards */
-    padding: 0 1rem;       /* ✅ Add horizontal padding */
-  }
-}
-
+/* === Product Card Centering === */
 .product-card {
-  margin: 0 auto; /* ✅ Center it */
+  margin: 0 auto;
 }

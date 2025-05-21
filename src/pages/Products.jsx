@@ -136,98 +136,92 @@ const Products = () => {
 
 
   return (
-    <FadeInSection>
-      <div className="main-content">
-        <div className="container mx-auto py-4 sm:py-6 px-4 sm:px-6 md:px-10 lg:px-20 max-w-[1440px]">
+  <FadeInSection>
+    <div className="main-content">
+      <div className="container mx-auto pt-2 sm:pt-4 pb-4 px-4 sm:px-6 md:px-10 lg:px-20 max-w-[1440px]">
 
-          <Helmet>
-            <title>{t("products_page.title")} - Wahret Zmen</title>
-          </Helmet>
+        <Helmet>
+          <title>{t("products_page.title")} - Wahret Zmen</title>
+        </Helmet>
 
-          <FadeInSection duration={0.6}>
-            <h2 className="text-3xl sm:text-4xl font-bold font-serif text-center mb-6 drop-shadow-lg bg-gradient-to-r from-[#D4AF37] to-[#A67C52] bg-clip-text text-transparent hover:scale-105 transition-transform duration-300 ease-in-out">
-              {t("products_page.title")}
-            </h2>
-          </FadeInSection>
+        <FadeInSection duration={0.6}>
+          <h2 className="text-3xl sm:text-4xl font-bold font-serif text-center mb-6 drop-shadow-lg bg-gradient-to-r from-[#D4AF37] to-[#A67C52] bg-clip-text text-transparent hover:scale-105 transition-transform duration-300 ease-in-out">
+            {t("products_page.title")}
+          </h2>
+        </FadeInSection>
 
-          <FadeInSection delay={0.2} duration={0.6}>
-            <div className="text-center text-gray-700 max-w-3xl mx-auto mb-8 leading-relaxed px-2">
-              <p className="text-base sm:text-lg">{t("products_page.overview")}</p>
-            </div>
-          </FadeInSection>
+        <FadeInSection delay={0.2} duration={0.6}>
+          <div className="text-center text-gray-700 max-w-3xl mx-auto mb-6 leading-relaxed px-2">
+            <p className="text-base sm:text-lg">{t("products_page.overview")}</p>
+          </div>
+        </FadeInSection>
 
-          <FadeInSection delay={0.3} duration={0.6}>
-            <div className="mb-6 sm:mb-8 flex flex-col items-center space-y-3 sm:space-y-4">
+        <FadeInSection delay={0.3} duration={0.6}>
+          <div className="mb-4 sm:mb-6 flex flex-col items-center space-y-2 sm:space-y-4">
+            <SelectorsPageProducts
+              options={categories}
+              onSelect={setSelectedCategories}
+              label="category"
+            />
+            <SearchInput
+              setSearchTerm={handleSearchChange}
+              placeholder={t("search_placeholder")}
+            />
 
-              <SelectorsPageProducts
-                options={categories}
-                onSelect={setSelectedCategories}
-                label="category"
-              />
-              <SearchInput
-  setSearchTerm={handleSearchChange}
-  placeholder={t("search_placeholder")}
-/>
+            {searchLoading && (
+              <FadeInSection delay={0.1} duration={0.6}>
+                <InlineWahretZmenLoader />
+              </FadeInSection>
+            )}
+          </div>
+        </FadeInSection>
 
-{searchLoading && (
-  <FadeInSection delay={0.1} duration={0.6}>
-    <InlineWahretZmenLoader />
-  </FadeInSection>
-)}
-
-
-            </div>
-          </FadeInSection>
-
-          <FadeInSection delay={0.4} duration={0.6}>
+        <FadeInSection delay={0.4} duration={0.6}>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-  {filteredProducts.length > 0 ? (
-    filteredProducts.map((product, index) => (
-      <FadeInSection
-        key={index}
-        delay={index * 0.08}
-        duration={0.6}
-        yOffset={30}
-      >
-        <ProductCard product={product} />
-      </FadeInSection>
-    ))
-  ) : (
-    <p className="col-span-full text-center text-gray-500">
-      {t("no_products_found")}
-    </p>
-  )}
-</div>
+            {filteredProducts.length > 0 ? (
+              filteredProducts.map((product, index) => (
+                <FadeInSection
+                  key={index}
+                  delay={index * 0.08}
+                  duration={0.6}
+                  yOffset={30}
+                >
+                  <ProductCard product={product} />
+                </FadeInSection>
+              ))
+            ) : (
+              <p className="col-span-full text-center text-gray-500">
+                {t("no_products_found")}
+              </p>
+            )}
+          </div>
+        </FadeInSection>
 
-    
- 
-</FadeInSection>
-
-
-          {filteredProducts.length < products.length && !searchLoading && (
-            <FadeInSection delay={0.6} duration={0.6}>
-              <div className="text-center mt-8">
+        {filteredProducts.length < products.length && !searchLoading && (
+          <FadeInSection delay={0.6} duration={0.6}>
+            <div className="text-center mt-6">
               {isLoadingMore ? (
-  <div className="flex justify-center items-center h-24">
-    <InlineWahretZmenLoader />
-  </div>
-) : (
-  <button className="wahret-zmen-btn w-[250px]" onClick={handleLoadMore}>
-    {t("load_more")}
-  </button>
-)}
-
-              </div>
-            </FadeInSection>
-          )}
-        </div>
+                <div className="flex justify-center items-center h-24">
+                  <InlineWahretZmenLoader />
+                </div>
+              ) : (
+                <button className="wahret-zmen-btn w-[250px]" onClick={handleLoadMore}>
+                  {t("load_more")}
+                </button>
+              )}
+            </div>
+          </FadeInSection>
+        )}
       </div>
-    </FadeInSection>
+    </div>
+  </FadeInSection>
+
+
   );
 };
 
 export default Products;
 
 
-<div className="container mx-auto py-10 px-4 sm:px-6 md:px-10 lg:px-20 max-w-[1440px]"></div>
-<div className="mb-8 flex flex-col items-center space-y-4"></div>
+
+
