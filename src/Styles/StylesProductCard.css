@@ -15,6 +15,11 @@
     position: relative;
     animation: fadeInCard 0.8s ease-in-out;
   }
+
+  .product-card img {
+  background-color: #fff;
+  padding: 10px;
+}
   
   @keyframes fadeInCard {
     from {
