@@ -88,7 +88,8 @@ const ProductCard = ({ product }) => {
   return (
    <div className="product-card group relative bg-white border border-gray-200 overflow-hidden transition-all duration-300 max-w-[250px] w-full mx-auto">
 
-      <div className="relative w-full h-52 overflow-hidden">
+      <div className="relative w-full h-52 sm:h-64 overflow-hidden bg-white">
+
         <Link to={`/products/${product._id}`} className="block w-full h-full">
           <img
             src={getImgUrl(product?.coverImage)}
