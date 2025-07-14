@@ -192,7 +192,7 @@ const Products = () => {
         duration={0.6}
         yOffset={30}
       >
-        <ProductCard product={product} />
+       
       </FadeInSection>
     ))
   ) : (
