@@ -230,3 +230,32 @@ html {
     margin-bottom: 1rem;
   }
 }
+
+
+@media (max-width: 768px) {
+  .custom-carousel .react-multi-carousel-track,
+  .custom-carousel .react-multiple-carousel-track {
+    min-height: 350px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Force wrappers to expand */
+  .custom-carousel,
+  .oursellers-wrapper,
+  .react-multi-carousel-list,
+  .react-multi-carousel-track {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Let each slide show its content */
+  .custom-carousel .react-multi-carousel-item,
+  .custom-carousel .react-multiple-carousel-item {
+    display: flex !important;
+    justify-content: center;
+    height: auto !important;
+    overflow: visible !important;
+    min-height: 350px;
+  }
+}
