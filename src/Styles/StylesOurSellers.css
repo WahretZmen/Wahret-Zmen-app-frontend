@@ -1,0 +1,95 @@
+/* ===== OurSellers Section Layout ===== */
+.our-sellers-section {
+  padding: 2rem 1rem;
+  background-color: #fdf7f2;
+}
+
+.our-sellers-title {
+  font-size: 1.75rem;
+  font-weight: bold;
+  color: #4b2e2e;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.our-sellers-filters {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+/* ===== Carousel Fixes for Badge Visibility ===== */
+.react-multi-carousel-item {
+  padding-top: 3rem;        /* space for top badges */
+  padding-bottom: 3rem;     /* space for bottom badges */
+  z-index: 1;
+  position: relative;
+}
+
+.react-multi-carousel-track {
+  overflow: visible !important; /* ensures badges are visible outside cards */
+}
+
+/* ===== Carousel Arrows ===== */
+.custom-carousel .react-multiple-carousel__arrow {
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  top: 40%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  transition: background 0.3s ease;
+}
+
+.custom-carousel .react-multiple-carousel__arrow:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.custom-carousel .react-multiple-carousel__arrow--left {
+  left: 10px;
+}
+
+.custom-carousel .react-multiple-carousel__arrow--right {
+  right: 10px;
+}
+
+/* RTL Support for Carousel Arrows */
+html[dir="rtl"] .react-multiple-carousel__arrow--left {
+  right: 10px !important;
+  left: auto !important;
+}
+
+html[dir="rtl"] .react-multiple-carousel__arrow--right {
+  left: 10px !important;
+  right: auto !important;
+}
+
+/* ===== Mobile Adjustments ===== */
+@media (max-width: 768px) {
+  .our-sellers-title {
+    font-size: 1.5rem;
+  }
+
+  .our-sellers-filters {
+    gap: 0.75rem;
+  }
+
+  .custom-carousel .react-multiple-carousel__arrow {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .react-multi-carousel-item {
+    padding-top: 3.5rem;
+    padding-bottom: 3.5rem;
+  }
+}
