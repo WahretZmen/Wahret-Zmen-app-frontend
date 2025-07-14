@@ -242,10 +242,11 @@
 
   @media (max-width: 768px) {
   .product-card {
-    flex: 0 0 100% !important; /* Show only 1 card per slide */
+    flex: 0 0 100% !important;
     scroll-snap-align: start;
     box-sizing: border-box;
     margin: 0 auto;
+    overflow: visible;
   }
 
   .carousel-container {
