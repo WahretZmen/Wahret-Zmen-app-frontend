@@ -16,7 +16,7 @@ const ProductCard = ({ product }) => {
   if (!i18n.isInitialized) return null;
   const [quantity, setQuantity] = useState(1);
 
-  // ✅ Zoom state
+
   
 
   if (!product) return null;
