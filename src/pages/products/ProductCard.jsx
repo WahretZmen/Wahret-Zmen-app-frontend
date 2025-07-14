@@ -165,7 +165,7 @@ style={{ transform: "none" }}
                   {colorObj.colorName?.[lang] || colorObj.colorName?.en || "-"}
                 </li>
               ))}
-            </ul>
+            </ul>  
           </div>
         )}
   
@@ -215,4 +215,3 @@ style={{ transform: "none" }}
 export default ProductCard;
 
 
-<div className="absolute top-2 left-2 flex flex-col gap-1"></div>
