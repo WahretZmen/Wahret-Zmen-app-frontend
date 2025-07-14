@@ -16,8 +16,9 @@ const ProductCard = ({ product }) => {
   if (!i18n.isInitialized) return null;
   const [quantity, setQuantity] = useState(1);
 
-
-  
+  // ✅ Zoom state
+  const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 });
+  const [isHovering, setIsHovering] = useState(false);
 
   if (!product) return null;
 
@@ -66,7 +67,20 @@ const ProductCard = ({ product }) => {
     }
   };
 
- 
+  // 🖱️ Zoom handlers (hover only)
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setZoomPosition({ x, y });
+  };
+
+  const handleMouseEnter = () => setIsHovering(true);
+
+  const handleMouseLeave = () => {
+    setIsHovering(false);
+    setZoomPosition({ x: 50, y: 50 });
+  };
 
 
 
@@ -80,7 +94,9 @@ const ProductCard = ({ product }) => {
           <img
             src={getImgUrl(product?.coverImage)}
             alt={title}
-            
+            onMouseEnter={handleMouseEnter}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
             className={`w-full h-full object-contain transition duration-300`}
 style={{ transform: "none" }}
           />
