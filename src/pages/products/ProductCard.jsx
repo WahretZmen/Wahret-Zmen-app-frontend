@@ -103,7 +103,8 @@ style={{ transform: "none" }}
         </Link>
   
         {/* Stock + Trending */}
-        <div className="absolute top-2 left-4 flex flex-col gap-1 z-20">
+        <div className="badge-container-mobile absolute flex flex-col gap-1 z-20">
+c
 
           <span
             className={`text-xs font-semibold px-2 py-1 rounded-full text-white ${
