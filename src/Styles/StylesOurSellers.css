@@ -160,27 +160,46 @@ html {
 }
 
 @media (max-width: 768px) {
+  /* 1️⃣ Make each carousel card use full width */
   .custom-carousel .react-multi-carousel-item {
     flex: 0 0 100% !important;
     max-width: 100% !important;
-    display: block !important;
   }
 
+  /* 2️⃣ Remove horizontal padding around cards */
+  .custom-carousel .p-4 {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  /* 3️⃣ Ensure carousel track starts at zero */
   .custom-carousel .react-multi-carousel-track {
     margin-left: 0 !important;
-    min-height: auto !important;
   }
 
-  .custom-carousel .p-4 {
-    padding: 1rem !important;
-  }
-
-  .custom-carousel .react-multi-carousel-item > div {
-    width: 100% !important;
-    display: block !important;
-  }
-
+  /* 4️⃣ Prevent vertical overflow */
   .custom-carousel {
-    padding-bottom: 1rem !important;
+    overflow-y: visible !important;
+    padding-bottom: 1rem;
+  }
+
+  /* 5️⃣ Reduce unnecessary top/bottom spacing */
+  .our-sellers-wrapper,
+  .our-sellers-carousel-container {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  /* 6️⃣ Limit product card max-height */
+  .product-card {
+    max-height: 90vh; /* Avoids pushing everything off-screen */
+    overflow: hidden;
+  }
+
+  /* 7️⃣ Ensure arrow buttons remain accessible */
+  .custom-carousel .react-multiple-carousel__arrow {
+    position: absolute;
+    top: 50% !important;
+    transform: translateY(-50%) scale(0.8);
   }
 }
