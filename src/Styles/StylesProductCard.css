@@ -15,6 +15,20 @@
     position: relative;
     animation: fadeInCard 0.8s ease-in-out;
   }
+
+  .product-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  background-color: #22c55e;
+  color: white;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+}
+
   
   @keyframes fadeInCard {
     from {
@@ -260,10 +274,44 @@
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
   }
-}
+
 @media (max-width: 768px) {
   .product-card {
-    width: 95vw;
+    width: 90vw !important;
+    max-width: 100%;
     margin: 0 auto;
+  }
+
+  .product-card img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+    justify-items: center;
+    align-items: start;
+    overflow-x: visible;
+  }
+}
+
+@media (max-width: 768px) {
+  .product-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    background-color: #22c55e; /* green-500 */
+    color: white;
+    border-radius: 9999px;
+    max-width: 90%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
