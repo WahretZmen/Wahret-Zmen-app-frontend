@@ -285,3 +285,19 @@
     word-break: break-word;
   }
 }
+
+@media (max-width: 768px) {
+  .product-card .absolute.top-2.left-4 {
+    left: 1.25rem !important;  /* Pull the badges inward */
+    top: 0.75rem !important;
+    z-index: 30;
+  }
+
+  .product-card .absolute.top-2.left-4 span {
+    font-size: 0.75rem !important;
+    padding: 0.25rem 0.6rem !important;
+    white-space: nowrap;
+    max-width: 90%;
+    overflow-wrap: break-word;
+  }
+}
