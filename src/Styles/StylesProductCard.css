@@ -242,6 +242,16 @@
   
 
   @media (max-width: 768px) {
+
+.product-card {
+    flex: 0 0 85vw !important;
+    max-width: 85vw;
+    margin: 0 auto;
+    padding-left: 0;
+    padding-right: 0;
+    overflow: visible !important;
+  }
+    
   .product-card {
     margin-top: 1rem !important; /* Push card down slightly to avoid badge cutoff */
   }

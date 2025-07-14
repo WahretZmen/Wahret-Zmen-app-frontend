@@ -103,7 +103,8 @@ style={{ transform: "none" }}
         </Link>
   
         {/* Stock + Trending */}
-        <div className="absolute top-2 left-2 flex flex-col gap-1">
+        <div className="absolute top-2 left-4 flex flex-col gap-1 z-20">
+
           <span
             className={`text-xs font-semibold px-2 py-1 rounded-full text-white ${
               displayedStock > 0 ? "bg-green-600" : "bg-red-500"
@@ -214,3 +215,4 @@ style={{ transform: "none" }}
 export default ProductCard;
 
 
+<div className="absolute top-2 left-2 flex flex-col gap-1"></div>

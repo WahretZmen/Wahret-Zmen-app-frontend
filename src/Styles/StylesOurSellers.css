@@ -149,6 +149,17 @@ html {
 }
 
 @media (max-width: 768px) {
+
+.carousel-card-wrapper {
+    padding: 0 25px !important; /* plus large */
+    overflow: visible !important;
+  }
+
+  .our-sellers-carousel-container {
+    padding: 0 1.2rem;
+    overflow: visible !important;
+  }
+
   .selector-wrapper select {
     font-size: 1rem;
     padding: 0.5rem 0.8rem;
