@@ -241,4 +241,33 @@
   }
   
 
-  
+  /* Ensure badges are fully visible in small screens */
+@media (max-width: 768px) {
+  .product-card .absolute.top-2.left-2 {
+    top: 0.5rem !important;
+    left: 0.5rem !important;
+    z-index: 10;
+    gap: 0.25rem;
+  }
+
+  .product-card .absolute.top-2.left-2 span {
+    font-size: 0.65rem !important;
+    padding: 0.2rem 0.4rem !important;
+  }
+
+  .product-card .text-xs {
+    font-size: 0.65rem !important;
+  }
+
+  .product-card .rounded-full {
+    border-radius: 9999px;
+  }
+}
+
+@media (max-width: 768px) {
+  .product-card {
+    min-width: 95vw;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+}
