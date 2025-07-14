@@ -242,10 +242,13 @@
 
   @media (max-width: 768px) {
   .product-card {
-    flex: 0 0 100% !important;
+    flex: 0 0 88vw !important;
+    max-width: 88vw;
     scroll-snap-align: start;
     box-sizing: border-box;
     margin: 0 auto;
+    padding-left: 10px; /* Espace pour badge */
+    padding-right: 10px;
     overflow: visible;
   }
 

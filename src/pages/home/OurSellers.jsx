@@ -92,11 +92,12 @@ const OurSellers = () => {
               rtl={isRTL} // ✅ RTL support for Arabic
             >
               {filteredProducts.map((product, index) => (
-  <FadeInSection key={index} delay={index * 0.1} duration={0.6} yOffset={30}>
-    <div className="carousel-card-wrapper">
-  <ProductCard product={product} />
-</div>
-  </FadeInSection>
+ <FadeInSection key={index} delay={index * 0.1} duration={0.6} yOffset={30}>
+  <div className="carousel-card-wrapper">
+    <ProductCard product={product} />
+  </div>
+</FadeInSection>
+
 ))}
 
 
