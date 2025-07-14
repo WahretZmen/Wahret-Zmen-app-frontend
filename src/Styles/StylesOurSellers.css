@@ -184,17 +184,25 @@ html {
 
 
 @media (max-width: 768px) {
+  /* Ensure each carousel item takes full width */
   .custom-carousel .react-multi-carousel-item {
     flex: 0 0 100% !important;
     max-width: 100% !important;
   }
 
+  /* Prevent any unwanted margin that shifts items */
   .custom-carousel .react-multi-carousel-track {
     margin-left: 0 !important;
   }
 
+  /* Remove horizontal padding for mobile */
   .custom-carousel .p-4 {
     padding-left: 0 !important;
     padding-right: 0 !important;
+  }
+
+  /* Optionally reduce carousel height spacing */
+  .custom-carousel {
+    padding-bottom: 1rem;
   }
 }
