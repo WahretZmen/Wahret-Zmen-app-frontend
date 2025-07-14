@@ -184,25 +184,58 @@ html {
 
 
 @media (max-width: 768px) {
-  /* Ensure each carousel item takes full width */
   .custom-carousel .react-multi-carousel-item {
     flex: 0 0 100% !important;
     max-width: 100% !important;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
   }
 
-  /* Prevent any unwanted margin that shifts items */
   .custom-carousel .react-multi-carousel-track {
     margin-left: 0 !important;
+    min-height: auto !important;
   }
 
-  /* Remove horizontal padding for mobile */
   .custom-carousel .p-4 {
     padding-left: 0 !important;
     padding-right: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
   }
 
-  /* Optionally reduce carousel height spacing */
+  .custom-carousel .react-multi-carousel-item > div {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+  }
+
   .custom-carousel {
-    padding-bottom: 1rem;
+    min-height: 0 !important;
+    padding-bottom: 0.5rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .our-sellers-wrapper {
+    padding: 1rem 0.5rem;
+  }
+
+  .our-sellers-carousel-container {
+    padding: 0 0.5rem;
+  }
+
+  .carousel-card-wrapper {
+    padding: 0 5px;
+  }
+
+  .custom-carousel .react-multiple-carousel__arrow {
+    top: 35%;
+    transform: scale(0.7);
+  }
+
+  .product-card {
+    min-width: 90vw; /* Ensures full width usage */
   }
 }
