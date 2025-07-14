@@ -86,7 +86,8 @@ const ProductCard = ({ product }) => {
 
 
   return (
-   <div className="product-card group relative bg-white border border-gray-200 overflow-hidden transition-all duration-300 max-w-[250px] w-full mx-auto">
+  <div className="product-card group relative bg-white border border-gray-200 overflow-hidden transition-all duration-300 w-full sm:max-w-[250px] mx-auto">
+
 
       <div className="relative w-full h-52 sm:h-64 overflow-hidden bg-white">
 
