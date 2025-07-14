@@ -161,25 +161,31 @@ html {
 
 @media (max-width: 768px) {
   .our-sellers-wrapper {
-    padding: 1rem 0.5rem;
+    padding: 1.5rem 1rem; /* Plus d'espace sur les côtés */
   }
 
   .our-sellers-carousel-container {
-    padding: 0 0.5rem;
+    padding: 0 1rem; /* Augmente l'espace latéral */
   }
 
   .carousel-card-wrapper {
-    padding: 0 5px;
+    padding: 0 10px;
   }
 
   .custom-carousel .react-multiple-carousel__arrow {
     top: 35%;
-    transform: scale(0.7);
+    transform: scale(0.75);
   }
 
   .product-card {
-    min-width: 90vw; /* Ensures full width usage */
+    min-width: 95vw; /* Presque plein écran */
+    max-width: 95vw;
   }
 }
 
-
+@media (max-width: 768px) {
+  .custom-carousel .react-multiple-carousel__arrow {
+    top: 40%;
+    z-index: 1000;
+  }
+}
