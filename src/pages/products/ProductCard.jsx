@@ -103,22 +103,25 @@ style={{ transform: "none" }}
         </Link>
   
         {/* Stock + Trending */}
-        <div className="badge-container-mobile absolute flex flex-col gap-1 z-20">
-c
+       {/* 🔥 Trending Badge (Top-left) */}
+{product.trending && (
+  <span className="absolute top-2 left-2 z-20 text-xs font-semibold px-2 py-1 bg-red-500 text-white rounded-full shadow-md">
+    {t("trending")}
+  </span>
+)}
 
-          <span
-            className={`text-xs font-semibold px-2 py-1 rounded-full text-white ${
-              displayedStock > 0 ? "bg-green-600" : "bg-red-500"
-            }`}
-          >
-            {displayedStock > 0 ? `${t("stock")}: ${displayedStock}` : t("out_of_stock")}
-          </span>
-          {product.trending && (
-            <span className="text-xs font-semibold px-2 py-1 bg-red-500 text-white rounded-full">
-              {t("trending")}
-            </span>
-          )}
-        </div>
+{/* 📦 Stock Badge (Bottom-left) */}
+<span
+  className={`absolute bottom-2 left-2 z-20 text-xs font-semibold px-2 py-1 rounded-full text-white shadow-md ${
+    displayedStock > 0 ? "bg-green-600" : "bg-red-500"
+  }`}
+>
+  {displayedStock > 0
+    ? `${t("stock")}: ${displayedStock}`
+    : t("out_of_stock")}
+</span>
+
+
   
         {/* Add to Cart Hover Button */}
         <button

@@ -183,3 +183,12 @@ html {
 }
 
 
+.our-sellers-carousel .react-multi-carousel-item {
+  padding-top: 20px; /* space for top badge */
+  padding-bottom: 20px; /* space for bottom badge */
+}
+
+.react-multi-carousel-item {
+  padding-top: 25px;
+  padding-bottom: 25px;
+}
