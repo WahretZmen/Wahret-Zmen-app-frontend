@@ -160,60 +160,26 @@ html {
 }
 
 @media (max-width: 768px) {
+  .our-sellers-wrapper {
+    padding: 1rem 0.5rem;
+  }
+
   .our-sellers-carousel-container {
     padding: 0 0.5rem;
-    overflow-x: auto !important;
   }
 
   .carousel-card-wrapper {
     padding: 0 5px;
-    overflow: visible;
   }
 
   .custom-carousel .react-multiple-carousel__arrow {
     top: 35%;
-    transform: scale(0.75);
-    z-index: 1000;
+    transform: scale(0.7);
   }
 
-  .custom-carousel .react-multiple-carousel__arrow--left {
-    left: 5px;
-  }
-
-  .custom-carousel .react-multiple-carousel__arrow--right {
-    right: 5px;
-  }
-}
-
-  @media (max-width: 768px) {
   .product-card {
-    flex: 0 0 92vw !important;
-    max-width: 92vw;
-    scroll-snap-align: start;
-    box-sizing: border-box;
-    margin: 0 auto;
-    padding-left: 10px; /* important pour laisser de l'espace pour les badges */
-    overflow: visible;
-  }
-
-  .custom-carousel .react-multiple-carousel__container {
-  overflow-x: auto !important;
-}
-
-
-.custom-carousel {
-  overflow-x: auto !important;
-}
-}
-
-
-
-@media (max-width: 768px) {
-  .custom-carousel .react-multiple-carousel__arrow {
-    top: 40%;
-    z-index: 1000;
+    min-width: 90vw; /* Ensures full width usage */
   }
 }
-
 
 

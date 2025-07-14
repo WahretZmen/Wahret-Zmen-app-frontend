@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import ProductCard from "../pages/products/ProductCard.jsx";
+import ProductCard from "../../src/pages/products/ProductCard.jsx";
 import { useGetAllProductsQuery } from "../redux/features/products/productsApi.js";
 import SelectorsPageProducts from "../components/SelectorProductsPage.jsx";
 import SearchInput from "../components/SearchInput.jsx";
