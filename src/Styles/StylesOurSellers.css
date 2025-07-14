@@ -160,118 +160,26 @@ html {
 }
 
 @media (max-width: 768px) {
-  .custom-carousel .react-multi-carousel-item {
-    flex: 0 0 100% !important;
-    max-width: 100% !important;
-    display: flex !important;
-    justify-content: center;
-  }
-
-  .custom-carousel .react-multi-carousel-track,
-  .custom-carousel .react-multiple-carousel-list {
-    margin-left: 0 !important;
-    padding: 0 !important;
-    overflow: visible !important;
+  .our-sellers-wrapper {
+    padding: 1rem 0.5rem;
   }
 
   .our-sellers-carousel-container {
-    padding: 0 !important;
-    overflow: visible !important;
+    padding: 0 0.5rem;
+  }
+
+  .carousel-card-wrapper {
+    padding: 0 5px;
   }
 
   .custom-carousel .react-multiple-carousel__arrow {
-    top: 45%;
+    top: 35%;
     transform: scale(0.7);
   }
 
   .product-card {
-    min-width: auto;
-    width: 100%;
-  }
-
-  .custom-carousel {
-    padding-bottom: 0 !important;
+    min-width: 90vw; /* Ensures full width usage */
   }
 }
-
-  /* 5️⃣ Reduce unnecessary top/bottom spacing */
-  .our-sellers-wrapper,
-  .our-sellers-carousel-container {
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
-  }
-
-  /* 6️⃣ Limit product card max-height */
-  .product-card {
-    max-height: 90vh; /* Avoids pushing everything off-screen */
-    overflow: hidden;
-  }
-
-  /* 7️⃣ Ensure arrow buttons remain accessible */
-  .custom-carousel .react-multiple-carousel__arrow {
-    position: absolute;
-    top: 50% !important;
-    transform: translateY(-50%) scale(0.8);
-  }
-
-
-@media (max-width: 768px) {
-  /* 🔧 Force height reset to allow content to show */
-  .custom-carousel .react-multi-carousel-track {
-    min-height: 400px !important;
-  }
-
-  /* ✅ Make sure the wrapper and container don't cut off content */
-  .our-sellers-wrapper,
-  .our-sellers-carousel-container {
-    overflow: visible !important;
-    height: auto !important;
-    min-height: 450px;
-  }
-
-  /* 📦 Make sure .p-4 wrapper doesn’t collapse */
-  .custom-carousel .p-4 {
-    min-height: 420px;
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
-  }
-
-  /* ✨ Optional: Reduce bottom margin for cleaner scroll */
-  .custom-carousel {
-    margin-bottom: 1rem;
-  }
-}
-
-
-@media (max-width: 768px) {
-  .custom-carousel .react-multi-carousel-track,
-  .custom-carousel .react-multiple-carousel-track {
-    min-height: 350px !important;
-  }
-}
-
-@media (max-width: 768px) {
-  /* Force wrappers to expand */
-  .custom-carousel,
-  .oursellers-wrapper,
-  .react-multi-carousel-list,
-  .react-multi-carousel-track {
-    height: auto !important;
-    overflow: visible !important;
-  }
-
-  /* Let each slide show its content */
-  .custom-carousel .react-multi-carousel-item,
-  .custom-carousel .react-multiple-carousel-item {
-    display: flex !important;
-    justify-content: center;
-    height: auto !important;
-    overflow: visible !important;
-    min-height: 350px;
-  }
-}
-
-
-
 
 
