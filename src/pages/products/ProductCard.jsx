@@ -215,4 +215,3 @@ style={{ transform: "none" }}
 export default ProductCard;
 
 
-<div className="relative w-full aspect-[3/4] overflow-hidden bg-white"></div>
