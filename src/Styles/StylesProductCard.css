@@ -241,4 +241,20 @@
   }
   
 
-  
+  @media (max-width: 768px) {
+  .product-card {
+    margin-top: 1rem !important; /* Push card down slightly to avoid badge cutoff */
+  }
+
+  .product-card .absolute.top-2.left-2 {
+    top: 0.75rem !important;  /* Lower the badge group slightly */
+    left: 0.75rem !important;
+    z-index: 10;
+  }
+
+  .product-card .absolute.top-2.left-2 span {
+    font-size: 0.7rem !important;
+    padding: 0.2rem 0.5rem !important;
+    line-height: 1;
+  }
+}
