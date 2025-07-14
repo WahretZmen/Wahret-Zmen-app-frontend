@@ -216,4 +216,4 @@ style={{ transform: "none" }}
 export default ProductCard;
 
 
-absolute top-2
+
