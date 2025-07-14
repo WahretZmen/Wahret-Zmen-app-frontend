@@ -86,10 +86,8 @@ const ProductCard = ({ product }) => {
 
 
   return (
-   <div className="product-card group relative bg-white border border-gray-200 overflow-hidden transition-all duration-300 max-w-[250px] w-full mx-auto">
-
-    <div className="relative w-full overflow-hidden bg-white">
-
+    <div className="product-card group relative bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-500 hover:shadow-2xl hover:scale-[1.03] max-w-xs w-full mx-auto">
+      <div className="relative w-full h-52 overflow-hidden">
         <Link to={`/products/${product._id}`} className="block w-full h-full">
           <img
             src={getImgUrl(product?.coverImage)}
@@ -97,14 +95,19 @@ const ProductCard = ({ product }) => {
             onMouseEnter={handleMouseEnter}
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
-            className="w-full object-contain transition duration-300 md:max-h-[60vw]"
-style={{ transform: "none" }}
+            className={`w-full h-full object-contain p-2 transition-transform duration-500 ${
+              isHovering ? "cursor-wz-zoom" : "cursor-default"
+            }`}
+            
+            style={{
+              transform: isHovering ? "scale(2)" : "scale(1)",
+              transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
+            }}
           />
         </Link>
   
         {/* Stock + Trending */}
-        <div className="absolute top-2 left-4 flex flex-col gap-1 z-20">
-
+        <div className="absolute top-2 left-2 flex flex-col gap-1">
           <span
             className={`text-xs font-semibold px-2 py-1 rounded-full text-white ${
               displayedStock > 0 ? "bg-green-600" : "bg-red-500"
@@ -137,8 +140,7 @@ style={{ transform: "none" }}
   
       <div className="p-4 text-center space-y-2">
         <Link to={`/products/${product._id}`}>
-         <h3 className="text-base font-semibold text-gray-900 hover:text-[#8B5C3E]">
-
+          <h3 className="text-lg font-bold text-gray-800 hover:text-[#8B5C3E] transition-colors duration-300">
             {title}
           </h3>
         </Link>
@@ -169,8 +171,7 @@ style={{ transform: "none" }}
           </div>
         )}
   
-        <div className="text-sm font-bold text-gray-900 mt-1">
-
+        <div className="text-lg font-semibold text-[#8B5C3E]">
           {product?.newPrice} DT
           {product?.oldPrice && (
             <span className="text-gray-400 text-sm line-through ml-2">
@@ -214,6 +215,5 @@ style={{ transform: "none" }}
 };
 
 export default ProductCard;
-
 
 

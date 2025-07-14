@@ -6,7 +6,7 @@
     overflow: hidden;
     transition: transform 0.35s ease, box-shadow 0.35s ease;
     width: 100%;
-    max-width: 100%;
+    max-width: 320px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
@@ -15,20 +15,6 @@
     position: relative;
     animation: fadeInCard 0.8s ease-in-out;
   }
-
-  .product-badge {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 10;
-  background-color: #22c55e;
-  color: white;
-  font-weight: 600;
-  padding: 5px 10px;
-  border-radius: 9999px;
-  font-size: 0.8rem;
-}
-
   
   @keyframes fadeInCard {
     from {
@@ -45,11 +31,6 @@
     transform: scale(1.04);
     box-shadow: 0 10px 28px rgba(0, 0, 0, 0.15);
   }
-
-  .product-card img {
-  background-color: #fff;
-  padding: 10px;
-}
   
   .product-image-container {
     position: relative;
@@ -255,63 +236,3 @@
   
 
   
- 
-  @media (max-width: 768px) {
-  .product-card {
-    width: 110vw !important;           /* wider than viewport */
-    max-width: 110vw;
-    flex: 0 0 auto !important;
-    margin: 0 auto;
-    overflow: visible !important;
-  }
-}
-
-
-  .carousel-container {
-    display: flex !important;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-  }
-
-@media (max-width: 768px) {
-  .product-card {
-    width: 90vw !important;
-    max-width: 100%;
-    margin: 0 auto;
-  }
-
-  .product-card img {
-    width: 100%;
-    height: auto;
-    object-fit: contain;
-  }
-}
-
-@media (max-width: 768px) {
-  .grid {
-    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
-    justify-items: center;
-    align-items: start;
-    overflow-x: visible;
-  }
-}
-
-@media (max-width: 768px) {
-  .product-badge {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 10;
-    font-size: 0.75rem;
-    padding: 4px 8px;
-    background-color: #22c55e; /* green-500 */
-    color: white;
-    border-radius: 9999px;
-    max-width: 90%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-}
