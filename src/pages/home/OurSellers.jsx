@@ -93,7 +93,7 @@ const OurSellers = () => {
             >
               {filteredProducts.map((product, index) => (
   <FadeInSection key={index} delay={index * 0.1} duration={0.6} yOffset={30}>
-    <div className="px-0 sm:px-4">
+    <div className="p-4">
       <ProductCard product={product} />
     </div>
   </FadeInSection>
