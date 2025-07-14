@@ -160,28 +160,39 @@ html {
 }
 
 @media (max-width: 768px) {
-  /* 1️⃣ Make each carousel card use full width */
   .custom-carousel .react-multi-carousel-item {
     flex: 0 0 100% !important;
     max-width: 100% !important;
+    display: flex !important;
+    justify-content: center;
   }
 
-  /* 2️⃣ Remove horizontal padding around cards */
-  .custom-carousel .p-4 {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-  }
-
-  /* 3️⃣ Ensure carousel track starts at zero */
-  .custom-carousel .react-multi-carousel-track {
+  .custom-carousel .react-multi-carousel-track,
+  .custom-carousel .react-multiple-carousel-list {
     margin-left: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
   }
 
-  /* 4️⃣ Prevent vertical overflow */
-  .custom-carousel {
-    overflow-y: visible !important;
-    padding-bottom: 1rem;
+  .our-sellers-carousel-container {
+    padding: 0 !important;
+    overflow: visible !important;
   }
+
+  .custom-carousel .react-multiple-carousel__arrow {
+    top: 45%;
+    transform: scale(0.7);
+  }
+
+  .product-card {
+    min-width: auto;
+    width: 100%;
+  }
+
+  .custom-carousel {
+    padding-bottom: 0 !important;
+  }
+}
 
   /* 5️⃣ Reduce unnecessary top/bottom spacing */
   .our-sellers-wrapper,
@@ -259,3 +270,8 @@ html {
     min-height: 350px;
   }
 }
+
+
+
+
+

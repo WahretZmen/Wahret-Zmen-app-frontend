@@ -88,7 +88,7 @@ const ProductCard = ({ product }) => {
   return (
    <div className="product-card group relative bg-white border border-gray-200 overflow-hidden transition-all duration-300 max-w-[250px] w-full mx-auto">
 
-     <div className="relative w-full aspect-[3/4] overflow-hidden bg-white">
+    <div className="relative w-full overflow-hidden bg-white">
 
         <Link to={`/products/${product._id}`} className="block w-full h-full">
           <img
@@ -97,7 +97,7 @@ const ProductCard = ({ product }) => {
             onMouseEnter={handleMouseEnter}
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
-            className={`w-full h-full object-contain transition duration-300`}
+            className="w-full object-contain transition duration-300 md:max-h-[60vw]"
 style={{ transform: "none" }}
           />
         </Link>
@@ -215,3 +215,4 @@ style={{ transform: "none" }}
 export default ProductCard;
 
 
+<div className="relative w-full aspect-[3/4] overflow-hidden bg-white"></div>
