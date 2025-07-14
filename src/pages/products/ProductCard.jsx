@@ -16,7 +16,9 @@ const ProductCard = ({ product }) => {
   if (!i18n.isInitialized) return null;
   const [quantity, setQuantity] = useState(1);
 
- 
+  // ✅ Zoom state
+  const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 });
+  const [isHovering, setIsHovering] = useState(false);
 
   if (!product) return null;
 
@@ -65,7 +67,21 @@ const ProductCard = ({ product }) => {
     }
   };
 
-  
+  // 🖱️ Zoom handlers (hover only)
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setZoomPosition({ x, y });
+  };
+
+  const handleMouseEnter = () => setIsHovering(true);
+
+  const handleMouseLeave = () => {
+    setIsHovering(false);
+    setZoomPosition({ x: 50, y: 50 });
+  };
+
 
 
 
@@ -77,9 +93,17 @@ const ProductCard = ({ product }) => {
           <img
             src={getImgUrl(product?.coverImage)}
             alt={title}
+            onMouseEnter={handleMouseEnter}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+            className={`w-full h-full object-contain p-2 transition-transform duration-500 ${
+              isHovering ? "cursor-wz-zoom" : "cursor-default"
+            }`}
             
-            className={`w-full h-full object-contain transition duration-300`}
-style={{ transform: "none" }}
+            style={{
+              transform: isHovering ? "scale(2)" : "scale(1)",
+              transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
+            }}
           />
         </Link>
   
@@ -117,7 +141,7 @@ style={{ transform: "none" }}
   
       <div className="p-4 text-center space-y-2">
         <Link to={`/products/${product._id}`}>
-          <h3 className="text-base font-semibold text-gray-900 hover:text-[#8B5C3E]">
+          <h3 className="text-lg font-bold text-gray-800 hover:text-[#8B5C3E] transition-colors duration-300">
             {title}
           </h3>
         </Link>
@@ -148,8 +172,7 @@ style={{ transform: "none" }}
           </div>
         )}
   
-        <div className="text-sm font-bold text-gray-900 mt-1">
-
+        <div className="text-lg font-semibold text-[#8B5C3E]">
           {product?.newPrice} DT
           {product?.oldPrice && (
             <span className="text-gray-400 text-sm line-through ml-2">
@@ -195,4 +218,3 @@ style={{ transform: "none" }}
 export default ProductCard;
 
 
-<div className="text-lg font-semibold text-[#8B5C3E]"></div>
