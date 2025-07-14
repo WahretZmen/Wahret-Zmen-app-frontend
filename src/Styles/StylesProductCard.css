@@ -241,15 +241,12 @@
   
 
   @media (max-width: 768px) {
+  @media (max-width: 768px) {
   .product-card {
-    flex: 0 0 88vw !important;
-    max-width: 88vw;
-    scroll-snap-align: start;
-    box-sizing: border-box;
+    flex: 0 0 85vw !important;
+    max-width: 85vw;
     margin: 0 auto;
-    padding-left: 10px; /* Espace pour badge */
-    padding-right: 10px;
-    overflow: visible;
+    overflow: visible !important;
   }
 
   .carousel-container {

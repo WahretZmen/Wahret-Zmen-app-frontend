@@ -160,8 +160,9 @@ html {
 }
 
 @media (max-width: 768px) {
-  .our-sellers-wrapper {
-    padding: 1.5rem 1rem;
+  .carousel-card-wrapper {
+    padding: 0 24px !important;
+    overflow: visible !important;
   }
 
   .our-sellers-carousel-container {
@@ -169,13 +170,8 @@ html {
     overflow: visible !important;
   }
 
-  .carousel-card-wrapper {
-    padding: 0 20px; /* ⬅️ Augmenté pour espace gauche/droite */
-    overflow: visible;
-  }
-
   .custom-carousel .react-multiple-carousel__arrow {
-    top: 35%;
+    top: 40%;
     transform: scale(0.75);
     z-index: 1000;
   }
