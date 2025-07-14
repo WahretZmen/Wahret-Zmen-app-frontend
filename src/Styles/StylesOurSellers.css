@@ -183,3 +183,18 @@ html {
 }
 
 
+@media (max-width: 768px) {
+  .custom-carousel .react-multi-carousel-item {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+  }
+
+  .custom-carousel .react-multi-carousel-track {
+    margin-left: 0 !important;
+  }
+
+  .custom-carousel .p-4 {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+}
