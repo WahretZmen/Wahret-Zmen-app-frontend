@@ -240,14 +240,18 @@
   }
   
 
-  @media (max-width: 768px) {
+  
+ 
   @media (max-width: 768px) {
   .product-card {
-    flex: 0 0 85vw !important;
-    max-width: 85vw;
+    width: 110vw !important;           /* wider than viewport */
+    max-width: 110vw;
+    flex: 0 0 auto !important;
     margin: 0 auto;
     overflow: visible !important;
   }
+}
+
 
   .carousel-container {
     display: flex !important;
