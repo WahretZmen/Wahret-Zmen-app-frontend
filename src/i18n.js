@@ -242,7 +242,8 @@ i18n
           
         }
       },
-    
+
+
      fr: {
   translation: {
     navbar: { brand: "Wahret Zmen" },
@@ -379,6 +380,8 @@ i18n
         }
       }
     },
+ 
+      
 
 
           footer: {
@@ -612,8 +615,9 @@ changePassword: {
 
 "checkout": {
   "title": "Paiement sécurisé",
+  "subtitle": "Finalisez votre commande en toute sécurité",
   "payment_method": "Paiement à la livraison",
-  "total_price": "Prix total:",
+  "total_price": "Prix total :",
   "items": "Articles",
   "personal_details": "Informations personnelles",
   "full_name": "Nom complet",
@@ -632,27 +636,63 @@ changePassword: {
   "place_order": "Passer la commande",
   "processing": "Traitement de votre commande...",
   "order_confirmed": "Commande confirmée",
-  "success_message": "Votre commande a été passée avec succès!",
+  "success_message": "Votre commande a été passée avec succès !",
   "go_to_orders": "Voir les commandes",
-  "error_title": "Erreur!",
-  "error_message": "Échec de la commande"
+  "error_title": "Erreur !",
+  "error_message": "Échec de la commande",
+
+  "cod_title": "Paiement à la livraison",
+  "cod_desc": "Vous réglez en espèces lors de la livraison. Aucun paiement en ligne n’est requis.",
+  "cod_point1": "Préparez si possible le montant exact.",
+  "cod_point2": "Notre livreur vous contactera avant d’arriver.",
+  "cod_point3": "Les retours et échanges suivent notre politique habituelle.",
+
+  "security_note": "Sécurisé & Chiffré :",
+  "security_desc": "Vos informations personnelles sont transmises en toute sécurité.",
+
+  "delivery_info_title": "Informations de livraison",
+  "delivery_info_desc": "Livraison standard en 24–72 h selon votre ville."
 },
 
-          about: {
-            title: "À propos de nous",
-            description: "Jebba tunisienne authentique, brodée à la main avec une touche traditionnelle et une vision moderne en soie naturelle.",
-            mission_title: "Notre mission",
-            mission_text1: "Une jebba du cœur de la médina de Tunis, confectionnée par des mains tunisiennes – du producteur au consommateur.",
-            mission_text2: "Tout ce qui est authentique est une fierté pour l’artisanat tunisien. Nous faisons tout notre possible pour préserver ce métier noble : la fabrication du vêtement traditionnel.",
-            crafted_title: "Nos produits",
-            crafted_text1: "Jebba, farmla, serwal arbi, barnous, balgha, kantra, mentane, chapelet d’ambre…",
-            crafted_text2: "Tous ces produits sont réalisés par des artisans spécialisés dans l’art ancien revisité avec une touche contemporaine.",
-            behind_title: "Au cœur de la Médina",
-            behind_text: "Nous sommes situés au cœur de la Médina de Tunis, près de la Mosquée Zitouna, Hammam El Kachachine, Café El Khattab, Café El Anba, et l’Association Coranique.",
-            join_title: "Rejoignez l'héritage",
-            join_text1: "Chaque pièce reflète l’histoire et l’identité tunisienne.",
-            join_text2: "Découvrez l’élégance authentique avec une touche moderne de Wahret Zmen."
-          },
+about: {
+  title: "À propos de nous",
+  description: "Jebba tunisienne authentique, brodée à la main, mêlant héritage traditionnel et vision moderne en soie naturelle.",
+
+  /* Hero/sections */
+  mission_title: "Notre mission",
+  mission_text1: "Une jebba venue du cœur de la médina de Tunis, façonnée par des mains tunisiennes — du producteur au consommateur.",
+  mission_text2: "Tout ce qui est authentique honore l’artisanat tunisien. Nous œuvrons chaque jour à préserver ce métier noble : la confection du vêtement traditionnel.",
+  crafted_title: "Nos produits",
+  crafted_text1: "Jebba, farmla, serwal arbi, barnous, balgha, kantra, mentane, chapelet d’ambre…",
+  crafted_text2: "Chaque pièce est réalisée par des artisans spécialisés, alliant savoir-faire ancien et touche contemporaine.",
+  behind_title: "Au cœur de la Médina",
+  behind_text: "Nous sommes établis au centre de la Médina de Tunis, près de la Mosquée Zitouna, Hammam El Kachachine, Café El Khattab, Café El Anba et l’Association Coranique.",
+  join_title: "Rejoignez l’héritage",
+  join_text1: "Chaque création reflète l’histoire et l’identité tunisiennes.",
+  join_text2: "Vivez l’élégance authentique avec la touche moderne de Wahret Zmen.",
+
+  /* Values */
+  values_title: "Nos valeurs",
+  values_sub: "Ces principes fondamentaux guident tout notre travail — de la sélection des matières au contrôle qualité final de chaque jebba.",
+  v1_title: "Héritage & Tradition",
+  v1_text: "Nous honorons un savoir-faire tunisien séculaire, en préservant des techniques authentiques transmises de génération en génération.",
+  v2_title: "Qualité Intransigeante",
+  v2_text: "Chaque jebba subit des contrôles rigoureux pour répondre à nos exigences d’excellence et de durabilité.",
+  v3_title: "Excellence Artisanale",
+  v3_text: "Nos maîtres artisans mettent des décennies d’expérience au service de chaque point — des pièces qui relèvent de l’art à porter.",
+  v4_title: "Approche Centrée Client",
+  v4_text: "Nous cultivons une relation de confiance et un service personnalisé pour assurer votre entière satisfaction.",
+  v5_title: "Rayonnement Mondial, Racines Locales",
+  v5_text: "Nous servons des clients dans le monde entier, tout en restant profondément ancrés dans la culture tunisienne et le soutien aux artisans locaux.",
+  v6_title: "Design Intemporel",
+  v6_text: "L’élégance traditionnelle rencontre la modernité — des pièces qui traversent saisons et tendances.",
+
+  /* Gallery */
+  gallery_title: "Boutique & Atelier — Houmet Essouk",
+  gallery_intro: "Un aperçu de notre univers au cœur de la médina : la vitrine, l’atelier et les ruelles intemporelles de Houmet Essouk.",
+  gallery_img_alt: "Image de la galerie"
+},
+
           
 
           "contact": {
@@ -692,7 +732,69 @@ changePassword: {
       orders: "الطلبات",
       logout: "تسجيل الخروج",
 
+
       
+
+      Welcome_Banner_title: "مرحبًا بكم في وهرة الزّمان",
+      banner_img_alt: "لافتة وهرة الزّمان التقليدية",
+
+      loading: { brand_loading: "وهرة الزّمان..." },
+
+      select_category: "اختر الفئة",
+      categories: { all: "الكل", men: "رجال", women: "نساء", children: "أطفال" },
+      product_filters: {
+        label: "اختر المنتجات",
+        men: "رجال",
+        women: "نساء",
+        children: "أطفال",
+        all: "الكل"
+      },
+
+      search_input: { placeholder: "ابحث عن المنتجات..." },
+
+      contentshowcase: {
+        showcase_aria: "مجموعات مميزة",
+        showcase_title: "أناقة خالدة، إرث حيّ",
+        showcase_subtitle:
+          "اكتشفوا قطعًا راقية صُنعت بشغف و<strong>بخبرة تونسية</strong>.",
+        badge_artisan: "حِرَفِي",
+        badge_fait_main: "صُنع يدوي",
+        badge_nouveaute: "جديد",
+        cs_hommes_alt: "جبّة رجالية",
+        cs_hommes_title: "مجموعة الرجال",
+        cs_hommes_desc:
+          "قصّات نبيلة وأقمشة فاخرة لإطلالة <strong>راقية</strong>. كل تفصيلة تحكي حكاية.",
+        shop_men: "اكتشف الرجال",
+        cs_femmes_alt: "جبّة نسائية",
+        cs_femmes_title: "مجموعة النساء",
+        cs_femmes_desc:
+          "قصّات رشيقة وتطريزات أنيقة وأناقة <strong>طبيعية</strong> تُميّز كل لحظة.",
+        shop_women: "اكتشف النساء",
+        cs_enfants_alt: "جبّة أطفال",
+        cs_enfants_title: "مجموعة الأطفال",
+        cs_enfants_desc:
+          "راحة ونعومة وتقاليد للصغار — <strong>إرث</strong> يُرتدى بفخر.",
+        shop_children: "اكتشف الأطفال",
+        cs_cta_text: "خصّصوا إطلالتكم: ألوان وتطريزات ومقاسات حسب الطلب.",
+        browse_all: "عرض كل المنتجات"
+      },
+
+      footer: {
+        brand: "وهرة الزّمان",
+        description:
+          "ملابس تقليدية تونسية تجمع بين التراث والأناقة العصرية. موقعنا: سوق السوف، تونس.",
+        quickLinks: "روابط سريعة",
+        home: "الرئيسية",
+        products: "المنتجات",
+        about: "من نحن",
+        contact: "اتصل بنا",
+        contactUs: "اتصل بنا",
+        location: "سوق السوف، تونس",
+        followUs: "تابعونا",
+        rights: "جميع الحقوق محفوظة."
+      },
+
+
           home_title: "وهرة الزّمان - الملابس التقليدية وبائعونا",
           home_meta_description: "مرحبًا بكم في وهرة الزّمان، استكشفوا مجموعتنا من الملابس التقليدية، والوافدات الجديدة، وآخر صيحات الموضة.",
           home_intro_html: "مرحبًا بكم في <strong>بوتيك وهرة الزّمان</strong>، حيث تلتقي التقاليد بالأناقة. اكتشفوا ملابسنا المصنوعة يدويًا، المستوحاة من التراث الثقافي التونسي الغني. عيشوا تجربة أزياء خالدة تمزج بين التاريخ والرقي الحديث.",
@@ -721,6 +823,7 @@ changePassword: {
 
          
          
+
 
 
       loading: { brand_loading: "وهرة الزّمان..." },
@@ -782,7 +885,7 @@ changePassword: {
         about: "من نحن",
         contact: "اتصل بنا",
         contactUs: "اتصل بنا",
-        location: "سوق السوف، تونس",
+        location: "سوق الّصوف، تونس",
         followUs: "تابعونا",
         rights: "جميع الحقوق محفوظة."
       },
@@ -802,6 +905,19 @@ changePassword: {
         explore: "اكتشف المجموعة",
         learn: "تعرّف على قصتنا"
       },
+
+          
+            largebanner: {
+  banner_aria: "قسم البانر الرئيسي",
+  banner_img_alt: "لافتة مجموعة الجبب التقليدية",
+  brand: "وهرة الزّمان",
+  by_sabri: "بإدارة صبري",
+  description:
+    "اكتشفوا مجموعتنا الراقية من الجبب التقليدية، حيث تلتقي الأناقة الخالدة بالحرفية العصرية. كل قطعة تحكي قصة تراث وأسلوب.",
+  explore: "اكتشف المجموعة",
+  learn: "تعرّف على قصتنا"
+},
+
       
           
         
@@ -1070,6 +1186,7 @@ changePassword: {
 
 "checkout": {
   "title": "إتمام الطلب الآمن",
+  "subtitle": "أكمل طلبك بأمان",
   "payment_method": "الدفع عند الاستلام",
   "total_price": "السعر الإجمالي:",
   "items": "المنتجات",
@@ -1093,27 +1210,60 @@ changePassword: {
   "success_message": "تم إرسال طلبك بنجاح!",
   "go_to_orders": "عرض الطلبات",
   "error_title": "خطأ!",
-  "error_message": "فشل في إرسال الطلب"
+  "error_message": "فشل في إرسال الطلب",
+
+  "cod_title": "الدفع عند الاستلام",
+  "cod_desc": "تدفع نقدًا عند تسليم الطلب. لا حاجة إلى دفع إلكتروني.",
+  "cod_point1": "يُفضّل تجهيز المبلغ الكامل إن أمكن.",
+  "cod_point2": "سيتواصل معك مندوب التوصيل قبل الوصول.",
+  "cod_point3": "الإرجاع والاستبدال يخضعان لسياسة المتجر المعتادة.",
+
+  "security_note": "آمن ومشفّر:",
+  "security_desc": "تُنقَل معلوماتك الشخصية بشكلٍ آمن.",
+
+  "delivery_info_title": "معلومات التوصيل",
+  "delivery_info_desc": "توصيل قياسي خلال 24–72 ساعة حسب المدينة."
+}
+,
+
+        about: {
+  title: "حولنا",
+  description: "جبّة تونسية أصيلة، مطرّزة يدويًا بلمسة تقليدية ورؤية عصرية من الحرير الطبيعي.",
+
+  /* Hero/sections */
+  mission_title: "مهمتنا",
+  mission_text1: "جبّة من قلب المدينة العتيقة في تونس، صنعت بأيادٍ تونسية — من المنتج إلى المستهلك.",
+  mission_text2: "كل ما هو أصيل هو فخر للصناعات التقليدية التونسية. نبذل قصارى جهدنا للحفاظ على هذا الموروث النبيل: صناعة اللباس التقليدي.",
+  crafted_title: "منتجاتنا",
+  crafted_text1: "جبّة، فرملة، سروال عربي، برنوس، بلغة، كنترة، منتان، مسبحة عنبر…",
+  crafted_text2: "كل هذه المنتجات تُصنع على أيدي حرفيين مختصين يمزجون الفن العريق بروح عصرية.",
+  behind_title: "في قلب المدينة",
+  behind_text: "نحن متواجدون في قلب المدينة العتيقة بتونس، بجوار جامع الزيتونة، حمام الكشّاشين، مقهى الخطاب، مقهى العنبة، والرابطة القرآنية.",
+  join_title: "انضموا إلى الإرث",
+  join_text1: "كل قطعة تعكس تاريخ تونس وهويتها.",
+  join_text2: "اكتشفوا الأناقة الأصيلة مع لمسة عصرية من وهرة الزمان.",
+
+  /* Values */
+  values_title: "قيمنا",
+  values_sub: "هذه المبادئ الأساسية توجه كل ما نقوم به — من اختيار الخامات إلى الفحص النهائي لجودة كل جبّة.",
+  v1_title: "التراث والتقاليد",
+  v1_text: "نكرّم مهارات تونسية عمرها قرون، ونحافظ على تقنيات أصيلة توارثتها الأجيال.",
+  v2_title: "جودة لا تقبل المساومة",
+  v2_text: "تمر كل جبّة بفحوصات صارمة لضمان التميز والمتانة.",
+  v3_title: "براعة حرفية",
+  v3_text: "يضع أساتذتنا الحرفيون خبرة عقود في كل غرزة، لنصنع قطعًا تُعد فنًا يُرتدى.",
+  v4_title: "نهج يركز على العميل",
+  v4_text: "نؤمن ببناء علاقات مع زبائننا، ونقدّم خدمة شخصية تضمن رضاهم الكامل.",
+  v5_title: "انتشار عالمي، جذور محلية",
+  v5_text: "بينما نخدم عملاء حول العالم، نبقى متجذرين في الثقافة التونسية ودعم مجتمعات الحرفيين المحليين.",
+  v6_title: "تصاميم خالدة",
+  v6_text: "تمزج تصاميمنا بين الأناقة التقليدية والحداثة المعاصرة — قطع تتجاوز الزمن والموضة.",
+
+  /* Gallery */
+  gallery_title: "المتجر والورشة — حومة السوق",
+  gallery_intro: "لمحة عن عالمنا في قلب المدينة العتيقة: الواجهة، الورشة، والأزقة الخالدة في حومة السوق.",
+  gallery_img_alt: "صورة من المعرض"
 },
-
-          
-          about: {
-
-            title: "حول وهرة الزّمان",
-            description: "جُبّة تونسيّة أصليّة، بتطريز يدويّ يحمل طابعًا تقليديًّا برؤية عصريّة، مصنوعة من الحرير الطبيعي.",
-            mission_title: "مهمتنا",
-            mission_text1: "جُبّة من قلب المدينة العتيقة بتونس، بأنامل تونسيّة، من المنتج إلى المستهلك.",
-            mission_text2: "كلّ ما هو أصليّ هو فخر للصّناعات التقليديّة التّونسيّة، ونحن نسعى بكلّ جهد للحفاظ على فخر هذه المهنة: صناعة اللّباس التّقليديّ.",
-            crafted_title: "منتوجاتنا",
-            crafted_text1: "جُبّة، فرملة بدعيّة، صدريّة، سروال عربي، برنوس، بلغة، كنترة، منتان، مسبحة عنبر...",
-            crafted_text2: "كلّ هذه المنتوجات تُصنع بأيادٍ مختصّة في كلّ ما هو أصيل وعتيق بروح عصريّة.",
-            behind_title: "من قلب المدينة العتيقة",
-            behind_text: "نحن نوجد في قلب المدينة العتيقة بتونس، بجوار جامع الزيتونة، حمّام الكشّاشين، مقهى الخطاب، مقهى العنبة، والرابطة القرآنيّة... كلّ هذه الأماكن تحيط بنا وتعكس هويّتنا.",
-            join_title: "انضموا إلى إرثنا",
-            join_text1: "كل قطعة تُعبّر عن تاريخ تونس وهويّتها.",
-            join_text2: "ندعوكم لتجربة الأناقة الأصيلة بلمسة عصريّة من Wahret Zmen."
-
-          },
           
           
 
