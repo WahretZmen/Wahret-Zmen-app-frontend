@@ -8,7 +8,7 @@ import getBaseUrl from "../../../utils/baseURL";
 import "../../../Styles/StylesAddProduct.css";
 
 const ALL_SIZES = ["S", "M", "L", "XL"];
-const MAX_IMAGE_SIZE_MB = 20;
+const MAX_IMAGE_SIZE_MB = 50;
 const AUTO_COMPRESS_THRESHOLD_MB = 12;
 
 const ACCEPTED_IMAGE_TYPES = [

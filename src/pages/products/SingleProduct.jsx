@@ -577,491 +577,522 @@ const SingleProduct = () => {
 
   return (
     <div className="sp2-wrap" dir={isRTL ? "rtl" : "ltr"} lang="ar">
-      <div className="sp2-topSearch">
-        <div className="sp2-topSearchInner">
-          <SearchInput setSearchTerm={setSearchTerm} />
+      <FadeInSection delay={0.02} yOffset={22}>
+        <div className="sp2-topSearch sp2-reveal sp2-reveal--hero">
+          <div className="sp2-topSearchInner">
+            <SearchInput setSearchTerm={setSearchTerm} />
 
-          {searchTerm && (
-            <div className="sp2-searchDrop">
-              {filteredProducts.length === 0 ? (
-                <div className="sp2-searchEmpty">لا توجد منتجات مطابقة</div>
-              ) : (
-                <ul className="sp2-searchList">
-                  {filteredProducts.map((p) => {
-                    const rating = Math.max(0, Math.min(5, Math.round(Number(p?.rating ?? 0))));
-                    const title = pickTitle(p);
-
-                    return (
-                      <li key={p._id} className="sp2-searchItem">
-                        <Link
-                          to={`/products/${p._id}`}
-                          onClick={(e) => goToProductReload(e, p._id)}
-                          className="sp2-searchLink"
-                        >
-                          <img
-                            src={getImgUrl(p.coverImage)}
-                            alt=""
-                            className="sp2-searchImg"
-                            loading="lazy"
-                          />
-
-                          <div className="sp2-searchMeta">
-                            <div className="sp2-searchTitle">{title}</div>
-                            <div className="sp2-searchSub">
-                              <span className="sp2-searchStars">{renderStars(rating)}</span>
-                              <span className="sp2-searchId" dir="ltr">
-                                #{displayId(p)}
-                              </span>
-                            </div>
-                          </div>
-
-                          <span className="sp2-searchGo">عرض</span>
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="sp2-container">
-        <div className="sp2-breadcrumb">
-          <Link to="/" className="sp2-crumbLink">
-            الرئيسية
-          </Link>
-
-          <span className="sp2-crumbSep">/</span>
-
-          <Link to={productsCategoryUrl} className="sp2-crumbLink">
-            {categoryAr}
-          </Link>
-
-          {subCategoryText && productsSubCategoryUrl ? (
-            <>
-              <span className="sp2-crumbSep">/</span>
-              <Link to={productsSubCategoryUrl} className="sp2-crumbLink">
-                {subCategoryText}
-              </Link>
-            </>
-          ) : null}
-
-          <span className="sp2-crumbSep">/</span>
-
-          <span className="sp2-crumbText sp2-crumbCurrent">{breadcrumbCurrentLabel}</span>
-
-          {displayId(product) ? (
-            <span className="sp2-crumbId" dir="ltr" title={displayId(product)}>
-              #{displayId(product)}
-            </span>
-          ) : null}
-        </div>
-
-        <div className="sp2-grid">
-          <div className="sp2-left">
-            <div className="sp2-imageCard">
-              <div
-                className="sp2-mainImgWrap sp2-zoomStage"
-                onMouseMove={setZoomVars}
-                onMouseEnter={resetZoomVars}
-                onMouseLeave={resetZoomVars}
-              >
-                {isTrending && <span className="sp2-badge">جديد</span>}
-
-                <img
-                  src={getImgUrl(activeGallery[selectedImageIndex] || selectedColor?.image)}
-                  alt={translatedTitle}
-                  className="sp2-mainImg sp2-zoomImg"
-                  loading="eager"
-                  decoding="async"
-                />
-              </div>
-
-              {activeGallery.length > 1 && (
-                <div className="sp2-thumbsRow" aria-label="صور المنتج">
-                  <button
-                    type="button"
-                    className={`sp2-thumbsNav ${canThumbPrev ? "" : "is-disabled"}`}
-                    onClick={onThumbPrev}
-                    disabled={!canThumbPrev}
-                    aria-label="السابق"
-                  >
-                    ‹
-                  </button>
-
-                  <div className="sp2-thumbsTrack">
-                    {visibleThumbs.map((img, localIdx) => {
-                      const realIdx = thumbStart + localIdx;
-                      const isActive = realIdx === selectedImageIndex;
+            {searchTerm && (
+              <div className="sp2-searchDrop sp2-reveal sp2-reveal--glass">
+                {filteredProducts.length === 0 ? (
+                  <div className="sp2-searchEmpty">لا توجد منتجات مطابقة</div>
+                ) : (
+                  <ul className="sp2-searchList">
+                    {filteredProducts.map((p, idx) => {
+                      const rating = Math.max(0, Math.min(5, Math.round(Number(p?.rating ?? 0))));
+                      const title = pickTitle(p);
 
                       return (
-                        <button
-                          key={img + realIdx}
-                          type="button"
-                          onClick={() => setSelectedImageIndex(realIdx)}
-                          className={`sp2-thumbBtn ${isActive ? "is-active" : ""}`}
-                          aria-label={`صورة ${realIdx + 1}`}
+                        <li
+                          key={p._id}
+                          className="sp2-searchItem sp2-staggerItem"
+                          style={{ "--sp2-stagger": idx }}
                         >
-                          <img src={getImgUrl(img)} alt="" className="sp2-thumbImg" />
-                        </button>
+                          <Link
+                            to={`/products/${p._id}`}
+                            onClick={(e) => goToProductReload(e, p._id)}
+                            className="sp2-searchLink"
+                          >
+                            <img
+                              src={getImgUrl(p.coverImage)}
+                              alt=""
+                              className="sp2-searchImg"
+                              loading="lazy"
+                            />
+
+                            <div className="sp2-searchMeta">
+                              <div className="sp2-searchTitle">{title}</div>
+                              <div className="sp2-searchSub">
+                                <span className="sp2-searchStars">{renderStars(rating)}</span>
+                                <span className="sp2-searchId" dir="ltr">
+                                  #{displayId(p)}
+                                </span>
+                              </div>
+                            </div>
+
+                            <span className="sp2-searchGo">عرض</span>
+                          </Link>
+                        </li>
                       );
                     })}
+                  </ul>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </FadeInSection>
+
+      <div className="sp2-container">
+        <FadeInSection delay={0.04} yOffset={16}>
+          <div className="sp2-breadcrumb sp2-reveal sp2-reveal--soft">
+            <Link to="/" className="sp2-crumbLink">
+              الرئيسية
+            </Link>
+
+            <span className="sp2-crumbSep">/</span>
+
+            <Link to={productsCategoryUrl} className="sp2-crumbLink">
+              {categoryAr}
+            </Link>
+
+            {subCategoryText && productsSubCategoryUrl ? (
+              <>
+                <span className="sp2-crumbSep">/</span>
+                <Link to={productsSubCategoryUrl} className="sp2-crumbLink">
+                  {subCategoryText}
+                </Link>
+              </>
+            ) : null}
+
+            <span className="sp2-crumbSep">/</span>
+
+            <span className="sp2-crumbText sp2-crumbCurrent">{breadcrumbCurrentLabel}</span>
+
+            {displayId(product) ? (
+              <span className="sp2-crumbId" dir="ltr" title={displayId(product)}>
+                #{displayId(product)}
+              </span>
+            ) : null}
+          </div>
+        </FadeInSection>
+
+        <div className="sp2-grid">
+          <FadeInSection delay={0.05} yOffset={28}>
+            <div className="sp2-left">
+              <div className="sp2-imageCard sp2-reveal sp2-reveal--cinema">
+                <div
+                  className="sp2-mainImgWrap sp2-zoomStage"
+                  onMouseMove={setZoomVars}
+                  onMouseEnter={resetZoomVars}
+                  onMouseLeave={resetZoomVars}
+                >
+                  {isTrending && <span className="sp2-badge">جديد</span>}
+                  <span className="sp2-imageGlow" aria-hidden="true" />
+
+                  <img
+                    src={getImgUrl(activeGallery[selectedImageIndex] || selectedColor?.image)}
+                    alt={translatedTitle}
+                    className="sp2-mainImg sp2-zoomImg"
+                    loading="eager"
+                    decoding="async"
+                  />
+                </div>
+
+                {activeGallery.length > 1 && (
+                  <div className="sp2-thumbsRow" aria-label="صور المنتج">
+                    <button
+                      type="button"
+                      className={`sp2-thumbsNav ${canThumbPrev ? "" : "is-disabled"}`}
+                      onClick={onThumbPrev}
+                      disabled={!canThumbPrev}
+                      aria-label="السابق"
+                    >
+                      ‹
+                    </button>
+
+                    <div className="sp2-thumbsTrack">
+                      {visibleThumbs.map((img, localIdx) => {
+                        const realIdx = thumbStart + localIdx;
+                        const isActive = realIdx === selectedImageIndex;
+
+                        return (
+                          <button
+                            key={img + realIdx}
+                            type="button"
+                            onClick={() => setSelectedImageIndex(realIdx)}
+                            className={`sp2-thumbBtn ${isActive ? "is-active" : ""}`}
+                            aria-label={`صورة ${realIdx + 1}`}
+                          >
+                            <img src={getImgUrl(img)} alt="" className="sp2-thumbImg" />
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <button
+                      type="button"
+                      className={`sp2-thumbsNav ${canThumbNext ? "" : "is-disabled"}`}
+                      onClick={onThumbNext}
+                      disabled={!canThumbNext}
+                      aria-label="التالي"
+                    >
+                      ›
+                    </button>
                   </div>
+                )}
+              </div>
+            </div>
+          </FadeInSection>
+
+          <FadeInSection delay={0.08} yOffset={24}>
+            <div className="sp2-right sp2-reveal sp2-reveal--side">
+              <div className="sp2-titleBlock">
+                <span className="sp2-titleKicker">Wahret Zmen</span>
+                <h1 className="sp2-title">{translatedTitle}</h1>
+              </div>
+
+              <div className="sp2-idHero">
+                <div className="sp2-idHeroLabel">مرجع المنتج</div>
+                <div className="sp2-idHeroValue" dir="ltr">
+                  #{displayId(product)}
+                </div>
+              </div>
+
+              {subCategoryText && (
+                <div className="sp2-subCategoryRow">
+                  <span className="sp2-subCategoryLabel">نوع القطعة:</span>
+                  <span className="sp2-subCategoryValue">{subCategoryText}</span>
+                </div>
+              )}
+
+              <div className="sp2-priceHeader">
+                <div className="sp2-priceLabel">السعر</div>
+
+                <a
+                  className="sp2-vendorBtn"
+                  href="/contact"
+                  aria-label="اتصل بالبائع +216 55 495 816"
+                  title="اتصل بالبائع"
+                >
+                  <FiPhoneCall />
+                  <span>اتصل بالبائع</span>
+                  <strong dir="ltr">+216 55 495 816</strong>
+                </a>
+              </div>
+
+              <div className="sp2-priceHint">لمعرفة السعر، الرجاء الاتصال بالبائع.</div>
+
+              <div className="sp2-ratingRow sp2-ratingRowBig">
+                <span className="sp2-ratingLabel">التقييم:</span>
+                <span className="sp2-ratingStars">{renderStars(ratingValue, true)}</span>
+                <span className="sp2-ratingNum">({ratingValue})</span>
+              </div>
+
+              <div className="sp2-shareBlock" aria-label="مشاركة المنتج">
+                <div className="sp2-shareTitle">شارك المنتج</div>
+
+                <div className="sp2-shareRow">
+                  <button
+                    type="button"
+                    className="sp2-shareBtn is-fb"
+                    onClick={() => openShare(fbShare)}
+                    aria-label="مشاركة على فيسبوك"
+                    title="Facebook"
+                  >
+                    <FiFacebook />
+                    <span>Facebook</span>
+                  </button>
 
                   <button
                     type="button"
-                    className={`sp2-thumbsNav ${canThumbNext ? "" : "is-disabled"}`}
-                    onClick={onThumbNext}
-                    disabled={!canThumbNext}
-                    aria-label="التالي"
+                    className="sp2-shareBtn is-tw"
+                    onClick={() => openShare(twShare)}
+                    aria-label="مشاركة على تويتر"
+                    title="Twitter"
                   >
-                    ›
+                    <FiTwitter />
+                    <span>Twitter</span>
                   </button>
+
+                  <button
+                    type="button"
+                    className="sp2-shareBtn is-wa"
+                    onClick={() => openShare(waShare)}
+                    aria-label="مشاركة على واتساب"
+                    title="WhatsApp"
+                  >
+                    <span className="sp2-mini">WA</span>
+                    <span>WhatsApp</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="sp2-shareBtn is-ig"
+                    onClick={() => copyLink(true)}
+                    aria-label="مشاركة على إنستغرام (نسخ الرابط)"
+                    title="Instagram (Copy Link)"
+                  >
+                    <FiInstagram />
+                    <span>Instagram</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="sp2-shareBtn is-link"
+                    onClick={() => copyLink(true)}
+                    aria-label="نسخ رابط المنتج"
+                    title="Copy Link"
+                  >
+                    <FiLink />
+                    <span>نسخ الرابط</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </FadeInSection>
+        </div>
+
+        <FadeInSection delay={0.05} yOffset={22}>
+          <section className="sp2-tabs sp2-reveal sp2-reveal--section">
+            <div className="sp2-tabHead">
+              <button
+                type="button"
+                className={`sp2-tabBtn ${activeTab === "desc" ? "is-active" : ""}`}
+                onClick={() => setActiveTab("desc")}
+              >
+                الوصف
+              </button>
+
+              <button
+                type="button"
+                className={`sp2-tabBtn ${activeTab === "details" ? "is-active" : ""}`}
+                onClick={() => setActiveTab("details")}
+              >
+                تفاصيل المنتج
+              </button>
+
+              <button
+                type="button"
+                className={`sp2-tabBtn ${activeTab === "comments" ? "is-active" : ""}`}
+                onClick={() => setActiveTab("comments")}
+              >
+                التعليقات
+              </button>
+            </div>
+
+            <div className="sp2-tabBody">
+              {activeTab === "desc" && (
+                <div className="sp2-descBox sp2-tabPaneReveal" key="desc">
+                  <div className="sp2-descTitle">وصف المنتج</div>
+                  <div className="sp2-descText">{translatedDescription}</div>
+                </div>
+              )}
+
+              {activeTab === "details" && (
+                <div className="sp2-detailsPro sp2-tabPaneReveal" key="details">
+                  <div className="sp2-detailsTop">
+                    <div className="sp2-detailsRef">
+                      <span>المرجع</span>
+                      <strong dir="ltr">#{displayId(product)}</strong>
+                    </div>
+                  </div>
+
+                  <div className="sp2-detailsTitle">المواصفات التقنية</div>
+
+                  {subCategoryText ? (
+                    <div className="sp2-detailRowPro">
+                      <div className="sp2-detailKey">نوع القطعة</div>
+                      <div className="sp2-detailVal">{subCategoryText}</div>
+                    </div>
+                  ) : null}
+
+                  {compositionText ? (
+                    <div className="sp2-detailRowPro">
+                      <div className="sp2-detailKey">التركيبة</div>
+                      <div className="sp2-detailVal">{compositionText}</div>
+                    </div>
+                  ) : null}
+
+                  {matiereText ? (
+                    <div className="sp2-detailRowPro">
+                      <div className="sp2-detailKey">الخامة</div>
+                      <div className="sp2-detailVal">{matiereText}</div>
+                    </div>
+                  ) : null}
+
+                  {coupeText ? (
+                    <div className="sp2-detailRowPro">
+                      <div className="sp2-detailKey">القَصّة</div>
+                      <div className="sp2-detailVal">{coupeText}</div>
+                    </div>
+                  ) : null}
+
+                  {madeInText ? (
+                    <div className="sp2-detailRowPro">
+                      <div className="sp2-detailKey">بلد الصنع</div>
+                      <div className="sp2-detailVal">{madeInText}</div>
+                    </div>
+                  ) : null}
+
+                  <div className="sp2-detailRowPro">
+                    <div className="sp2-detailKey">صناعة يدوية</div>
+                    <div className="sp2-detailVal">{isHandmade ? "نعم" : "لا"}</div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "comments" && (
+                <div className="sp2-tabText sp2-muted sp2-tabPaneReveal" key="comments">
+                  لا توجد تعليقات حاليًا.
                 </div>
               )}
             </div>
-          </div>
-
-          <div className="sp2-right">
-            <h1 className="sp2-title">{translatedTitle}</h1>
-
-            <div className="sp2-idHero">
-              <div className="sp2-idHeroLabel">مرجع المنتج</div>
-              <div className="sp2-idHeroValue" dir="ltr">
-                #{displayId(product)}
-              </div>
-            </div>
-
-            {subCategoryText && (
-              <div className="sp2-subCategoryRow">
-                <span className="sp2-subCategoryLabel">نوع القطعة:</span>
-                <span className="sp2-subCategoryValue">{subCategoryText}</span>
-              </div>
-            )}
-
-            <div className="sp2-priceHeader">
-              <div className="sp2-priceLabel">السعر</div>
-
-              <a
-                className="sp2-vendorBtn"
-                href="/contact"
-                aria-label="اتصل بالبائع +216 55 495 816"
-                title="اتصل بالبائع"
-              >
-                <FiPhoneCall />
-                <span>اتصل بالبائع</span>
-                <strong dir="ltr">+216 55 495 816</strong>
-              </a>
-            </div>
-
-            <div className="sp2-priceHint">لمعرفة السعر، الرجاء الاتصال بالبائع.</div>
-
-            <div className="sp2-ratingRow sp2-ratingRowBig">
-              <span className="sp2-ratingLabel">التقييم:</span>
-              <span className="sp2-ratingStars">{renderStars(ratingValue, true)}</span>
-              <span className="sp2-ratingNum">({ratingValue})</span>
-            </div>
-
-            <div className="sp2-shareBlock" aria-label="مشاركة المنتج">
-              <div className="sp2-shareTitle">شارك المنتج</div>
-
-              <div className="sp2-shareRow">
-                <button
-                  type="button"
-                  className="sp2-shareBtn is-fb"
-                  onClick={() => openShare(fbShare)}
-                  aria-label="مشاركة على فيسبوك"
-                  title="Facebook"
-                >
-                  <FiFacebook />
-                  <span>Facebook</span>
-                </button>
-
-                <button
-                  type="button"
-                  className="sp2-shareBtn is-tw"
-                  onClick={() => openShare(twShare)}
-                  aria-label="مشاركة على تويتر"
-                  title="Twitter"
-                >
-                  <FiTwitter />
-                  <span>Twitter</span>
-                </button>
-
-                <button
-                  type="button"
-                  className="sp2-shareBtn is-wa"
-                  onClick={() => openShare(waShare)}
-                  aria-label="مشاركة على واتساب"
-                  title="WhatsApp"
-                >
-                  <span className="sp2-mini">WA</span>
-                  <span>WhatsApp</span>
-                </button>
-
-                <button
-                  type="button"
-                  className="sp2-shareBtn is-ig"
-                  onClick={() => copyLink(true)}
-                  aria-label="مشاركة على إنستغرام (نسخ الرابط)"
-                  title="Instagram (Copy Link)"
-                >
-                  <FiInstagram />
-                  <span>Instagram</span>
-                </button>
-
-                <button
-                  type="button"
-                  className="sp2-shareBtn is-link"
-                  onClick={() => copyLink(true)}
-                  aria-label="نسخ رابط المنتج"
-                  title="Copy Link"
-                >
-                  <FiLink />
-                  <span>نسخ الرابط</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <section className="sp2-tabs">
-          <div className="sp2-tabHead">
-            <button
-              type="button"
-              className={`sp2-tabBtn ${activeTab === "desc" ? "is-active" : ""}`}
-              onClick={() => setActiveTab("desc")}
-            >
-              الوصف
-            </button>
-
-            <button
-              type="button"
-              className={`sp2-tabBtn ${activeTab === "details" ? "is-active" : ""}`}
-              onClick={() => setActiveTab("details")}
-            >
-              تفاصيل المنتج
-            </button>
-
-            <button
-              type="button"
-              className={`sp2-tabBtn ${activeTab === "comments" ? "is-active" : ""}`}
-              onClick={() => setActiveTab("comments")}
-            >
-              التعليقات
-            </button>
-          </div>
-
-          <div className="sp2-tabBody">
-            {activeTab === "desc" && (
-              <div className="sp2-descBox">
-                <div className="sp2-descTitle">وصف المنتج</div>
-                <div className="sp2-descText">{translatedDescription}</div>
-              </div>
-            )}
-
-            {activeTab === "details" && (
-              <div className="sp2-detailsPro">
-                <div className="sp2-detailsTop">
-                  <div className="sp2-detailsRef">
-                    <span>المرجع</span>
-                    <strong dir="ltr">#{displayId(product)}</strong>
-                  </div>
-                </div>
-
-                <div className="sp2-detailsTitle">المواصفات التقنية</div>
-
-                {subCategoryText ? (
-                  <div className="sp2-detailRowPro">
-                    <div className="sp2-detailKey">نوع القطعة</div>
-                    <div className="sp2-detailVal">{subCategoryText}</div>
-                  </div>
-                ) : null}
-
-                {compositionText ? (
-                  <div className="sp2-detailRowPro">
-                    <div className="sp2-detailKey">التركيبة</div>
-                    <div className="sp2-detailVal">{compositionText}</div>
-                  </div>
-                ) : null}
-
-                {matiereText ? (
-                  <div className="sp2-detailRowPro">
-                    <div className="sp2-detailKey">الخامة</div>
-                    <div className="sp2-detailVal">{matiereText}</div>
-                  </div>
-                ) : null}
-
-                {coupeText ? (
-                  <div className="sp2-detailRowPro">
-                    <div className="sp2-detailKey">القَصّة</div>
-                    <div className="sp2-detailVal">{coupeText}</div>
-                  </div>
-                ) : null}
-
-                {madeInText ? (
-                  <div className="sp2-detailRowPro">
-                    <div className="sp2-detailKey">بلد الصنع</div>
-                    <div className="sp2-detailVal">{madeInText}</div>
-                  </div>
-                ) : null}
-
-                <div className="sp2-detailRowPro">
-                  <div className="sp2-detailKey">صناعة يدوية</div>
-                  <div className="sp2-detailVal">{isHandmade ? "نعم" : "لا"}</div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === "comments" && (
-              <div className="sp2-tabText sp2-muted">لا توجد تعليقات حاليًا.</div>
-            )}
-          </div>
-        </section>
+          </section>
+        </FadeInSection>
 
         {sameCategoryProducts.length > 0 && (
-          <section
-            className="sp2-like sp2-like--lux"
-            aria-label={subCategoryText ? "منتجات من نفس الفئة الفرعية" : "منتجات من نفس الفئة"}
-          >
-            <div className="sp2-likeHead">
-              <div className="sp2-likeHeadText">
-                <span className="sp2-likeEyebrow">Wahret Zmen Selection</span>
-                <h2 className="sp2-likeTitle">
-                  {subCategoryText ? "قد يعجبك من نفس نوع القطعة" : "قد يعجبك أيضًا"}
-                  {subCategoryText ? <span className="sp2-likeHint"> · {subCategoryText}</span> : null}
-                </h2>
-                <p className="sp2-likeIntro">
-                  قطع مختارة بعناية بنفس الروح، لتمنحك تجربة تصفح أكثر أناقة وانسجامًا.
-                </p>
+          <FadeInSection delay={0.05} yOffset={26}>
+            <section
+              className="sp2-like sp2-like--lux sp2-reveal sp2-reveal--section"
+              aria-label={subCategoryText ? "منتجات من نفس الفئة الفرعية" : "منتجات من نفس الفئة"}
+            >
+              <div className="sp2-likeHead">
+                <div className="sp2-likeHeadText">
+                  <span className="sp2-likeEyebrow">مختارات وهرة زمان</span>
+                  <h2 className="sp2-likeTitle">
+                    {subCategoryText ? "قد يعجبك من نفس نوع القطعة" : "قد يعجبك أيضًا"}
+                    {subCategoryText ? (
+                      <span className="sp2-likeHint"> · {subCategoryText}</span>
+                    ) : null}
+                  </h2>
+                  <p className="sp2-likeIntro">
+                    قطع مختارة بعناية بنفس الروح، لتمنحك تجربة تصفح أكثر أناقة وانسجامًا.
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <div className="sp2-likeGrid sp2-likeGrid--lux">
-              {sameCategoryProducts.map((p, index) => (
-                <FadeInSection key={p._id} delay={0.04 * index}>
-                  <Link
-                    to={`/products/${p._id}`}
-                    className="sp2-likeCard sp2-likeCard--lux"
-                    onClick={(e) => goToProductReload(e, p._id)}
-                  >
-                    <div className="sp2-likeBrand">وهرة زمان</div>
+              <div className="sp2-likeGrid sp2-likeGrid--lux">
+                {sameCategoryProducts.map((p, index) => (
+                  <FadeInSection key={p._id} delay={0.04 * index} yOffset={20}>
+                    <Link
+                      to={`/products/${p._id}`}
+                      className="sp2-likeCard sp2-likeCard--lux sp2-cardReveal"
+                      onClick={(e) => goToProductReload(e, p._id)}
+                    >
+                      <div className="sp2-likeBrand">وهرة زمان</div>
 
-                    <div className="sp2-likeImgWrap sp2-likeImgWrap--lux">
-                      <span className="sp2-likeShine" aria-hidden="true" />
-                      {Boolean(p?.trending || p?.isTrending) && (
-                        <span className="sp2-likeBadge">رائج</span>
-                      )}
+                      <div className="sp2-likeImgWrap sp2-likeImgWrap--lux">
+                        <span className="sp2-likeShine" aria-hidden="true" />
+                        {Boolean(p?.trending || p?.isTrending) && (
+                          <span className="sp2-likeBadge">رائج</span>
+                        )}
 
-                      <img
-                        src={getImgUrl(p.coverImage)}
-                        alt={pickTitle(p)}
-                        className="sp2-likeImg sp2-likeImg--lux"
-                        loading="lazy"
-                      />
+                        <img
+                          src={getImgUrl(p.coverImage)}
+                          alt={pickTitle(p)}
+                          className="sp2-likeImg sp2-likeImg--lux"
+                          loading="lazy"
+                        />
 
-                      <span className="sp2-likeArrow" aria-hidden="true">
-                        <FiArrowUpRight />
-                      </span>
-                    </div>
+                        <span className="sp2-likeArrow" aria-hidden="true">
+                          <FiArrowUpRight />
+                        </span>
+                      </div>
 
-                    <div className="sp2-likeMeta sp2-likeMeta--lux">
-                      <div className="sp2-likeName">{pickTitle(p)}</div>
+                      <div className="sp2-likeMeta sp2-likeMeta--lux">
+                        <div className="sp2-likeName">{pickTitle(p)}</div>
 
-                      {getCardSubText(p) ? (
-                        <div className="sp2-likeMiniSub">{getCardSubText(p)}</div>
-                      ) : null}
+                        {getCardSubText(p) ? (
+                          <div className="sp2-likeMiniSub">{getCardSubText(p)}</div>
+                        ) : null}
 
-                      <div className="sp2-likeBottom">
-                        <div className="sp2-likeMiniId" dir="ltr">
-                          #{displayId(p)}
-                        </div>
+                        <div className="sp2-likeBottom">
+                          <div className="sp2-likeMiniId" dir="ltr">
+                            #{displayId(p)}
+                          </div>
 
-                        <div className="sp2-likeRate" aria-label="التقييم">
-                          <Star className="sp2-likeRateStar" />
-                          <span>{getCardRating(p)}</span>
+                          <div className="sp2-likeRate" aria-label="التقييم">
+                            <Star className="sp2-likeRateStar" />
+                            <span>{getCardRating(p)}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </Link>
-                </FadeInSection>
-              ))}
-            </div>
-          </section>
+                    </Link>
+                  </FadeInSection>
+                ))}
+              </div>
+            </section>
+          </FadeInSection>
         )}
 
         {similarProducts.length > 0 && (
-          <section className="sp2-like sp2-like--lux" aria-label="منتجات مشابهة">
-            <div className="sp2-likeHead">
-              <div className="sp2-likeHeadText">
-                <span className="sp2-likeEyebrow">Curated For You</span>
-                <h2 className="sp2-likeTitle">
-                  منتجات مشابهة
-                  {embroideryText ? <span className="sp2-likeHint"> · {embroideryText}</span> : null}
-                </h2>
-                <p className="sp2-likeIntro">
-                  تصاميم متقاربة في الطابع والتفاصيل لتسهّل عليك اختيار القطعة المثالية.
-                </p>
+          <FadeInSection delay={0.05} yOffset={26}>
+            <section
+              className="sp2-like sp2-like--lux sp2-reveal sp2-reveal--section"
+              aria-label="منتجات مشابهة"
+            >
+              <div className="sp2-likeHead">
+                <div className="sp2-likeHeadText">
+                  <span className="sp2-likeEyebrow">Curated For You</span>
+                  <h2 className="sp2-likeTitle">
+                    منتجات مشابهة
+                    {embroideryText ? (
+                      <span className="sp2-likeHint"> · {embroideryText}</span>
+                    ) : null}
+                  </h2>
+                  <p className="sp2-likeIntro">
+                    تصاميم متقاربة في الطابع والتفاصيل لتسهّل عليك اختيار القطعة المثالية.
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <div className="sp2-likeGrid sp2-likeGrid--lux">
-              {similarProducts.map((p, index) => (
-                <FadeInSection key={p._id} delay={0.04 * index}>
-                  <Link
-                    to={`/products/${p._id}`}
-                    className="sp2-likeCard sp2-likeCard--lux"
-                    onClick={(e) => goToProductReload(e, p._id)}
-                  >
-                    <div className="sp2-likeBrand">وهرة زمان</div>
+              <div className="sp2-likeGrid sp2-likeGrid--lux">
+                {similarProducts.map((p, index) => (
+                  <FadeInSection key={p._id} delay={0.04 * index} yOffset={20}>
+                    <Link
+                      to={`/products/${p._id}`}
+                      className="sp2-likeCard sp2-likeCard--lux sp2-cardReveal"
+                      onClick={(e) => goToProductReload(e, p._id)}
+                    >
+                      <div className="sp2-likeBrand">وهرة زمان</div>
 
-                    <div className="sp2-likeImgWrap sp2-likeImgWrap--lux">
-                      <span className="sp2-likeShine" aria-hidden="true" />
-                      {Boolean(p?.trending || p?.isTrending) && (
-                        <span className="sp2-likeBadge">رائج</span>
-                      )}
+                      <div className="sp2-likeImgWrap sp2-likeImgWrap--lux">
+                        <span className="sp2-likeShine" aria-hidden="true" />
+                        {Boolean(p?.trending || p?.isTrending) && (
+                          <span className="sp2-likeBadge">رائج</span>
+                        )}
 
-                      <img
-                        src={getImgUrl(p.coverImage)}
-                        alt={pickTitle(p)}
-                        className="sp2-likeImg sp2-likeImg--lux"
-                        loading="lazy"
-                      />
+                        <img
+                          src={getImgUrl(p.coverImage)}
+                          alt={pickTitle(p)}
+                          className="sp2-likeImg sp2-likeImg--lux"
+                          loading="lazy"
+                        />
 
-                      <span className="sp2-likeArrow" aria-hidden="true">
-                        <FiArrowUpRight />
-                      </span>
-                    </div>
+                        <span className="sp2-likeArrow" aria-hidden="true">
+                          <FiArrowUpRight />
+                        </span>
+                      </div>
 
-                    <div className="sp2-likeMeta sp2-likeMeta--lux">
-                      <div className="sp2-likeName">{pickTitle(p)}</div>
+                      <div className="sp2-likeMeta sp2-likeMeta--lux">
+                        <div className="sp2-likeName">{pickTitle(p)}</div>
 
-                      {getCardSubText(p) ? (
-                        <div className="sp2-likeMiniSub">{getCardSubText(p)}</div>
-                      ) : null}
+                        {getCardSubText(p) ? (
+                          <div className="sp2-likeMiniSub">{getCardSubText(p)}</div>
+                        ) : null}
 
-                      <div className="sp2-likeBottom">
-                        <div className="sp2-likeMiniId" dir="ltr">
-                          #{displayId(p)}
-                        </div>
+                        <div className="sp2-likeBottom">
+                          <div className="sp2-likeMiniId" dir="ltr">
+                            #{displayId(p)}
+                          </div>
 
-                        <div className="sp2-likeRate" aria-label="التقييم">
-                          <Star className="sp2-likeRateStar" />
-                          <span>{getCardRating(p)}</span>
+                          <div className="sp2-likeRate" aria-label="التقييم">
+                            <Star className="sp2-likeRateStar" />
+                            <span>{getCardRating(p)}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </Link>
-                </FadeInSection>
-              ))}
-            </div>
-          </section>
+                    </Link>
+                  </FadeInSection>
+                ))}
+              </div>
+            </section>
+          </FadeInSection>
         )}
 
-        <FadeInSection delay={0.1}>
-          <section className="wz-premium-rating mt-12" aria-label="تقييم متجر وهرة زمان">
+        <FadeInSection delay={0.08} yOffset={28}>
+          <section className="wz-premium-rating mt-12 sp2-reveal sp2-reveal--rating" aria-label="تقييم متجر وهرة زمان">
             <h2 className="wz-premium-title">
               ثقة العملاء في متجر <span>وهرة زمان</span>
             </h2>

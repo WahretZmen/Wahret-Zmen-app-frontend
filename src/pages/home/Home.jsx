@@ -57,133 +57,130 @@ const Home = () => {
         />
       </Helmet>
 
-      {/* HERO */}
-      <FadeInSection delay={0} yOffset={0}>
-        <div className="anim-scale-in">
-          <FullWidth dir={isRTL ? "rtl" : "ltr"}>
-            <LargeBanner />
-          </FullWidth>
-        </div>
-      </FadeInSection>
-
-      {/* Video Showcase */}
-      <FadeInSection delay={0.12}>
-        <div className="anim-fade-up anim-delay" style={{ "--d": "80ms" }}>
-          <VideoShowcase dir={isRTL ? "rtl" : "ltr"} ctaLabel="تسوّق الآن" />
-        </div>
-      </FadeInSection>
-
-      <div
-        className="home-container px-4 sm:px-6 md:px-10 lg:px-20 max-w-[1440px] mx-auto"
-        dir={isRTL ? "rtl" : "ltr"}
-      >
-        <FadeInSection delay={0.2}>
-          <section
-            className="mb-16 anim-scale-in anim-delay"
-            style={{ "--d": "100ms" }}
-          >
-            <div className="relative">
-              <Banner />
-              <span className="block h-[2px] w-1/2 mx-auto mt-6 rounded-full anim-shimmer" />
-            </div>
-
-            <div className="text-center mt-6">
-              <p
-                className="text-lg text-gray-700 max-w-3xl mx-auto px-2 anim-fade-up anim-delay"
-                style={{ "--d": "120ms" }}
-              >
-                خطوة نحو التقاليد بأناقة. بوتيك وهرة زمان يقدم لكم مجموعة خالدة
-                من الأزياء التونسية الأصيلة، مصنوعة بشغف وإرث.
-              </p>
-            </div>
-          </section>
+      <div className="home-page-lux home-page-fadein">
+        {/* HERO */}
+        <FadeInSection delay={0} yOffset={0}>
+          <div className="home-cinema-reveal home-hero-shell">
+            <FullWidth dir={isRTL ? "rtl" : "ltr"}>
+              <div className="home-hero-frame">
+                <LargeBanner />
+              </div>
+            </FullWidth>
+          </div>
         </FadeInSection>
 
-        <FadeInSection delay={0.25}>
-          <div className="anim-fade-up anim-delay" style={{ "--d": "80ms" }}>
-            <ShopByCategory
-              items={shopItems}
-              title={
-                <span
-                  className="t-anim t-tracking t-delay t-underline"
-                  style={{ "--t-delay": "100ms" }}
+        {/* Video Showcase */}
+        <FadeInSection delay={0.1}>
+          <div className="home-soft-rise home-delay-1">
+            <div className="home-glass-section home-video-shell">
+              <VideoShowcase dir={isRTL ? "rtl" : "ltr"} ctaLabel="تسوّق الآن" />
+            </div>
+          </div>
+        </FadeInSection>
+
+        <div
+          className="home-container px-4 sm:px-6 md:px-10 lg:px-20 max-w-[1440px] mx-auto"
+          dir={isRTL ? "rtl" : "ltr"}
+        >
+          <FadeInSection delay={0.16}>
+            <section className="mb-16 home-lux-reveal home-delay-1">
+              <div className="relative home-banner-shell">
+                <div className="home-shimmer-panel">
+                  <Banner />
+                </div>
+                <span className="block h-[2px] w-1/2 mx-auto mt-6 rounded-full anim-shimmer" />
+              </div>
+
+              <div className="text-center mt-6">
+                <p className="text-lg text-gray-700 max-w-3xl mx-auto px-2 home-soft-blur-up home-delay-2">
+                  خطوة نحو التقاليد بأناقة. بوتيك وهرة زمان يقدم لكم مجموعة خالدة
+                  من الأزياء التونسية الأصيلة، مصنوعة بشغف وإرث.
+                </p>
+              </div>
+            </section>
+          </FadeInSection>
+
+          <FadeInSection delay={0.22}>
+            <section className="home-section-shell home-fade-up-strong home-delay-1">
+              <ShopByCategory
+                items={shopItems}
+                title={
+                  <span className="t-anim t-tracking t-delay t-underline home-title-fx" style={{ "--t-delay": "100ms" }}>
+                    تسوّق حسب الفئة
+                  </span>
+                }
+              />
+            </section>
+          </FadeInSection>
+
+          {/* Collections / Our Sellers */}
+          <FadeInSection delay={0.28}>
+            <section className="home-transparent-section home-our-sellers-block home-lift-fade home-delay-1">
+              <div className="text-center px-4 mb-4">
+                <h2
+                  className="text-3xl font-bold text-[#8A5D3B] drop-shadow-sm t-anim t-tracking t-glow t-delay home-headline-lux"
+                  style={{ "--t-delay": "140ms" }}
                 >
-                  تسوّق حسب الفئة
-                </span>
-              }
-            />
-          </div>
-        </FadeInSection>
+                  مجموعاتنا
+                </h2>
 
-        {/* Collections / Our Sellers */}
-        <FadeInSection delay={0.3}>
-          <section
-            className="home-transparent-section home-our-sellers-block anim-fade-up anim-delay"
-            style={{ "--d": "100ms" }}
-          >
-            <div className="text-center px-4 mb-4">
-              <h2
-                className="text-3xl font-bold text-[#8A5D3B] drop-shadow-sm t-anim t-tracking t-glow t-delay"
-                style={{ "--t-delay": "140ms" }}
-              >
-                مجموعاتنا
-              </h2>
+                <p className="text-lg text-gray-600 max-w-3xl mx-auto mt-3 home-soft-blur-up home-delay-2">
+                  استكشفوا مجموعتنا من الملابس التقليدية المصنوعة بعناية وأصالة
+                  ثقافية. من القفاطين الأنيقة إلى الجباب التقليدية، اكتشفوا جمال
+                  التراث في كل قطعة.
+                </p>
+              </div>
 
-              <p
-                className="text-lg text-gray-600 max-w-3xl mx-auto mt-3 anim-blur-in anim-delay"
-                style={{ "--d": "180ms" }}
-              >
-                استكشفوا مجموعتنا من الملابس التقليدية المصنوعة بعناية وأصالة
-                ثقافية. من القفاطين الأنيقة إلى الجباب التقليدية، اكتشفوا جمال
-                التراث في كل قطعة.
-              </p>
-            </div>
+              <div className="home-panel-glow home-delay-3">
+                <OurSellers />
+              </div>
+            </section>
+          </FadeInSection>
 
-            <OurSellers />
-          </section>
-        </FadeInSection>
-
-        {/* News */}
-        <FadeInSection delay={0.4}>
-          <section
-            className="home-transparent-section home-news-block anim-fade-up anim-delay"
-            style={{ "--d": "120ms" }}
-          >
-            <div className="text-center px-4 mb-2">
-              <h2
-                className="text-3xl font-semibold text-[#5C3D2E] t-anim t-tracking t-delay"
-                style={{ "--t-delay": "160ms" }}
-              >
-                <span
-                  className="t-underline t-delay"
-                  style={{ "--t-delay": "220ms" }}
+          {/* News */}
+          <FadeInSection delay={0.34}>
+            <section className="home-transparent-section home-news-block home-lift-fade home-delay-1">
+              <div className="text-center px-4 mb-2">
+                <h2
+                  className="text-3xl font-semibold text-[#5C3D2E] t-anim t-tracking t-delay home-headline-lux"
+                  style={{ "--t-delay": "160ms" }}
                 >
-                  آخر الأخبار والاتجاهات
-                </span>
-              </h2>
+                  <span className="t-underline t-delay" style={{ "--t-delay": "220ms" }}>
+                    آخر الأخبار والاتجاهات
+                  </span>
+                </h2>
+              </div>
+
+              <div className="home-news-reveal home-delay-2">
+                <News />
+              </div>
+            </section>
+          </FadeInSection>
+
+          <FadeInSection delay={0.38}>
+            <div className="home-fade-up-strong home-delay-1">
+              <div className="home-craft-shell">
+                <CraftsmanshipShowcase />
+              </div>
             </div>
+          </FadeInSection>
 
-            <News />
-          </section>
-        </FadeInSection>
+          <FadeInSection delay={0.42}>
+            <div className="home-soft-rise home-delay-1">
+              <div className="home-testimonials-shell">
+                <TestimonialsOverview />
+              </div>
+            </div>
+          </FadeInSection>
 
-        <FadeInSection delay={0.43}>
-          <div className="anim-fade-up anim-delay" style={{ "--d": "100ms" }}>
-            <CraftsmanshipShowcase />
-          </div>
-        </FadeInSection>
-
-        <FadeInSection delay={0.44}>
-          <div className="anim-fade-up anim-delay" style={{ "--d": "90ms" }}>
-            <TestimonialsOverview />
-          </div>
-        </FadeInSection>
-
-        <FadeInSection delay={0.45}>
-          <div className="anim-scale-in anim-delay" style={{ "--d": "80ms" }}>
-            <AboutWahretZmen />
-          </div>
-        </FadeInSection>
+          <FadeInSection delay={0.46}>
+            <div className="home-grand-fade home-delay-1">
+              <div className="home-about-shell">
+                <AboutWahretZmen />
+              </div>
+            </div>
+          </FadeInSection>
+        </div>
       </div>
     </>
   );

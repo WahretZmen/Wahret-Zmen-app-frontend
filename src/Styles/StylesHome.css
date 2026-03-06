@@ -9,12 +9,245 @@
   --gold-3: #c9853f;
   --gold-4: #e2b87a;
   --text-muted: #5f5f5f;
+  --home-lux-ease: cubic-bezier(.18,.84,.24,1);
 }
 
 .home-container[dir="rtl"]{
   direction: rtl;
   unicode-bidi: plaintext;
 }
+
+/* ============================================================================
+   Premium page fade system
+============================================================================ */
+
+.home-page-lux{
+  position:relative;
+}
+
+.home-page-fadein{
+  animation:homePageFadeIn .9s var(--home-lux-ease);
+}
+
+.home-hero-shell,
+.home-video-shell,
+.home-banner-shell,
+.home-section-shell,
+.home-panel-glow,
+.home-news-reveal,
+.home-craft-shell,
+.home-testimonials-shell,
+.home-about-shell{
+  position:relative;
+}
+
+.home-cinema-reveal{
+  opacity:0;
+  transform:translateY(24px) scale(.985);
+  filter:blur(12px);
+  animation:homeCinemaReveal 1s .02s var(--home-lux-ease) forwards;
+}
+
+.home-soft-rise{
+  opacity:0;
+  transform:translateY(20px);
+  animation:homeSoftRise .8s var(--home-lux-ease) forwards;
+}
+
+.home-soft-blur-up{
+  opacity:0;
+  transform:translateY(16px);
+  filter:blur(8px);
+  animation:homeSoftBlurUp .82s var(--home-lux-ease) forwards;
+}
+
+.home-fade-up-strong{
+  opacity:0;
+  transform:translateY(26px);
+  animation:homeFadeUpStrong .86s var(--home-lux-ease) forwards;
+}
+
+.home-lift-fade{
+  opacity:0;
+  transform:translateY(18px) scale(.992);
+  animation:homeLiftFade .85s var(--home-lux-ease) forwards;
+}
+
+.home-grand-fade{
+  opacity:0;
+  transform:translateY(20px) scale(.99);
+  filter:blur(8px);
+  animation:homeGrandFade .95s var(--home-lux-ease) forwards;
+}
+
+.home-lux-reveal{
+  opacity:0;
+  transform:translateY(16px);
+  filter:blur(5px);
+  animation:homeLuxReveal .82s var(--home-lux-ease) forwards;
+}
+
+.home-delay-1{ animation-delay:.08s !important; }
+.home-delay-2{ animation-delay:.16s !important; }
+.home-delay-3{ animation-delay:.24s !important; }
+
+.home-hero-frame{
+  position:relative;
+  overflow:hidden;
+}
+
+.home-hero-frame::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(110deg, transparent 16%, rgba(255,255,255,.4) 34%, transparent 53%);
+  transform:translateX(-130%);
+  animation:homeHeroSweep 1.45s .52s var(--home-lux-ease) forwards;
+  pointer-events:none;
+  z-index:3;
+}
+
+.home-glass-section{
+  position:relative;
+}
+
+.home-glass-section::before{
+  content:"";
+  position:absolute;
+  inset:-8px;
+  background:radial-gradient(circle at top center, rgba(210,166,121,.12), transparent 58%);
+  filter:blur(18px);
+  pointer-events:none;
+  z-index:0;
+}
+
+.home-shimmer-panel{
+  position:relative;
+}
+
+.home-shimmer-panel::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(100deg, transparent 18%, rgba(255,255,255,.32) 40%, transparent 58%);
+  transform:translateX(-135%);
+  animation:homePanelSweep 1.35s .3s var(--home-lux-ease) forwards;
+  pointer-events:none;
+}
+
+.home-panel-glow::before,
+.home-news-reveal::before,
+.home-craft-shell::before,
+.home-testimonials-shell::before,
+.home-about-shell::before{
+  content:"";
+  position:absolute;
+  inset:-10px;
+  background:radial-gradient(circle at top center, rgba(201,133,63,.08), transparent 62%);
+  filter:blur(18px);
+  pointer-events:none;
+  z-index:0;
+}
+
+.home-title-fx{
+  display:inline-block;
+  position:relative;
+}
+
+.home-headline-lux{
+  position:relative;
+  isolation:isolate;
+}
+
+.home-headline-lux::after{
+  content:"";
+  position:absolute;
+  inset:auto 10% -6px 10%;
+  height:14px;
+  background:radial-gradient(ellipse at center, rgba(210,166,121,.18), transparent 70%);
+  filter:blur(14px);
+  z-index:-1;
+}
+
+@keyframes homePageFadeIn{
+  from{
+    opacity:0;
+    transform:translateY(12px);
+  }
+  to{
+    opacity:1;
+    transform:none;
+  }
+}
+
+@keyframes homeCinemaReveal{
+  to{
+    opacity:1;
+    transform:none;
+    filter:blur(0);
+  }
+}
+
+@keyframes homeSoftRise{
+  to{
+    opacity:1;
+    transform:none;
+  }
+}
+
+@keyframes homeSoftBlurUp{
+  to{
+    opacity:1;
+    transform:none;
+    filter:blur(0);
+  }
+}
+
+@keyframes homeFadeUpStrong{
+  to{
+    opacity:1;
+    transform:none;
+  }
+}
+
+@keyframes homeLiftFade{
+  to{
+    opacity:1;
+    transform:none;
+  }
+}
+
+@keyframes homeGrandFade{
+  to{
+    opacity:1;
+    transform:none;
+    filter:blur(0);
+  }
+}
+
+@keyframes homeLuxReveal{
+  to{
+    opacity:1;
+    transform:none;
+    filter:blur(0);
+  }
+}
+
+@keyframes homeHeroSweep{
+  to{
+    transform:translateX(130%);
+  }
+}
+
+@keyframes homePanelSweep{
+  to{
+    transform:translateX(135%);
+  }
+}
+
+/* ============================================================================
+   Existing title styles
+============================================================================ */
 
 .home-title-block{
   margin-top: clamp(56px, 13svh, 180px);
@@ -170,6 +403,10 @@
   to{ opacity:1; }
 }
 
+/* ============================================================================
+   Button
+============================================================================ */
+
 .brown-btn{
   -webkit-font-smoothing: antialiased;
   font-weight:700;
@@ -261,10 +498,21 @@
   .home-container .home-title__text,
   .home-container .home-title__underline,
   .home-container .home-title__sub,
-  .home-title.sparkle .home-title__text::before{
+  .home-title.sparkle .home-title__text::before,
+  .home-page-fadein,
+  .home-cinema-reveal,
+  .home-soft-rise,
+  .home-soft-blur-up,
+  .home-fade-up-strong,
+  .home-lift-fade,
+  .home-grand-fade,
+  .home-lux-reveal,
+  .home-hero-frame::after,
+  .home-shimmer-panel::after{
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
     width: auto !important;
+    filter:none !important;
   }
 }
