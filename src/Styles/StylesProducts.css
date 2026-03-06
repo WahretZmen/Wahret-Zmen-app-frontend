@@ -1,6 +1,8 @@
 /* ============================================================================
    StylesProducts.css — Wahret Zmen (Products page)
    - Pro loaders + Load More button
+   - 3 products per line on desktop
+   - Premium dynamic filter intro
 ============================================================================ */
 
 html { -webkit-text-size-adjust: 100%; }
@@ -14,7 +16,17 @@ html { -webkit-text-size-adjust: 100%; }
   --wz-border:rgba(15,23,42,.14);
   --wz-shadow:0 14px 40px rgba(2,6,23,.08);
   --wz-font:"Cairo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+
+  --wz-gold:#A67C52;
+  --wz-gold-soft:#d7b58b;
+  --wz-cream:#fbf8f3;
+  --wz-cream-2:#f7f1e8;
 }
+
+/* ---------------------------
+  Input Search
+----------------------------*/
+.Search-Input { margin-top: 5%;}
 
 /* ---------------------------
    Reusable spinner
@@ -27,7 +39,9 @@ html { -webkit-text-size-adjust: 100%; }
   border-radius:999px;
   animation: wzSpin .7s linear infinite;
 }
-@keyframes wzSpin{ to { transform: rotate(360deg); } }
+@keyframes wzSpin{
+  to { transform: rotate(360deg); }
+}
 
 /* ---------------------------
    First full page loader
@@ -98,7 +112,177 @@ html { -webkit-text-size-adjust: 100%; }
   font-weight:1000;
   cursor:pointer;
 }
-.wz-retryBtn:hover{ background: rgba(220,38,38,.06); }
+
+.wz-retryBtn:hover{
+  background: rgba(220,38,38,.06);
+}
+
+/* ---------------------------
+   Premium dynamic filter intro
+--------------------------- */
+.wz-filterIntro{
+  position:relative;
+  overflow:hidden;
+  margin-bottom:22px;
+  padding:22px 22px 18px;
+  border:1px solid rgba(166,124,82,.18);
+  background:
+    radial-gradient(circle at top right, rgba(166,124,82,.10), transparent 32%),
+    linear-gradient(135deg, #ffffff 0%, var(--wz-cream) 100%);
+  box-shadow:
+    0 18px 44px rgba(15,23,42,.08),
+    inset 0 1px 0 rgba(255,255,255,.75);
+  font-family:var(--wz-font);
+}
+
+.wz-filterIntro::before{
+  content:"";
+  position:absolute;
+  inset:0 auto 0 0;
+  width:5px;
+  background:linear-gradient(180deg, var(--wz-gold-soft), var(--wz-gold));
+  opacity:.95;
+}
+
+.wz-filterIntroBadge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  min-height:34px;
+  padding:0 14px;
+  border:1px solid rgba(166,124,82,.18);
+  background:rgba(255,255,255,.84);
+  color:#7a5a36;
+  font-size:12px;
+  font-weight:1000;
+  letter-spacing:.02em;
+  margin-bottom:12px;
+  box-shadow:0 8px 20px rgba(166,124,82,.08);
+}
+
+.wz-filterIntroTitle{
+  
+  margin:0 0 10px;
+  color:#1f2937;
+  font-size:clamp(1.25rem, 2vw, 1.8rem);
+  line-height:1.35;
+  font-weight:1000;
+}
+
+.wz-filterIntroDesc{
+  margin:0;
+  color:#5b6473;
+  font-size:0.98rem;
+  line-height:1.95;
+  max-width:900px;
+}
+
+.wz-filterIntroMeta{
+  margin-top:16px;
+  padding-top:14px;
+  border-top:1px solid rgba(15,23,42,.08);
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.wz-filterIntroCount{
+  color:#334155;
+  font-size:.95rem;
+  font-weight:900;
+}
+
+.wz-filterIntroReset{
+  height:42px;
+  padding:0 16px;
+  border:none;
+  background:linear-gradient(135deg, #b68a5e 0%, #8f6842 100%);
+  color:#fff;
+  font-family:var(--wz-font);
+  font-size:.92rem;
+  font-weight:1000;
+  cursor:pointer;
+  box-shadow:0 12px 24px rgba(166,124,82,.18);
+  transition:transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+}
+
+.wz-filterIntroReset:hover{
+  transform:translateY(-1px);
+  box-shadow:0 16px 30px rgba(166,124,82,.22);
+}
+
+/* ---------------------------
+   Empty state
+--------------------------- */
+.wz-emptyState{
+  grid-column:1 / -1;
+  text-align:center;
+  padding:32px 22px;
+  border:1px solid rgba(15,23,42,.08);
+  background:linear-gradient(180deg, #fff 0%, #faf8f4 100%);
+  box-shadow:0 14px 34px rgba(2,6,23,.05);
+}
+
+.wz-emptyStateTitle{
+  margin:0 0 10px;
+  color:#1f2937;
+  font-size:1.18rem;
+  font-weight:1000;
+}
+
+.wz-emptyStateText{
+  margin:0 auto 18px;
+  max-width:680px;
+  color:#64748b;
+  line-height:1.95;
+  font-size:.97rem;
+}
+
+.wz-emptyStateBtn{
+  height:44px;
+  padding:0 18px;
+  border:1px solid rgba(166,124,82,.24);
+  background:#fff;
+  color:#7a5a36;
+  font-family:var(--wz-font);
+  font-weight:1000;
+  cursor:pointer;
+  transition:background .18s ease, transform .18s ease, border-color .18s ease;
+}
+
+.wz-emptyStateBtn:hover{
+  background:var(--wz-cream-2);
+  border-color:rgba(166,124,82,.36);
+  transform:translateY(-1px);
+}
+
+/* ---------------------------
+   Products grid
+--------------------------- */
+.wz-productsGrid3{
+  display:grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap:24px;
+  align-items:stretch;
+}
+
+.wz-productsGrid3 > *{
+  min-width:0;
+}
+
+@media (min-width: 768px){
+  .wz-productsGrid3{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1200px){
+  .wz-productsGrid3{
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
 
 /* ---------------------------
    Load More section
@@ -150,33 +334,48 @@ html { -webkit-text-size-adjust: 100%; }
   color: var(--wz-muted);
   font-family: var(--wz-font);
 }
+
 .wz-loadMoreHint strong{
   color: var(--wz-fg);
   font-weight:1000;
 }
 
 /* =============================================================================
-   ✅ NEW: Merge Subcategory card with the main filters card visually
-   (SelectorPageProducts renders its own .wz-products-filterCard)
-============================================================================= */
+   Merge Subcategory card with the main filters card visually
+============================================================================ */
 
-/* the subcategory card should not create spacing below */
 .wz-subcat-card{
-  margin-bottom: 0 !important;
+  margin-bottom:0 !important;
 }
 
-/* When two filter cards are back-to-back, make them look like ONE block */
 .wz-products-filterCard + .wz-products-filterCard{
-  margin-top: -1px !important;          /* overlap borders */
-  border-top-color: transparent !important;
+  margin-top:-1px !important;
+  border-top-color:transparent !important;
 }
 
-/* If SelectorPageProducts adds top margin, neutralize it in this context */
 .wz-subcat-card + .wz-products-filterCard{
-  margin-top: -1px !important;
+  margin-top:-1px !important;
 }
 
-/* Optional: keep consistent internal spacing for the first (subcategory) card */
 .wz-subcat-card .wz-products-filterTitle{
-  margin-bottom: 10px;
+  margin-bottom:10px;
+}
+
+/* ---------------------------
+   Responsive
+--------------------------- */
+@media (max-width: 767px){
+  .wz-filterIntro{
+    padding:18px 16px 16px;
+    
+  }
+
+  .wz-filterIntroMeta{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .wz-filterIntroReset{
+    width:100%;
+  }
 }

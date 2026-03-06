@@ -7,7 +7,9 @@ import { Star } from "lucide-react";
 import { getImgUrl } from "../../utils/getImgUrl";
 import "../../Styles/StylesProductCard.css";
 
-// Basic Arabic color fallback maps
+/* =============================================================================
+   Arabic fallback maps
+============================================================================= */
 const AR_FALLBACK_MAP = {
   noir: "أسود",
   black: "أسود",
@@ -59,14 +61,7 @@ const AR_TRANSLIT_MAP = {
   قري: "رمادي",
 };
 
-const normalizeKey = (v) => String(v || "").trim().toLowerCase();
-const isNumericLike = (v) =>
-  (typeof v === "string" || typeof v === "number") &&
-  String(v).trim().match(/^\d+(\.\d+)?$/);
-
-// Map for embroidery category → Arabic (FR/EN → AR)
 const AR_EMBROIDERY_CATEGORY_MAP = {
-  // French
   broderie: "تطريز",
   "broderie traditionnelle": "تطريز تقليدي",
   "broderie moderne": "تطريز عصري",
@@ -75,7 +70,6 @@ const AR_EMBROIDERY_CATEGORY_MAP = {
   "point de croix": "غرز متقاطعة",
   "broderie machine": "تطريز آلي",
 
-  // English
   embroidery: "تطريز",
   "handmade embroidery": "تطريز يدوي",
   "machine embroidery": "تطريز آلي",
@@ -83,7 +77,55 @@ const AR_EMBROIDERY_CATEGORY_MAP = {
   "modern embroidery": "تطريز عصري",
 };
 
-// Color helper
+const AR_SUBCATEGORY_MAP = {
+  all: "الكل",
+  tous: "الكل",
+  "الكل": "الكل",
+
+  accessories: "إكسسوارات",
+  accessory: "إكسسوارات",
+  accessoires: "إكسسوارات",
+  accessoire: "إكسسوارات",
+  "إكسسوارات": "إكسسوارات",
+
+  costume: "بدلة",
+  suit: "بدلة",
+  "بدلة": "بدلة",
+
+  vest: "صدريّة",
+  gilet: "صدريّة",
+  "صدريّة": "صدريّة",
+  "صدرية": "صدريّة",
+
+  mens_abaya: "عباية رجالي",
+  "mens abaya": "عباية رجالي",
+  "men abaya": "عباية رجالي",
+  "abaya homme": "عباية رجالي",
+  "عباية رجالي": "عباية رجالي",
+  "عباية رجالية": "عباية رجالي",
+
+  jebba: "جبة",
+  jebbah: "جبة",
+  "جبة": "جبة",
+  "جبّة": "جبة",
+};
+
+const normalizeKey = (v) => String(v || "").trim().toLowerCase();
+
+const isNumericLike = (v) =>
+  (typeof v === "string" || typeof v === "number") &&
+  String(v).trim().match(/^\d+(\.\d+)?$/);
+
+const safeNum = (v, d = 0) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : d;
+};
+
+const displayProductId = (p) => String(p?.productId || "").trim();
+
+/* =============================================================================
+   Helpers
+============================================================================= */
 const translateToArabicIfNeeded = (label) => {
   if (!label) return label;
 
@@ -104,9 +146,9 @@ const translateToArabicIfNeeded = (label) => {
   return label;
 };
 
-// Embroidery category translation helper (for string values)
 const translateEmbroideryCategory = (value) => {
   if (!value) return "";
+
   const hasArabic = /[\u0600-\u06FF]/.test(value);
   if (hasArabic) return value;
 
@@ -120,24 +162,36 @@ const translateEmbroideryCategory = (value) => {
   return value;
 };
 
-const safeNum = (v, d = 0) => {
-  const n = Number(v);
-  return Number.isFinite(n) ? n : d;
-};
+const translateSubCategory = (value) => {
+  if (!value) return "";
 
-// ✅ admin productId (fallback empty)
-const displayProductId = (p) => String(p?.productId || "").trim();
+  if (typeof value === "object") {
+    const raw = value.ar || value.fr || value.en || "";
+    return translateSubCategory(raw);
+  }
+
+  const raw = String(value).trim();
+  if (!raw) return "";
+
+  const key = normalizeKey(raw);
+  if (AR_SUBCATEGORY_MAP[key]) return AR_SUBCATEGORY_MAP[key];
+
+  for (const baseKey of Object.keys(AR_SUBCATEGORY_MAP)) {
+    if (key.includes(baseKey)) return AR_SUBCATEGORY_MAP[baseKey];
+  }
+
+  return raw;
+};
 
 const ProductCard = ({ product, showStockBadge = true }) => {
   const lang = "ar";
   const baseLang = "ar";
   const isRTL = true;
 
-  const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 });
+  const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 20 });
 
   if (!product) return null;
 
-  // Embroidery category: supports string OR { en, fr, ar }
   const rawEmbroideryValue = useMemo(() => {
     const ec = product?.embroideryCategory;
     if (!ec) return "";
@@ -157,21 +211,18 @@ const ProductCard = ({ product, showStockBadge = true }) => {
     [rawEmbroideryValue]
   );
 
-  // MAIN PRODUCT NAME
+  const displayedSubCategory = useMemo(() => {
+    const sc = product?.subCategory;
+    return translateSubCategory(sc);
+  }, [product]);
+
   const displayName = useMemo(() => {
     const tAr = String(product?.translations?.ar?.title || "").trim();
     const tFr = String(product?.translations?.fr?.title || "").trim();
     const tEn = String(product?.translations?.en?.title || "").trim();
     const legacyTitle = String(product?.title || "").trim();
 
-    return (
-      String(displayedEmbroideryCategory || "").trim() ||
-      tAr ||
-      legacyTitle ||
-      tFr ||
-      tEn ||
-      "منتج"
-    );
+    return tAr || legacyTitle || tFr || tEn || displayedEmbroideryCategory || "منتج";
   }, [product, displayedEmbroideryCategory]);
 
   const description =
@@ -181,7 +232,6 @@ const ProductCard = ({ product, showStockBadge = true }) => {
     product?.translations?.en?.description ||
     "";
 
-  // Color helpers
   const firstColor = Array.isArray(product?.colors) ? product.colors[0] : undefined;
 
   const getColorLabel = (c) => {
@@ -203,6 +253,7 @@ const ProductCard = ({ product, showStockBadge = true }) => {
     if (c.colorName && typeof c.colorName === "object") {
       candidates.push(c.colorName[lang], c.colorName[baseLang], c.colorName.en);
     }
+
     if (c.name && typeof c.name === "object") {
       candidates.push(c.name[lang], c.name[baseLang], c.name.en);
     }
@@ -232,41 +283,18 @@ const ProductCard = ({ product, showStockBadge = true }) => {
       product?.labels?.includes?.("trending")
   );
 
-  const shopName = product?.storeName || product?.vendor || product?.brand || "";
   const ratingValue = Math.max(0, Math.min(5, safeNum(product?.rating, 0)));
-
-  const renderStarsTiny = (value) =>
-    Array.from({ length: 5 }).map((_, i) => (
-      <Star
-        key={i}
-        className={`w-4 h-4 ${
-          i < Math.round(value)
-            ? "fill-[#F59E0B] text-[#F59E0B]"
-            : "fill-gray-300 text-gray-300"
-        }`}
-        aria-hidden="true"
-      />
-    ));
+  const pid = displayProductId(product);
 
   const renderStars = (value) =>
     Array.from({ length: 5 }).map((_, i) => {
       const filled = i < Math.round(value);
       return (
-        <svg
+        <Star
           key={i}
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          className="inline-block"
+          className={`pc-star ${filled ? "is-filled" : ""}`}
           aria-hidden="true"
-        >
-          <path
-            d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.787 1.402 8.168L12 18.896l-7.336 3.87 1.402-8.168L.132 9.211l8.2-1.193L12 .587z"
-            fill={filled ? "#F59E0B" : "none"}
-            stroke={filled ? "#F59E0B" : "currentColor"}
-            strokeWidth="1.2"
-          />
-        </svg>
+        />
       );
     });
 
@@ -280,153 +308,124 @@ const ProductCard = ({ product, showStockBadge = true }) => {
     setZoomPosition({ x, y });
   };
 
-  const pid = displayProductId(product);
-
   return (
-    <div
-      className="pc-card group relative bg-white border border-gray-200 overflow-hidden w-full mx-auto shadow-sm hover:shadow-lg transition-shadow"
-      dir={isRTL ? "rtl" : "ltr"}
-      style={{ borderRadius: 0 }}
-    >
-      {/* Clickable header */}
+    <article className="pc-card" dir={isRTL ? "rtl" : "ltr"}>
       <Link
         to={`/products/${product._id}`}
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        className="relative block w-full"
+        className="pc-mediaLink"
         aria-label={displayName}
       >
-        {isTrending && (
-          <span
-            className="absolute z-20 top-3 left-3 text-[11px] font-extrabold text-white px-2.5 py-1 bg-red-600/90"
-            style={{ borderRadius: 0 }}
-            title="رائج"
-            aria-label="رائج"
-          >
-            رائج
-          </span>
-        )}
+        <div className="pc-media">
+          {isTrending && <span className="pc-badge pc-badge--trend">رائج</span>}
 
-        {showStockBadge && (
-          <span
-            className={`absolute z-20 top-3 right-3 text-[11px] font-extrabold text-white px-2.5 py-1 ${
-              displayedStock > 0 ? "bg-green-600/90" : "bg-red-600/90"
-            }`}
-            style={{ borderRadius: 0 }}
-            title={stockText}
-            aria-label={stockText}
-          >
-            {stockText}
-          </span>
-        )}
+          {showStockBadge && (
+            <span
+              className={`pc-badge pc-badge--stock ${
+                displayedStock > 0 ? "is-in" : "is-out"
+              }`}
+              title={stockText}
+              aria-label={stockText}
+            >
+              {displayedStock > 0 ? `${displayedStock}+` : "نفد"}
+            </span>
+          )}
 
-        <div className="overflow-hidden">
+          {pid && (
+            <span className="pc-mediaId" dir="ltr">
+              #{pid}
+            </span>
+          )}
+
           <img
             src={getImgUrl(product?.coverImage)}
             alt={displayName}
             loading="lazy"
             onMouseMove={handleMouseMove}
-            className="w-full h-64 object-cover transition-transform duration-700 group-hover:scale-105"
+            className="pc-image"
             style={{
               transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
-              borderRadius: 0,
             }}
           />
-        </div>
 
-        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-transparent to-black/65 opacity-90" />
-
-        {/* Image overlay (unchanged) */}
-        <div className="absolute inset-x-0 bottom-0 p-4 text-white space-y-1">
-          {pid && (
-            <div className="pc-idOnImg" dir="ltr">
-              #{pid}
-            </div>
-          )}
-
-          <h3 className="font-semibold leading-snug line-clamp-2 drop-shadow">{displayName}</h3>
-
-          <div className="flex items-center justify-between">
-            <div className="flex gap-0.5 items-center">{renderStarsTiny(ratingValue)}</div>
-          </div>
-
-          <div className="text-xs uppercase tracking-wide opacity-90">عرض التفاصيل →</div>
+          <div className="pc-mediaShade" />
         </div>
       </Link>
 
-      <div className="pc-divider" />
+      <div className="pc-body">
+        <div className="pc-topMeta">
+          {pid && (
+            <div className="pc-idLine" dir="ltr" title={pid}>
+              <span className="pc-idLabel">ID</span>
+              <span className="pc-idValue">#{pid}</span>
+            </div>
+          )}
 
-      {/* Body */}
-      <div className="pc-body p-4 text-center space-y-2">
-        {/* ✅ MOVE ID ABOVE title (CARD AREA) */}
-        {pid && (
-          <div className="pc-idLine pc-idLine--strong" dir="ltr" title={pid}>
-            <span className="pc-idLabel">ID:</span>
-            <span className="pc-idValue">#{pid}</span>
-          </div>
-        )}
+          {displayedSubCategory && displayedSubCategory !== "الكل" && (
+            <div className="pc-chip">{displayedSubCategory}</div>
+          )}
+        </div>
 
-        {/* title (embroidery name) comes AFTER ID now */}
         <Link
           to={`/products/${product._id}`}
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="pc-titleLink"
         >
-          <h3 className="pc-title text-lg font-bold text-gray-800 hover:text-[#111] transition-colors duration-300">
-            {displayName}
-          </h3>
+          <h3 className="pc-title">{displayName}</h3>
         </Link>
 
-        {shopName && (
-          <div className="pc-shop">
-            <span className="pc-shop-label">المتجر:</span>{" "}
-            <a href="#" className="pc-shop-name" onClick={(e) => e.preventDefault()}>
-              {shopName}
-            </a>
+        <div className="pc-ratingRow">
+          <div className="pc-stars">{renderStars(ratingValue)}</div>
+          <span className="pc-ratingText">{ratingValue.toFixed(1)}/5</span>
+        </div>
+
+        {displayedEmbroideryCategory && (
+          <p className="pc-metaLine">
+            <span className="pc-metaLabel">نوع التطريز:</span>
+            <span className="pc-metaValue">{displayedEmbroideryCategory}</span>
+          </p>
+        )}
+
+        {displayedColor && (
+          <p className="pc-metaLine">
+            <span className="pc-metaLabel">اللون:</span>
+            <span className="pc-metaValue">{displayedColor}</span>
+          </p>
+        )}
+
+        {description && (
+          <p className="pc-description">
+            {description.length > 92 ? `${description.slice(0, 92)}…` : description}
+          </p>
+        )}
+
+        {Array.isArray(product?.colors) && product.colors.length > 0 && (
+          <div className="pc-swatchesWrap">
+            {product.colors.slice(0, 5).map((c, idx) => (
+              <span
+                key={`${product._id}-clr-${idx}`}
+                className="pc-swatchesTag"
+                title={getColorLabel(c)}
+              >
+                {getColorLabel(c)}
+              </span>
+            ))}
+
+            {product.colors.length > 5 && (
+              <span className="pc-swatchesMore">+{product.colors.length - 5}</span>
+            )}
           </div>
         )}
 
-        <div className="flex items-center justify-center gap-1 text-gray-700">
-          {renderStars(ratingValue)}
-          <span className="text-xs ml-1">{ratingValue.toFixed(1)}/5</span>
-        </div>
-
-        <div className="pc-extra">
-          {description && (
-            <p className="product-description text-sm text-gray-500">
-              {description.length > 70 ? `${description.slice(0, 70)}…` : description}
-            </p>
-          )}
-
-          {displayedEmbroideryCategory && (
-            <p className="text-sm text-gray-600 pc-embroidery">
-              نوع التطريز: <span className="font-medium">{displayedEmbroideryCategory}</span>
-            </p>
-          )}
-
-          {displayedColor && (
-            <p className="text-sm italic text-gray-500">
-              اللون: <span className="text-gray-700 font-medium">{displayedColor}</span>
-            </p>
-          )}
-
-          {Array.isArray(product?.colors) && product.colors.length > 0 && (
-            <div className="text-sm text-gray-600">
-              <p className="font-medium">الألوان المتوفرة:</p>
-              <ul className="color-list flex flex-wrap justify-center gap-2 mt-1">
-                {product.colors.map((c, idx) => (
-                  <li
-                    key={`${product._id}-clr-${idx}`}
-                    className="px-2 py-1 border text-xs bg-gray-100"
-                    style={{ borderRadius: 0 }}
-                  >
-                    {getColorLabel(c)}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
+        <Link
+          to={`/products/${product._id}`}
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="pc-action"
+        >
+          عرض التفاصيل
+        </Link>
       </div>
-    </div>
+    </article>
   );
 };
 

@@ -1,5 +1,3 @@
-// src/pages/dashboard/products/AddProduct.jsx
-
 import React, { useMemo, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useAddProductMutation } from "../../../redux/features/products/productsApi";
@@ -10,6 +8,17 @@ import getBaseUrl from "../../../utils/baseURL";
 import "../../../Styles/StylesAddProduct.css";
 
 const ALL_SIZES = ["S", "M", "L", "XL"];
+const MAX_IMAGE_SIZE_MB = 20;
+const AUTO_COMPRESS_THRESHOLD_MB = 12;
+
+const ACCEPTED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+  "image/avif",
+  "image/gif",
+];
 
 /* ✅ NEW sub categories (stored EN, shown AR) */
 const SUBCATEGORY_OPTIONS = [
@@ -29,12 +38,11 @@ const AddProduct = () => {
       productId: "",
       description: "",
       category: "",
-      subCategory: "", // ✅ NEW
+      subCategory: "",
       embroideryCategory: "",
       oldPrice: "",
       newPrice: "",
       trending: false,
-
       coupe: "",
       matiere: "",
       composition: "",
@@ -49,7 +57,14 @@ const AddProduct = () => {
   const [coverPreviewURL, setCoverPreviewURL] = useState("");
 
   const [colorInputs, setColorInputs] = useState([
-    { colorName: "", stock: 0, images: [], pendingFile: null, pendingPreview: "", uploading: false },
+    {
+      colorName: "",
+      stock: 0,
+      images: [],
+      pendingFile: null,
+      pendingPreview: "",
+      uploading: false,
+    },
   ]);
 
   useEffect(() => {
@@ -77,7 +92,6 @@ const AddProduct = () => {
     return { ar: txt, fr: txt, en: txt };
   };
 
-  // ✅ Optional number parser ("" => null)
   const parseOptionalNumber = (v) => {
     const s = String(v ?? "").trim();
     if (!s) return null;
@@ -86,15 +100,65 @@ const AddProduct = () => {
     return Math.max(0, n);
   };
 
-  const compressImage = async (file) =>
-    imageCompression(file, { maxSizeMB: 1, maxWidthOrHeight: 1024, useWebWorker: true });
+  const validateImageFile = (file) => {
+    if (!file) return false;
+
+    if (!file.type?.startsWith("image/") || !ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+      Swal.fire({
+        icon: "warning",
+        title: "نوع الملف غير صالح",
+        text: "يرجى اختيار صورة بصيغة JPG أو PNG أو WEBP أو AVIF أو GIF.",
+        confirmButtonText: "حسناً",
+      });
+      return false;
+    }
+
+    if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
+      Swal.fire({
+        icon: "warning",
+        title: "الصورة كبيرة جداً",
+        text: `الحد الأقصى المسموح به هو ${MAX_IMAGE_SIZE_MB}MB للصورة الواحدة.`,
+        confirmButtonText: "حسناً",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  const optimizeImageIfNeeded = async (file) => {
+    if (!file) return file;
+
+    const sizeMB = file.size / (1024 * 1024);
+
+    if (sizeMB <= AUTO_COMPRESS_THRESHOLD_MB) {
+      return file;
+    }
+
+    try {
+      const compressed = await imageCompression(file, {
+        maxSizeMB: 9.5,
+        maxWidthOrHeight: 2400,
+        useWebWorker: true,
+        initialQuality: 0.92,
+        alwaysKeepResolution: true,
+      });
+
+      return compressed;
+    } catch (error) {
+      console.error("Image optimization failed, using original file:", error);
+      return file;
+    }
+  };
 
   const uploadImage = async (file) => {
     if (!file) return "";
+
     try {
-      const compressed = await compressImage(file);
+      const finalFile = await optimizeImageIfNeeded(file);
+
       const formData = new FormData();
-      formData.append("image", compressed);
+      formData.append("image", finalFile);
 
       const res = await axios.post(`${getBaseUrl()}/api/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -127,14 +191,15 @@ const AddProduct = () => {
 
   const handleCoverImageChange = (e) => {
     const file = e.target.files?.[0];
-    if (file && file.type.startsWith("image/")) {
-      if (coverPreviewURL?.startsWith("blob:")) URL.revokeObjectURL(coverPreviewURL);
-      setCoverImageFile(file);
-      setCoverPreviewURL(URL.createObjectURL(file));
-    } else {
-      setCoverImageFile(null);
-      setCoverPreviewURL("");
+
+    if (!validateImageFile(file)) {
+      e.target.value = "";
+      return;
     }
+
+    if (coverPreviewURL?.startsWith("blob:")) URL.revokeObjectURL(coverPreviewURL);
+    setCoverImageFile(file);
+    setCoverPreviewURL(URL.createObjectURL(file));
   };
 
   const setColorAt = (index, patch) =>
@@ -143,7 +208,14 @@ const AddProduct = () => {
   const addColorInput = () =>
     setColorInputs((prev) => [
       ...prev,
-      { colorName: "", stock: 0, images: [], pendingFile: null, pendingPreview: "", uploading: false },
+      {
+        colorName: "",
+        stock: 0,
+        images: [],
+        pendingFile: null,
+        pendingPreview: "",
+        uploading: false,
+      },
     ]);
 
   const deleteColorInput = (index) => {
@@ -155,15 +227,15 @@ const AddProduct = () => {
   };
 
   const handlePickColorFile = (index, file) => {
-    if (file && file.type.startsWith("image/")) {
-      setColorInputs((prev) =>
-        prev.map((c, i) => {
-          if (i !== index) return c;
-          if (c.pendingPreview?.startsWith("blob:")) URL.revokeObjectURL(c.pendingPreview);
-          return { ...c, pendingFile: file, pendingPreview: URL.createObjectURL(file) };
-        })
-      );
-    }
+    if (!validateImageFile(file)) return;
+
+    setColorInputs((prev) =>
+      prev.map((c, i) => {
+        if (i !== index) return c;
+        if (c.pendingPreview?.startsWith("blob:")) URL.revokeObjectURL(c.pendingPreview);
+        return { ...c, pendingFile: file, pendingPreview: URL.createObjectURL(file) };
+      })
+    );
   };
 
   const cancelPendingColorFile = (index) =>
@@ -188,7 +260,13 @@ const AddProduct = () => {
           prev.map((c, i) => {
             if (i !== index) return c;
             if (c.pendingPreview?.startsWith("blob:")) URL.revokeObjectURL(c.pendingPreview);
-            return { ...c, images: [...c.images, url], pendingFile: null, pendingPreview: "", uploading: false };
+            return {
+              ...c,
+              images: [...c.images, url],
+              pendingFile: null,
+              pendingPreview: "",
+              uploading: false,
+            };
           })
         );
       } else {
@@ -231,7 +309,6 @@ const AddProduct = () => {
       let coverImage = "";
       if (coverImageFile) coverImage = await uploadImage(coverImageFile);
 
-      // ✅ Color name is OPTIONAL now
       const preparedColors = colorInputs
         .map((c) => ({ ...c, colorName: (c.colorName || "").trim() }))
         .filter((c) => c.images.length > 0 || c.pendingFile);
@@ -281,7 +358,7 @@ const AddProduct = () => {
       }
 
       const colorsForServer = preparedColors.map((c) => ({
-        colorName: toLangObject(c.colorName), // ✅ can be empty strings
+        colorName: toLangObject(c.colorName),
         images: c.images,
         image: c.images?.[0],
         stock: Number(c.stock) || 0,
@@ -290,38 +367,28 @@ const AddProduct = () => {
       const allowedCategories = ["Men", "Women", "Children"];
       const finalCategory = allowedCategories.includes(data.category) ? data.category : "Men";
 
-      // ✅ NEW: validate subCategory (optional)
       const allowedSubKeys = SUBCATEGORY_OPTIONS.map((x) => x.value);
       const finalSubCategory = allowedSubKeys.includes(data.subCategory) ? data.subCategory : "";
 
       const rating = Math.max(0, Math.min(5, Number(data.rating ?? 0)));
-
-      // ✅ Optional prices
       const oldPrice = parseOptionalNumber(data.oldPrice);
       const newPrice = parseOptionalNumber(data.newPrice);
 
       const payload = {
         productId: pid,
-
         description: (data.description || "").trim(),
         category: finalCategory,
-
-        subCategory: finalSubCategory, // ✅ NEW (sub categories only)
-
+        subCategory: finalSubCategory,
         embroideryCategory: (data.embroideryCategory || "").trim(),
-
         coupe: (data.coupe || "").trim(),
         matiere: (data.matiere || "").trim(),
         composition: (data.composition || "").trim(),
         madeIn: (data.madeIn || "").trim(),
         isHandmade: !!data.isHandmade,
-
         coverImage,
         colors: colorsForServer,
-
-        oldPrice, // ✅ null if empty
-        newPrice, // ✅ null if empty
-
+        oldPrice,
+        newPrice,
         stockQuantity: colorsForServer.reduce((sum, c) => sum + (c.stock || 0), 0),
         trending: !!data.trending,
         rating,
@@ -330,7 +397,11 @@ const AddProduct = () => {
 
       await addProduct(payload).unwrap();
 
-      Swal.fire({ icon: "success", title: "تم إنشاء المنتج بنجاح!", confirmButtonText: "حسناً" });
+      Swal.fire({
+        icon: "success",
+        title: "تم إنشاء المنتج بنجاح!",
+        confirmButtonText: "حسناً",
+      });
 
       if (coverPreviewURL?.startsWith("blob:")) URL.revokeObjectURL(coverPreviewURL);
 
@@ -340,12 +411,11 @@ const AddProduct = () => {
         productId: "",
         description: "",
         category: "",
-        subCategory: "", // ✅ NEW
+        subCategory: "",
         embroideryCategory: "",
         oldPrice: "",
         newPrice: "",
         trending: false,
-
         coupe: "",
         matiere: "",
         composition: "",
@@ -355,7 +425,16 @@ const AddProduct = () => {
 
       setCoverImageFile(null);
       setCoverPreviewURL("");
-      setColorInputs([{ colorName: "", stock: 0, images: [], pendingFile: null, pendingPreview: "", uploading: false }]);
+      setColorInputs([
+        {
+          colorName: "",
+          stock: 0,
+          images: [],
+          pendingFile: null,
+          pendingPreview: "",
+          uploading: false,
+        },
+      ]);
     } catch (error) {
       console.error("❌ Error adding product:", error?.data || error);
       Swal.fire({
@@ -373,7 +452,6 @@ const AddProduct = () => {
         <h2 className="wz-ap__title">إضافة منتج جديد</h2>
 
         <form onSubmit={handleSubmit(onSubmit)} className="wz-ap__form">
-          {/* Product ID (RTL placeholder) */}
           <div className="wz-ap__field">
             <label className="wz-ap__label">معرّف المنتج</label>
             <input
@@ -386,7 +464,6 @@ const AddProduct = () => {
             />
           </div>
 
-          {/* Details */}
           <div className="wz-ap__row2">
             <div className="wz-ap__field">
               <label className="wz-ap__label">القَصّة</label>
@@ -409,13 +486,11 @@ const AddProduct = () => {
             </div>
           </div>
 
-          {/* Checkbox (box on the RIGHT) */}
           <div className="wz-ap__checkRow" style={{ justifyContent: "flex-end" }}>
             <input type="checkbox" {...register("isHandmade")} className="wz-ap__checkbox" />
             <span style={{ fontWeight: 900 }}>صناعة يدوية</span>
           </div>
 
-          {/* Description */}
           <div className="wz-ap__field">
             <label className="wz-ap__label">وصف المنتج</label>
             <textarea
@@ -427,7 +502,6 @@ const AddProduct = () => {
             />
           </div>
 
-          {/* Category (MAIN) */}
           <div className="wz-ap__field">
             <label className="wz-ap__label">الفئة</label>
             <select {...register("category")} className="wz-ap__select" required>
@@ -438,7 +512,6 @@ const AddProduct = () => {
             </select>
           </div>
 
-          {/* ✅ NEW Sub Category (ONLY ADD) */}
           <div className="wz-ap__field">
             <label className="wz-ap__label">الفئة الفرعية (اختياري)</label>
             <select {...register("subCategory")} className="wz-ap__select">
@@ -450,13 +523,15 @@ const AddProduct = () => {
             </select>
           </div>
 
-          {/* Embroidery */}
           <div className="wz-ap__field">
             <label className="wz-ap__label">فئة التطريز (اختياري)</label>
-            <input {...register("embroideryCategory")} className="wz-ap__input" placeholder="مثال: تطريز يدوي / تقليدي..." />
+            <input
+              {...register("embroideryCategory")}
+              className="wz-ap__input"
+              placeholder="مثال: تطريز يدوي / تقليدي..."
+            />
           </div>
 
-          {/* Sizes */}
           <div className="wz-ap__block">
             <div className="wz-ap__blockTitle">المقاسات (اختياري)</div>
             <div className="wz-ap__sizes">
@@ -481,7 +556,6 @@ const AddProduct = () => {
             </div>
           </div>
 
-          {/* Prices (OPTIONAL) */}
           <div className="wz-ap__row2">
             <div className="wz-ap__field">
               <label className="wz-ap__label">السعر القديم (اختياري)</label>
@@ -493,19 +567,16 @@ const AddProduct = () => {
             </div>
           </div>
 
-          {/* Rating */}
           <div className="wz-ap__field">
             <label className="wz-ap__label">التقييم (0–5)</label>
             <input {...register("rating")} type="number" min="0" max="5" step="0.5" className="wz-ap__input" placeholder="مثال: 4.5" />
           </div>
 
-          {/* Trending checkbox (box on right) */}
           <div className="wz-ap__checkRow" style={{ justifyContent: "flex-end" }}>
             <input type="checkbox" {...register("trending")} className="wz-ap__checkbox" />
             <span style={{ fontWeight: 900 }}>منتج رائج</span>
           </div>
 
-          {/* Cover */}
           <div className="wz-ap__block">
             <div className="wz-ap__blockTitle">الصورة الرئيسية</div>
 
@@ -547,7 +618,6 @@ const AddProduct = () => {
             )}
           </div>
 
-          {/* Colors */}
           <div className="wz-ap__block">
             <div className="wz-ap__blockTitle">ألوان المنتج</div>
 

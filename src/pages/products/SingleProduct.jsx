@@ -2,7 +2,14 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { FiFacebook, FiTwitter, FiInstagram, FiLink, FiPhoneCall } from "react-icons/fi";
+import {
+  FiFacebook,
+  FiTwitter,
+  FiInstagram,
+  FiLink,
+  FiPhoneCall,
+  FiArrowUpRight,
+} from "react-icons/fi";
 import { Star } from "lucide-react";
 import Swal from "sweetalert2";
 
@@ -18,17 +25,15 @@ import FadeInSection from "../../Animations/FadeInSection.jsx";
 import "../../Styles/StylesSingleProduct.css";
 
 /* =============================================================================
-  Small helpers
+   Small helpers
 ============================================================================= */
 const num = (v, d = 0) => (Number.isFinite(Number(v)) ? Number(v) : d);
 const safeStr = (v) => (typeof v === "string" ? v : String(v ?? ""));
 const unique = (arr) => [...new Set((arr || []).filter(Boolean))];
 const normalizeKey = (v) => String(v || "").trim().toLowerCase();
 
-/* Admin productId (instead of Mongo _id) */
 const displayId = (p) => safeStr(p?.productId || "");
 
-/* string OR {ar,fr,en} */
 const pickText = (v) => {
   if (!v) return "";
   if (typeof v === "string") return v.trim();
@@ -50,10 +55,7 @@ const pickEmbroideryText = (p) => {
   return (e.ar || e.fr || e.en || "").trim();
 };
 
-const getEmbroideryKey = (p) => {
-  const t = pickEmbroideryText(p);
-  return normalizeKey(t);
-};
+const getEmbroideryKey = (p) => normalizeKey(pickEmbroideryText(p));
 
 function normalizeColor(color) {
   if (!color) return null;
@@ -81,7 +83,9 @@ function normalizeColor(color) {
   };
 }
 
-/* Category maps */
+/* =============================================================================
+   Category maps
+============================================================================= */
 const AR_CATEGORY_MAP = {
   men: "رجال",
   women: "نساء",
@@ -112,10 +116,109 @@ const normalizeCategoryKey = (raw) => {
   return k || "products";
 };
 
-const EN_CATEGORY_MAP = { women: "Women", men: "Men", children: "Children" };
+const EN_CATEGORY_MAP = {
+  women: "Women",
+  men: "Men",
+  children: "Children",
+};
 
 /* =============================================================================
-  Static boutique rating (kept)
+   Sub-category maps
+============================================================================= */
+const SUBCATEGORY_AR_MAP = {
+  "": "",
+  accessories: "إكسسوارات",
+  accessoire: "إكسسوارات",
+  accessoires: "إكسسوارات",
+  accessory: "إكسسوارات",
+  "إكسسوارات": "إكسسوارات",
+  اكسسوارات: "إكسسوارات",
+
+  costume: "بدلة",
+  suit: "بدلة",
+  "بدلة": "بدلة",
+  بدلة: "بدلة",
+
+  vest: "صدريّة",
+  gilet: "صدريّة",
+  "صدريّة": "صدريّة",
+  "صدرية": "صدريّة",
+  صدريّة: "صدريّة",
+  صدرية: "صدريّة",
+
+  mens_abaya: "عباية رجالي",
+  "mens abaya": "عباية رجالي",
+  "men abaya": "عباية رجالي",
+  "abaya homme": "عباية رجالي",
+  "عباية رجالي": "عباية رجالي",
+  "عباية رجالية": "عباية رجالي",
+
+  jebba: "جبة",
+  jebbah: "جبة",
+  "جبة": "جبة",
+  "جبّة": "جبة",
+};
+
+const normalizeSubCategoryKey = (raw) => {
+  const k = normalizeKey(raw);
+
+  if (!k || ["all", "tous", "الكل"].includes(k)) return "";
+  if (
+    ["accessories", "accessoire", "accessoires", "accessory", "إكسسوارات", "اكسسوارات"].includes(
+      k
+    )
+  ) {
+    return "accessories";
+  }
+  if (["costume", "suit", "بدلة"].includes(k)) return "costume";
+  if (["vest", "gilet", "صدريّة", "صدرية"].includes(k)) return "vest";
+  if (
+    ["mens_abaya", "mens abaya", "men abaya", "abaya homme", "عباية رجالي", "عباية رجالية"].includes(
+      k
+    )
+  ) {
+    return "mens_abaya";
+  }
+  if (["jebba", "jebbah", "جبة", "جبّة"].includes(k)) return "jebba";
+
+  return k;
+};
+
+const mapSubCategoryToArabic = (raw) => {
+  const key = normalizeSubCategoryKey(raw);
+  return SUBCATEGORY_AR_MAP[key] || pickText(raw) || "";
+};
+
+const pickSubCategoryText = (p) => {
+  const raw =
+    p?.subCategory ??
+    p?.subcategory ??
+    p?.sub_category ??
+    p?.subCat ??
+    p?.sub_cat ??
+    p?.subcategorie ??
+    p?.sub_categorie ??
+    p?.subCategoryName;
+
+  return mapSubCategoryToArabic(raw);
+};
+
+const getSubCategoryKey = (p) => {
+  const raw =
+    p?.subCategory ??
+    p?.subcategory ??
+    p?.sub_category ??
+    p?.subCat ??
+    p?.sub_cat ??
+    p?.subcategorie ??
+    p?.sub_categorie ??
+    p?.subCategoryName;
+
+  return normalizeSubCategoryKey(raw);
+};
+
+/* =============================================================================
+   Static boutique rating
 ============================================================================= */
 const BOUTIQUE_RATING = {
   overallScore: 5.0,
@@ -127,42 +230,42 @@ const BOUTIQUE_RATING = {
 };
 
 /* =============================================================================
-  Component
+   Related cards helpers
+============================================================================= */
+const getCardSubText = (p) => {
+  const sub = pickSubCategoryText(p);
+  const emb = pickEmbroideryText(p);
+  if (sub && emb) return `${sub} · ${emb}`;
+  return sub || emb || "";
+};
+
+const getCardRating = (p) => Math.max(0, Math.min(5, Math.round(Number(p?.rating ?? 0))));
+
+/* =============================================================================
+   Component
 ============================================================================= */
 const SingleProduct = () => {
   const { id } = useParams();
-
-  // RTL fixed for Wahret Zmen
   const isRTL = true;
 
-  // Cart (kept for compatibility)
-  const cartItemsRaw = useSelector((s) => {
+  useSelector((s) => {
     const c = s?.cart;
     return c?.cartItems || c?.items || c?.products || c?.cart || [];
   });
-  useMemo(() => (Array.isArray(cartItemsRaw) ? cartItemsRaw : []), [cartItemsRaw]);
 
-  // Search
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Data
   const { data: product, isLoading, isError } = useGetProductByIdQuery(id);
   const { data: allProducts = [] } = useGetAllProductsQuery();
 
-  // Gallery
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-  // Thumbnails paging (arrows move only thumbs)
   const THUMBS_PER_VIEW = 6;
   const [thumbStart, setThumbStart] = useState(0);
 
-  // Tabs
   const [activeTab, setActiveTab] = useState("desc");
 
-  /* ---------------------------------
-    Derived product texts
-  ---------------------------------- */
   const translatedTitle = pickTitle(product);
   const translatedDescription =
     product?.translations?.ar?.description ||
@@ -173,10 +276,13 @@ const SingleProduct = () => {
 
   const categoryAr = mapCategoryToArabic(product?.category);
   const categoryKey = normalizeCategoryKey(product?.category);
-  const categoryEn = EN_CATEGORY_MAP[categoryKey] || "Women";
+  const categoryEn = EN_CATEGORY_MAP[categoryKey] || "Products";
 
   const embroideryText = pickEmbroideryText(product);
   const embroideryKey = getEmbroideryKey(product);
+
+  const subCategoryText = pickSubCategoryText(product);
+  const subCategoryKey = getSubCategoryKey(product);
 
   const isTrending = Boolean(
     product?.trending ||
@@ -187,13 +293,11 @@ const SingleProduct = () => {
 
   const breadcrumbCurrentLabel = useMemo(() => {
     const pieces = ["منتج", categoryEn];
+    if (subCategoryText) pieces.push(subCategoryText);
     if (embroideryText) pieces.push(embroideryText);
     return pieces.join(" - ");
-  }, [categoryEn, embroideryText]);
+  }, [categoryEn, subCategoryText, embroideryText]);
 
-  /* ---------------------------------
-    Gallery array (color images or cover)
-  ---------------------------------- */
   const activeGallery = useMemo(() => {
     if (!product) return [];
     const norm = selectedColor ? normalizeColor(selectedColor) : null;
@@ -201,9 +305,6 @@ const SingleProduct = () => {
     return product.coverImage ? [product.coverImage] : [];
   }, [product, selectedColor]);
 
-  /* ---------------------------------
-    Init when product changes
-  ---------------------------------- */
   useEffect(() => {
     if (!product) return;
 
@@ -229,9 +330,6 @@ const SingleProduct = () => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [product?._id]);
 
-  /* ---------------------------------
-    Keep thumbs page synced with selection
-  ---------------------------------- */
   useEffect(() => {
     const n = activeGallery.length;
     if (!n) return;
@@ -248,11 +346,8 @@ const SingleProduct = () => {
       );
       setThumbStart(nextStart);
     }
-  }, [selectedImageIndex, activeGallery.length]); // eslint-disable-line
+  }, [selectedImageIndex, activeGallery.length, thumbStart]);
 
-  /* ---------------------------------
-    Search dropdown results
-  ---------------------------------- */
   const filteredProducts = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
     if (!q) return [];
@@ -264,21 +359,25 @@ const SingleProduct = () => {
       const tEn = safeStr(p?.translations?.en?.title).toLowerCase();
       const titleMain = safeStr(p?.title).toLowerCase();
       const cat = safeStr(p?.category).toLowerCase();
+      const subCat = safeStr(
+        typeof p?.subCategory === "object"
+          ? p?.subCategory?.ar || p?.subCategory?.fr || p?.subCategory?.en || ""
+          : p?.subCategory || ""
+      ).toLowerCase();
       const pid = safeStr(p?.productId).toLowerCase();
 
-      const matchesTitle = titleMain.includes(q) || tAr.includes(q) || tFr.includes(q) || tEn.includes(q);
+      const matchesTitle =
+        titleMain.includes(q) || tAr.includes(q) || tFr.includes(q) || tEn.includes(q);
       const matchesCat = cat.includes(q);
+      const matchesSubCat = subCat.includes(q);
       const matchesId = pid.includes(q);
 
-      if (matchesTitle || matchesCat || matchesId) picks.push(p);
+      if (matchesTitle || matchesCat || matchesSubCat || matchesId) picks.push(p);
     }
 
     return picks.slice(0, 10);
   }, [allProducts, searchTerm]);
 
-  /* ---------------------------------
-    Rating (0..5)
-  ---------------------------------- */
   const ratingValue = Math.max(0, Math.min(5, Math.round(Number(product?.rating ?? 0))));
 
   const renderStars = (rating, big = false) =>
@@ -290,9 +389,6 @@ const SingleProduct = () => {
       />
     ));
 
-  /* ---------------------------------
-    Share (copy + open)
-  ---------------------------------- */
   const shareUrl = useMemo(() => {
     try {
       return window.location.href;
@@ -354,9 +450,6 @@ const SingleProduct = () => {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  /* ---------------------------------
-    Pro zoom (cursor-follow)
-  ---------------------------------- */
   const setZoomVars = useCallback((e) => {
     const el = e.currentTarget;
     const r = el.getBoundingClientRect();
@@ -368,63 +461,78 @@ const SingleProduct = () => {
 
   const resetZoomVars = useCallback((e) => {
     const el = e.currentTarget;
-    el.style.setProperty("--zoom-x", `50%`);
-    el.style.setProperty("--zoom-y", `50%`);
+    el.style.setProperty("--zoom-x", "50%");
+    el.style.setProperty("--zoom-y", "50%");
   }, []);
 
-  /* ---------------------------------
-    Details ordered
-  ---------------------------------- */
   const compositionText = pickText(product?.composition);
   const matiereText = pickText(product?.matiere);
   const coupeText = pickText(product?.coupe);
   const madeInText = pickText(product?.madeIn);
+  const isHandmade = Boolean(product?.isHandmade);
 
-  /* ---------------------------------
-    Thumbs paging
-  ---------------------------------- */
-  const thumbsTotal = activeGallery.length;
-  const maxThumbStart = Math.max(0, thumbsTotal - THUMBS_PER_VIEW);
+  const maxThumbStart = Math.max(0, activeGallery.length - THUMBS_PER_VIEW);
   const canThumbPrev = thumbStart > 0;
   const canThumbNext = thumbStart < maxThumbStart;
 
   const visibleThumbs = activeGallery.slice(thumbStart, thumbStart + THUMBS_PER_VIEW);
-  const onThumbPrev = () => canThumbPrev && setThumbStart((s) => Math.max(0, s - THUMBS_PER_VIEW));
-  const onThumbNext = () => canThumbNext && setThumbStart((s) => Math.min(maxThumbStart, s + THUMBS_PER_VIEW));
+  const onThumbPrev = () =>
+    canThumbPrev && setThumbStart((s) => Math.max(0, s - THUMBS_PER_VIEW));
+  const onThumbNext = () =>
+    canThumbNext && setThumbStart((s) => Math.min(maxThumbStart, s + THUMBS_PER_VIEW));
 
   const productsCategoryUrl = `/products?category=${encodeURIComponent(categoryKey)}`;
+  const productsSubCategoryUrl =
+    subCategoryKey && categoryKey
+      ? `/products?category=${encodeURIComponent(categoryKey)}&sub=${encodeURIComponent(
+          subCategoryKey
+        )}`
+      : "";
 
-  /* ---------------------------------
-    ✅ Same category + Similar products
-  ---------------------------------- */
   const sameCategoryProducts = useMemo(() => {
     if (!product || !Array.isArray(allProducts)) return [];
+
     const myId = safeStr(product?._id);
     const myCat = normalizeCategoryKey(product?.category);
+    const mySub = getSubCategoryKey(product);
 
-    const list = allProducts
+    let list = allProducts
       .filter((p) => safeStr(p?._id) !== myId)
-      .filter((p) => normalizeCategoryKey(p?.category) === myCat)
-      .slice(0, 8);
+      .filter((p) => normalizeCategoryKey(p?.category) === myCat);
 
-    return list;
-  }, [product?._id, product?.category, allProducts]);
+    if (mySub) {
+      const sameSub = list.filter((p) => getSubCategoryKey(p) === mySub);
+      if (sameSub.length > 0) return sameSub.slice(0, 8);
+    }
+
+    return list.slice(0, 8);
+  }, [product?._id, product?.category, product?.subCategory, allProducts]);
 
   const similarProducts = useMemo(() => {
     if (!product || !Array.isArray(allProducts)) return [];
 
     const myId = safeStr(product?._id);
     const myCat = normalizeCategoryKey(product?.category);
+    const mySub = getSubCategoryKey(product);
     const myEmb = embroideryKey;
 
-    // Prefer same embroidery (if exists), otherwise fall back to trending in same category
     let list = [];
 
     if (myEmb) {
       list = allProducts
         .filter((p) => safeStr(p?._id) !== myId)
         .filter((p) => normalizeCategoryKey(p?.category) === myCat)
+        .filter((p) => (mySub ? getSubCategoryKey(p) === mySub : true))
         .filter((p) => getEmbroideryKey(p) === myEmb)
+        .slice(0, 8);
+    }
+
+    if (list.length === 0 && mySub) {
+      list = allProducts
+        .filter((p) => safeStr(p?._id) !== myId)
+        .filter((p) => normalizeCategoryKey(p?.category) === myCat)
+        .filter((p) => getSubCategoryKey(p) === mySub)
+        .filter((p) => Boolean(p?.trending || p?.isTrending || p?.tags?.includes?.("trending")))
         .slice(0, 8);
     }
 
@@ -436,14 +544,17 @@ const SingleProduct = () => {
         .slice(0, 8);
     }
 
-    // Avoid duplicating cards that are already shown in same category section
     const sameIds = new Set(sameCategoryProducts.map((p) => safeStr(p?._id)));
     return list.filter((p) => !sameIds.has(safeStr(p?._id))).slice(0, 8);
-  }, [product?._id, product?.category, allProducts, embroideryKey, sameCategoryProducts]);
+  }, [
+    product?._id,
+    product?.category,
+    product?.subCategory,
+    allProducts,
+    embroideryKey,
+    sameCategoryProducts,
+  ]);
 
-  /* ---------------------------------
-    Loading / error
-  ---------------------------------- */
   if (isLoading) {
     return (
       <div className="max-w-6xl mx-auto p-8">
@@ -462,7 +573,6 @@ const SingleProduct = () => {
 
   return (
     <div className="sp2-wrap" dir={isRTL ? "rtl" : "ltr"} lang="ar">
-      {/* Top search */}
       <div className="sp2-topSearch">
         <div className="sp2-topSearchInner">
           <SearchInput setSearchTerm={setSearchTerm} />
@@ -514,22 +624,29 @@ const SingleProduct = () => {
       </div>
 
       <div className="sp2-container">
-        {/* Breadcrumb + Product ID */}
         <div className="sp2-breadcrumb">
           <Link to="/" className="sp2-crumbLink">
             الرئيسية
           </Link>
+
           <span className="sp2-crumbSep">/</span>
 
           <Link to={productsCategoryUrl} className="sp2-crumbLink">
             {categoryAr}
           </Link>
 
+          {subCategoryText && productsSubCategoryUrl ? (
+            <>
+              <span className="sp2-crumbSep">/</span>
+              <Link to={productsSubCategoryUrl} className="sp2-crumbLink">
+                {subCategoryText}
+              </Link>
+            </>
+          ) : null}
+
           <span className="sp2-crumbSep">/</span>
 
-          <span className="sp2-crumbText sp2-crumbCurrent">
-            {breadcrumbCurrentLabel}
-          </span>
+          <span className="sp2-crumbText sp2-crumbCurrent">{breadcrumbCurrentLabel}</span>
 
           {displayId(product) ? (
             <span className="sp2-crumbId" dir="ltr" title={displayId(product)}>
@@ -539,7 +656,6 @@ const SingleProduct = () => {
         </div>
 
         <div className="sp2-grid">
-          {/* Left: gallery */}
           <div className="sp2-left">
             <div className="sp2-imageCard">
               <div
@@ -604,7 +720,6 @@ const SingleProduct = () => {
             </div>
           </div>
 
-          {/* Right: content */}
           <div className="sp2-right">
             <h1 className="sp2-title">{translatedTitle}</h1>
 
@@ -614,6 +729,13 @@ const SingleProduct = () => {
                 #{displayId(product)}
               </div>
             </div>
+
+            {subCategoryText && (
+              <div className="sp2-subCategoryRow">
+                <span className="sp2-subCategoryLabel">نوع القطعة:</span>
+                <span className="sp2-subCategoryValue">{subCategoryText}</span>
+              </div>
+            )}
 
             <div className="sp2-priceHeader">
               <div className="sp2-priceLabel">السعر</div>
@@ -632,39 +754,67 @@ const SingleProduct = () => {
 
             <div className="sp2-priceHint">لمعرفة السعر، الرجاء الاتصال بالبائع.</div>
 
-            {/* Rating BIG */}
             <div className="sp2-ratingRow sp2-ratingRowBig">
               <span className="sp2-ratingLabel">التقييم:</span>
               <span className="sp2-ratingStars">{renderStars(ratingValue, true)}</span>
               <span className="sp2-ratingNum">({ratingValue})</span>
             </div>
 
-            {/* Share */}
             <div className="sp2-shareBlock" aria-label="مشاركة المنتج">
               <div className="sp2-shareTitle">شارك المنتج</div>
 
               <div className="sp2-shareRow">
-                <button type="button" className="sp2-shareBtn is-fb" onClick={() => openShare(fbShare)} aria-label="مشاركة على فيسبوك" title="Facebook">
+                <button
+                  type="button"
+                  className="sp2-shareBtn is-fb"
+                  onClick={() => openShare(fbShare)}
+                  aria-label="مشاركة على فيسبوك"
+                  title="Facebook"
+                >
                   <FiFacebook />
                   <span>Facebook</span>
                 </button>
 
-                <button type="button" className="sp2-shareBtn is-tw" onClick={() => openShare(twShare)} aria-label="مشاركة على تويتر" title="Twitter">
+                <button
+                  type="button"
+                  className="sp2-shareBtn is-tw"
+                  onClick={() => openShare(twShare)}
+                  aria-label="مشاركة على تويتر"
+                  title="Twitter"
+                >
                   <FiTwitter />
                   <span>Twitter</span>
                 </button>
 
-                <button type="button" className="sp2-shareBtn is-wa" onClick={() => openShare(waShare)} aria-label="مشاركة على واتساب" title="WhatsApp">
+                <button
+                  type="button"
+                  className="sp2-shareBtn is-wa"
+                  onClick={() => openShare(waShare)}
+                  aria-label="مشاركة على واتساب"
+                  title="WhatsApp"
+                >
                   <span className="sp2-mini">WA</span>
                   <span>WhatsApp</span>
                 </button>
 
-                <button type="button" className="sp2-shareBtn is-ig" onClick={() => copyLink(true)} aria-label="مشاركة على إنستغرام (نسخ الرابط)" title="Instagram (Copy Link)">
+                <button
+                  type="button"
+                  className="sp2-shareBtn is-ig"
+                  onClick={() => copyLink(true)}
+                  aria-label="مشاركة على إنستغرام (نسخ الرابط)"
+                  title="Instagram (Copy Link)"
+                >
                   <FiInstagram />
                   <span>Instagram</span>
                 </button>
 
-                <button type="button" className="sp2-shareBtn is-link" onClick={() => copyLink(true)} aria-label="نسخ رابط المنتج" title="Copy Link">
+                <button
+                  type="button"
+                  className="sp2-shareBtn is-link"
+                  onClick={() => copyLink(true)}
+                  aria-label="نسخ رابط المنتج"
+                  title="Copy Link"
+                >
                   <FiLink />
                   <span>نسخ الرابط</span>
                 </button>
@@ -673,7 +823,6 @@ const SingleProduct = () => {
           </div>
         </div>
 
-        {/* Tabs */}
         <section className="sp2-tabs">
           <div className="sp2-tabHead">
             <button
@@ -702,7 +851,6 @@ const SingleProduct = () => {
           </div>
 
           <div className="sp2-tabBody">
-            {/* Description: title on top */}
             {activeTab === "desc" && (
               <div className="sp2-descBox">
                 <div className="sp2-descTitle">وصف المنتج</div>
@@ -710,7 +858,6 @@ const SingleProduct = () => {
               </div>
             )}
 
-            {/* Details: ordered */}
             {activeTab === "details" && (
               <div className="sp2-detailsPro">
                 <div className="sp2-detailsTop">
@@ -721,6 +868,13 @@ const SingleProduct = () => {
                 </div>
 
                 <div className="sp2-detailsTitle">المواصفات التقنية</div>
+
+                {subCategoryText ? (
+                  <div className="sp2-detailRowPro">
+                    <div className="sp2-detailKey">نوع القطعة</div>
+                    <div className="sp2-detailVal">{subCategoryText}</div>
+                  </div>
+                ) : null}
 
                 {compositionText ? (
                   <div className="sp2-detailRowPro">
@@ -749,6 +903,11 @@ const SingleProduct = () => {
                     <div className="sp2-detailVal">{madeInText}</div>
                   </div>
                 ) : null}
+
+                <div className="sp2-detailRowPro">
+                  <div className="sp2-detailKey">صناعة يدوية</div>
+                  <div className="sp2-detailVal">{isHandmade ? "نعم" : "لا"}</div>
+                </div>
               </div>
             )}
 
@@ -758,82 +917,151 @@ const SingleProduct = () => {
           </div>
         </section>
 
-        {/* ✅ Products of same category */}
         {sameCategoryProducts.length > 0 && (
-          <section className="sp2-like" aria-label="منتجات من نفس الفئة">
-            <h2 className="sp2-likeTitle">قد يعجبك أيضًا</h2>
+          <section
+            className="sp2-like sp2-like--lux"
+            aria-label={subCategoryText ? "منتجات من نفس الفئة الفرعية" : "منتجات من نفس الفئة"}
+          >
+            <div className="sp2-likeHead">
+              <div className="sp2-likeHeadText">
+                <span className="sp2-likeEyebrow">Wahret Zmen Selection</span>
+                <h2 className="sp2-likeTitle">
+                  {subCategoryText ? "قد يعجبك من نفس نوع القطعة" : "قد يعجبك أيضًا"}
+                  {subCategoryText ? <span className="sp2-likeHint"> · {subCategoryText}</span> : null}
+                </h2>
+                <p className="sp2-likeIntro">
+                  قطع مختارة بعناية بنفس الروح، لتمنحك تجربة تصفح أكثر أناقة وانسجامًا.
+                </p>
+              </div>
+            </div>
 
-            <div className="sp2-likeGrid">
-              {sameCategoryProducts.map((p) => (
-                <Link
-                  key={p._id}
-                  to={`/products/${p._id}`}
-                  className="sp2-likeCard"
-                  onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                >
-                  <div className="sp2-likeImgWrap">
-                    <img
-                      src={getImgUrl(p.coverImage)}
-                      alt={pickTitle(p)}
-                      className="sp2-likeImg"
-                      loading="lazy"
-                    />
-                  </div>
+            <div className="sp2-likeGrid sp2-likeGrid--lux">
+              {sameCategoryProducts.map((p, index) => (
+                <FadeInSection key={p._id} delay={0.04 * index}>
+                  <Link
+                    to={`/products/${p._id}`}
+                    className="sp2-likeCard sp2-likeCard--lux"
+                    onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                  >
+                    <div className="sp2-likeBrand">وهرة زمان</div>
 
-                  <div className="sp2-likeMeta">
-                    <div className="sp2-likeName">{pickTitle(p)}</div>
-                    <div className="sp2-likeMiniId" dir="ltr">
-                      #{displayId(p)}
+                    <div className="sp2-likeImgWrap sp2-likeImgWrap--lux">
+                      <span className="sp2-likeShine" aria-hidden="true" />
+                      {Boolean(p?.trending || p?.isTrending) && (
+                        <span className="sp2-likeBadge">رائج</span>
+                      )}
+
+                      <img
+                        src={getImgUrl(p.coverImage)}
+                        alt={pickTitle(p)}
+                        className="sp2-likeImg sp2-likeImg--lux"
+                        loading="lazy"
+                      />
+
+                      <span className="sp2-likeArrow" aria-hidden="true">
+                        <FiArrowUpRight />
+                      </span>
                     </div>
-                  </div>
-                </Link>
+
+                    <div className="sp2-likeMeta sp2-likeMeta--lux">
+                      <div className="sp2-likeName">{pickTitle(p)}</div>
+
+                      {getCardSubText(p) ? (
+                        <div className="sp2-likeMiniSub">{getCardSubText(p)}</div>
+                      ) : null}
+
+                      <div className="sp2-likeBottom">
+                        <div className="sp2-likeMiniId" dir="ltr">
+                          #{displayId(p)}
+                        </div>
+
+                        <div className="sp2-likeRate" aria-label="التقييم">
+                          <Star className="sp2-likeRateStar" />
+                          <span>{getCardRating(p)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                </FadeInSection>
               ))}
             </div>
           </section>
         )}
 
-        {/* ✅ Similar products (same embroidery if exists, else trending in same category) */}
         {similarProducts.length > 0 && (
-          <section className="sp2-like" aria-label="منتجات مشابهة">
-            <h2 className="sp2-likeTitle">
-              منتجات مشابهة {embroideryText ? <span className="sp2-likeHint">· {embroideryText}</span> : null}
-            </h2>
+          <section className="sp2-like sp2-like--lux" aria-label="منتجات مشابهة">
+            <div className="sp2-likeHead">
+              <div className="sp2-likeHeadText">
+                <span className="sp2-likeEyebrow">Curated For You</span>
+                <h2 className="sp2-likeTitle">
+                  منتجات مشابهة
+                  {embroideryText ? <span className="sp2-likeHint"> · {embroideryText}</span> : null}
+                </h2>
+                <p className="sp2-likeIntro">
+                  تصاميم متقاربة في الطابع والتفاصيل لتسهّل عليك اختيار القطعة المثالية.
+                </p>
+              </div>
+            </div>
 
-            <div className="sp2-likeGrid">
-              {similarProducts.map((p) => (
-                <Link
-                  key={p._id}
-                  to={`/products/${p._id}`}
-                  className="sp2-likeCard"
-                  onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                >
-                  <div className="sp2-likeImgWrap">
-                    <img
-                      src={getImgUrl(p.coverImage)}
-                      alt={pickTitle(p)}
-                      className="sp2-likeImg"
-                      loading="lazy"
-                    />
-                  </div>
+            <div className="sp2-likeGrid sp2-likeGrid--lux">
+              {similarProducts.map((p, index) => (
+                <FadeInSection key={p._id} delay={0.04 * index}>
+                  <Link
+                    to={`/products/${p._id}`}
+                    className="sp2-likeCard sp2-likeCard--lux"
+                    onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                  >
+                    <div className="sp2-likeBrand">وهرة زمان</div>
 
-                  <div className="sp2-likeMeta">
-                    <div className="sp2-likeName">{pickTitle(p)}</div>
-                    <div className="sp2-likeMiniId" dir="ltr">
-                      #{displayId(p)}
+                    <div className="sp2-likeImgWrap sp2-likeImgWrap--lux">
+                      <span className="sp2-likeShine" aria-hidden="true" />
+                      {Boolean(p?.trending || p?.isTrending) && (
+                        <span className="sp2-likeBadge">رائج</span>
+                      )}
+
+                      <img
+                        src={getImgUrl(p.coverImage)}
+                        alt={pickTitle(p)}
+                        className="sp2-likeImg sp2-likeImg--lux"
+                        loading="lazy"
+                      />
+
+                      <span className="sp2-likeArrow" aria-hidden="true">
+                        <FiArrowUpRight />
+                      </span>
                     </div>
-                  </div>
-                </Link>
+
+                    <div className="sp2-likeMeta sp2-likeMeta--lux">
+                      <div className="sp2-likeName">{pickTitle(p)}</div>
+
+                      {getCardSubText(p) ? (
+                        <div className="sp2-likeMiniSub">{getCardSubText(p)}</div>
+                      ) : null}
+
+                      <div className="sp2-likeBottom">
+                        <div className="sp2-likeMiniId" dir="ltr">
+                          #{displayId(p)}
+                        </div>
+
+                        <div className="sp2-likeRate" aria-label="التقييم">
+                          <Star className="sp2-likeRateStar" />
+                          <span>{getCardRating(p)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                </FadeInSection>
               ))}
             </div>
           </section>
         )}
 
-        {/* Premium rating (kept) */}
         <FadeInSection delay={0.1}>
           <section className="wz-premium-rating mt-12" aria-label="تقييم متجر وهرة زمان">
             <h2 className="wz-premium-title">
               ثقة العملاء في متجر <span>وهرة زمان</span>
             </h2>
+
             <p className="text-center text-sm text-gray-600 mb-4">
               {BOUTIQUE_RATING.locationLabel} · {BOUTIQUE_RATING.ownerLabel}
             </p>
@@ -860,7 +1088,9 @@ const SingleProduct = () => {
                         style={{ "--wz-bar": `${BOUTIQUE_RATING.distribution[stars]}%` }}
                       />
                     </div>
-                    <span className="wz-premium-row-percent">{BOUTIQUE_RATING.distribution[stars]}%</span>
+                    <span className="wz-premium-row-percent">
+                      {BOUTIQUE_RATING.distribution[stars]}%
+                    </span>
                   </div>
                 ))}
               </div>
@@ -885,7 +1115,9 @@ const SingleProduct = () => {
                         style={{ "--wz-bar": `${BOUTIQUE_RATING.quality[k]}%` }}
                       />
                     </div>
-                    <span className="wz-premium-quality-percent">{BOUTIQUE_RATING.quality[k]}%</span>
+                    <span className="wz-premium-quality-percent">
+                      {BOUTIQUE_RATING.quality[k]}%
+                    </span>
                   </div>
                 ))}
               </div>

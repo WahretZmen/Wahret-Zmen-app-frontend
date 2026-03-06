@@ -1,7 +1,7 @@
 /* ========================================================================== */
 /* 🧰 Styles/StylesSelectorProductsPage.css                                    */
-/* Filters UI – Sidebar (Plain CSS)
-   
+/* Filters UI – Sidebar (Plain CSS)                                            */
+/* ========================================================================== */
 
 /* ========================================================================== 1) Sidebar shell & card */
 
@@ -16,15 +16,16 @@
 }
 
 @media (min-width:1024px){
-  .filters-sidebar{ width:20rem; } /* ~320px */
-  .filters-card{ position:sticky; top:92px; } /* under fixed header */
+  .filters-sidebar{ width:20rem; }
+  .filters-card{ position:sticky; top:92px; }
 }
-
 
 /* ========================================================================== 2) Header */
 
 .filters-header{
-  display:flex; align-items:center; justify-content:space-between;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
   margin-bottom:.75rem;
 }
 
@@ -35,13 +36,19 @@
   color:#2c2c2c;
 }
 
-.filters-header .icon{ width:22px; height:22px; color:#a67c52; opacity:.85; }
-
+.filters-header .icon{
+  width:22px;
+  height:22px;
+  color:#a67c52;
+  opacity:.85;
+}
 
 /* ========================================================================== 3) Groups (labels/selects) */
 
 .filter-group{
-  display:flex; flex-direction:column; gap:8px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
   padding: clamp(6px, 1.2vw, 10px) 0;
 }
 
@@ -70,11 +77,12 @@
   box-shadow:0 0 0 3px rgba(166,124,82,.12);
 }
 
-
 /* ========================================================================== 4) Price fields */
 
 .price-row{
-  display:flex; align-items:center; justify-content:space-between;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
   gap:10px;
 }
 
@@ -82,7 +90,9 @@
 
 .price-field{
   flex:1 1 auto;
-  display:flex; align-items:center; gap:8px;
+  display:flex;
+  align-items:center;
+  gap:8px;
   border:1px solid #d9d3c9;
   border-radius:12px;
   padding:10px 12px;
@@ -92,8 +102,10 @@
 .price-field input{
   width:100%;
   min-width:0;
-  border:none; outline:none;
-  font-size:1rem; color:#2b2b2b;
+  border:none;
+  outline:none;
+  font-size:1rem;
+  color:#2b2b2b;
   background:transparent;
 }
 
@@ -105,76 +117,81 @@
   .filter-select{ padding:13px 14px; }
 }
 
-
-/* ========================================================================== 5) Double range sliders (two lines) */
+/* ========================================================================== 5) Double range sliders */
 
 .range-wrap { margin-top: 10px; }
 
-/* Two distinct bars stacked vertically */
 .range-wrap.double{
   position: relative;
-  height: 44px;                     /* room for 2 lines + thumbs */
+  height: 44px;
 }
 
-/* Shared base for range inputs */
 .range{
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
   outline: none;
-  background: transparent;          /* we draw the track in vendor rules */
+  background: transparent;
   position: absolute;
-  left: 0; right: 0;
+  left: 0;
+  right: 0;
 }
 
-/* Top line (MIN) sits higher – neutral thin bar */
 .range.line.first{
-  top: 6px;                         /* position of top track */
+  top: 6px;
   height: 6px;
 }
 
 .range.line.first::-webkit-slider-runnable-track{
-  height: 6px; background:#eae2d6; border-radius:999px;
+  height: 6px;
+  background:#eae2d6;
+  border-radius:999px;
 }
 
 .range.line.first::-moz-range-track{
-  height: 6px; background:#eae2d6; border-radius:999px;
+  height: 6px;
+  background:#eae2d6;
+  border-radius:999px;
 }
 
-/* Bottom line (MAX) sits lower – thicker gold bar */
 .range.line.second{
-  top: 26px;                        /* position of bottom track */
+  top: 26px;
   height: 8px;
 }
 
 .range.line.second::-webkit-slider-runnable-track{
-  height: 8px; background:#c98a3c; border-radius:999px;
+  height: 8px;
+  background:#c98a3c;
+  border-radius:999px;
 }
 
 .range.line.second::-moz-range-track{
-  height: 8px; background:#c98a3c; border-radius:999px;
+  height: 8px;
+  background:#c98a3c;
+  border-radius:999px;
 }
 
-/* Thumbs (WebKit) */
 .range::-webkit-slider-thumb{
-  -webkit-appearance: none; appearance: none;
-  width: 20px; height: 20px;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   border: 2px solid #fff;
   box-shadow: 0 1px 6px rgba(0,0,0,.2);
   cursor: pointer;
-  background: #a67c52;              /* default thumb (top MIN) */
-  margin-top: -7px;                  /* vertical centering on 6–8px tracks */
+  background: #a67c52;
+  margin-top: -7px;
 }
 
 .range.line.second::-webkit-slider-thumb{
-  background:#7a5a36;               /* darker thumb for bottom MAX */
+  background:#7a5a36;
   margin-top: -6px;
 }
 
-/* Thumbs (Firefox) */
 .range::-moz-range-thumb{
-  width: 20px; height: 20px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   border: 2px solid #fff;
   box-shadow: 0 1px 6px rgba(0,0,0,.2);
@@ -182,15 +199,15 @@
   background: #a67c52;
 }
 
-.range.line.second::-moz-range-thumb{ background:#7a5a36; }
+.range.line.second::-moz-range-thumb{
+  background:#7a5a36;
+}
 
-/* Focus ring */
 .range:focus-visible{
   box-shadow: 0 0 0 3px rgba(166,124,82,.18);
   border-radius: 12px;
 }
 
-/* End labels under the bars */
 .range-ends{
   display:flex;
   justify-content:space-between;
@@ -199,68 +216,76 @@
   margin-top: 4px;
 }
 
-/* Tight phones: give a bit more height */
 @media (max-width: 420px){
   .range-wrap.double{ height: 48px; }
   .range.line.first{ top: 8px; }
   .range.line.second{ top: 30px; }
 }
 
-
-/* ========================================================================== 6) Button (outline) */
+/* ========================================================================== 6) Button */
 
 .btn-outline{
-  display:inline-flex; align-items:center; justify-content:center;
-  gap:8px; width:100%;
-  background:#fff; color:#2b2b2b;
-  border:1px solid #d9d3c9; border-radius:999px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  width:100%;
+  background:#fff;
+  color:#2b2b2b;
+  border:1px solid #d9d3c9;
+  border-radius:999px;
   padding:12px 16px;
-  font-weight:800; letter-spacing:.02em;
+  font-weight:800;
+  letter-spacing:.02em;
   cursor:pointer;
   transition:background .2s ease, border-color .2s ease, box-shadow .2s ease;
 }
 
 .btn-outline:hover{
-  background:#f5f1ea; border-color:#A67C52;
+  background:#f5f1ea;
+  border-color:#A67C52;
   box-shadow:0 6px 14px rgba(0,0,0,.06);
 }
 
-
-/* ========================================================================== 7) Inline version grid hooks (optional) */
+/* ========================================================================== 7) Inline version grid hooks */
 
 .selector-products-container{
-  display:grid; grid-template-columns:repeat(12,1fr);
-  gap:12px; align-items:end; margin-bottom:1.25rem; padding:0 1rem;
+  display:grid;
+  grid-template-columns:repeat(12,1fr);
+  gap:12px;
+  align-items:end;
+  margin-bottom:1.25rem;
+  padding:0 1rem;
 }
 
 .filters-inline .filter-item{
   grid-column:span 3;
-  display:flex; flex-direction:column; gap:6px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
 }
+
 .filters-inline .price{ grid-column:span 4; }
 .clear-btn{ grid-column:span 2; height:40px; align-self:center; }
 
 @media (max-width:1024px){
-  .selector-products-container{ grid-template-columns:repeat(6,1fr); gap:10px; }
+  .selector-products-container{
+    grid-template-columns:repeat(6,1fr);
+    gap:10px;
+  }
+
   .filters-inline .filter-item{ grid-column:span 3; }
   .filters-inline .price{ grid-column:span 6; }
   .clear-btn{ grid-column:span 6; }
 }
 
 @media (max-width:640px){
-  .selector-products-container{ grid-template-columns:repeat(4,1fr); gap:10px; }
+  .selector-products-container{
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+  }
+
   .filters-inline .filter-item,
   .filters-inline .price,
   .clear-btn{ grid-column:span 4; }
 }
-
-
-/* ========================================================================== 8) RTL tweaks */
-
-/* (Already included above for price row direction)
-   .filters-sidebar[dir="rtl"] .price-row { direction: rtl; }
-*/
-
-
-/* ========================================================================== 9) Responsive breakpoints */
-/* (All responsive rules are scoped in sections above.) */

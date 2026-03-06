@@ -1,5 +1,3 @@
-// src/pages/dashboard/products/UpdateProduct.jsx
-
 import React, { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
@@ -8,11 +6,25 @@ import axios from "axios";
 import imageCompression from "browser-image-compression";
 
 import getBaseUrl from "../../../utils/baseURL";
-import { useGetProductByIdQuery, useUpdateProductMutation } from "../../../redux/features/products/productsApi";
+import {
+  useGetProductByIdQuery,
+  useUpdateProductMutation,
+} from "../../../redux/features/products/productsApi";
 
 import "../../../Styles/StylesAddProduct.css";
 
 const ALL_SIZES = ["S", "M", "L", "XL"];
+const MAX_IMAGE_SIZE_MB = 20;
+const AUTO_COMPRESS_THRESHOLD_MB = 12;
+
+const ACCEPTED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+  "image/avif",
+  "image/gif",
+];
 
 const SUBCATEGORY_OPTIONS = [
   { value: "", labelAr: "— بدون —" },
@@ -49,7 +61,6 @@ const UpdateProduct = () => {
       oldPrice: "",
       newPrice: "",
       trending: false,
-
       coupe: "",
       matiere: "",
       composition: "",
@@ -85,15 +96,65 @@ const UpdateProduct = () => {
     return Math.max(0, n);
   };
 
-  const compressImage = async (file) =>
-    imageCompression(file, { maxSizeMB: 1, maxWidthOrHeight: 1024, useWebWorker: true });
+  const validateImageFile = (file) => {
+    if (!file) return false;
+
+    if (!file.type?.startsWith("image/") || !ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+      Swal.fire({
+        icon: "warning",
+        title: "نوع الملف غير صالح",
+        text: "يرجى اختيار صورة بصيغة JPG أو PNG أو WEBP أو AVIF أو GIF.",
+        confirmButtonText: "حسناً",
+      });
+      return false;
+    }
+
+    if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
+      Swal.fire({
+        icon: "warning",
+        title: "الصورة كبيرة جداً",
+        text: `الحد الأقصى المسموح به هو ${MAX_IMAGE_SIZE_MB}MB للصورة الواحدة.`,
+        confirmButtonText: "حسناً",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  const optimizeImageIfNeeded = async (file) => {
+    if (!file) return file;
+
+    const sizeMB = file.size / (1024 * 1024);
+
+    if (sizeMB <= AUTO_COMPRESS_THRESHOLD_MB) {
+      return file;
+    }
+
+    try {
+      const compressed = await imageCompression(file, {
+        maxSizeMB: 9.5,
+        maxWidthOrHeight: 2400,
+        useWebWorker: true,
+        initialQuality: 0.92,
+        alwaysKeepResolution: true,
+      });
+
+      return compressed;
+    } catch (error) {
+      console.error("Image optimization failed, using original file:", error);
+      return file;
+    }
+  };
 
   const uploadImage = async (file) => {
     if (!file) return "";
+
     try {
-      const compressed = await compressImage(file);
+      const finalFile = await optimizeImageIfNeeded(file);
+
       const formData = new FormData();
-      formData.append("image", compressed);
+      formData.append("image", finalFile);
 
       const res = await axios.post(`${getBaseUrl()}/api/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -102,7 +163,12 @@ const UpdateProduct = () => {
       return res.data.image || "";
     } catch (err) {
       console.error("❌ Image upload failed:", err);
-      Swal.fire({ icon: "error", title: "خطأ!", text: "فشل رفع الصورة. يرجى المحاولة مرة أخرى.", confirmButtonText: "حسناً" });
+      Swal.fire({
+        icon: "error",
+        title: "خطأ!",
+        text: "فشل رفع الصورة. يرجى المحاولة مرة أخرى.",
+        confirmButtonText: "حسناً",
+      });
       return "";
     }
   };
@@ -110,7 +176,11 @@ const UpdateProduct = () => {
   const fullUrl = (url) => (url?.startsWith("http") ? url : `${getBaseUrl()}${url || ""}`);
 
   const openInNewTab = (url) => {
-    const final = url?.startsWith("blob:") ? url : url?.startsWith("http") ? url : `${getBaseUrl()}${url || ""}`;
+    const final = url?.startsWith("blob:")
+      ? url
+      : url?.startsWith("http")
+      ? url
+      : `${getBaseUrl()}${url || ""}`;
     if (!final) return;
     window.open(final, "_blank", "noopener,noreferrer");
   };
@@ -120,20 +190,21 @@ const UpdateProduct = () => {
 
     reset({
       productId: String(product.productId || "").trim(),
-
       description: product.description || "",
-      category: product.category || "",           // ✅ now matches select values
-      subCategory: product.subCategory || "",     // ✅ now saved + matches select
-
+      category: product.category || "",
+      subCategory: product.subCategory || "",
       embroideryCategory: pickText(product.embroideryCategory),
-
-      oldPrice: product.oldPrice === null || product.oldPrice === undefined ? "" : Number(product.oldPrice),
-      newPrice: product.newPrice === null || product.newPrice === undefined ? "" : Number(product.newPrice),
-
+      oldPrice:
+        product.oldPrice === null || product.oldPrice === undefined
+          ? ""
+          : Number(product.oldPrice),
+      newPrice:
+        product.newPrice === null || product.newPrice === undefined
+          ? ""
+          : Number(product.newPrice),
       rating: Number(product.rating ?? 0),
       trending: !!product.trending,
       sizes: Array.isArray(product.sizes) ? product.sizes : [],
-
       coupe: pickText(product.coupe),
       matiere: pickText(product.matiere),
       composition: pickText(product.composition),
@@ -146,7 +217,13 @@ const UpdateProduct = () => {
 
     const normalized = (product.colors || []).map((c) => {
       const name = pickText(c.colorName) || "";
-      const images = Array.isArray(c.images) && c.images.length ? c.images : c.image ? [c.image] : [];
+      const images =
+        Array.isArray(c.images) && c.images.length
+          ? c.images
+          : c.image
+          ? [c.image]
+          : [];
+
       return {
         _id: c._id,
         colorName: name,
@@ -163,13 +240,15 @@ const UpdateProduct = () => {
 
   const handleCoverImageChange = (e) => {
     const file = e.target.files?.[0];
-    if (file && file.type.startsWith("image/")) {
-      if (coverPreviewURL?.startsWith("blob:")) URL.revokeObjectURL(coverPreviewURL);
-      setCoverImageFile(file);
-      setCoverPreviewURL(URL.createObjectURL(file));
-    } else {
-      setCoverImageFile(null);
+
+    if (!validateImageFile(file)) {
+      e.target.value = "";
+      return;
     }
+
+    if (coverPreviewURL?.startsWith("blob:")) URL.revokeObjectURL(coverPreviewURL);
+    setCoverImageFile(file);
+    setCoverPreviewURL(URL.createObjectURL(file));
   };
 
   const setColorAt = (index, patch) =>
@@ -178,7 +257,15 @@ const UpdateProduct = () => {
   const addColorInput = () =>
     setColorInputs((prev) => [
       ...prev,
-      { _id: undefined, colorName: "", stock: 0, images: [], pendingFile: null, pendingPreview: "", uploading: false },
+      {
+        _id: undefined,
+        colorName: "",
+        stock: 0,
+        images: [],
+        pendingFile: null,
+        pendingPreview: "",
+        uploading: false,
+      },
     ]);
 
   const deleteColorInput = (index) => {
@@ -190,15 +277,15 @@ const UpdateProduct = () => {
   };
 
   const handlePickColorFile = (index, file) => {
-    if (file && file.type.startsWith("image/")) {
-      setColorInputs((prev) =>
-        prev.map((c, i) => {
-          if (i !== index) return c;
-          if (c.pendingPreview?.startsWith("blob:")) URL.revokeObjectURL(c.pendingPreview);
-          return { ...c, pendingFile: file, pendingPreview: URL.createObjectURL(file) };
-        })
-      );
-    }
+    if (!validateImageFile(file)) return;
+
+    setColorInputs((prev) =>
+      prev.map((c, i) => {
+        if (i !== index) return c;
+        if (c.pendingPreview?.startsWith("blob:")) URL.revokeObjectURL(c.pendingPreview);
+        return { ...c, pendingFile: file, pendingPreview: URL.createObjectURL(file) };
+      })
+    );
   };
 
   const cancelPendingColorFile = (index) =>
@@ -223,7 +310,13 @@ const UpdateProduct = () => {
           prev.map((c, i) => {
             if (i !== index) return c;
             if (c.pendingPreview?.startsWith("blob:")) URL.revokeObjectURL(c.pendingPreview);
-            return { ...c, images: [...c.images, url], pendingFile: null, pendingPreview: "", uploading: false };
+            return {
+              ...c,
+              images: [...c.images, url],
+              pendingFile: null,
+              pendingPreview: "",
+              uploading: false,
+            };
           })
         );
       } else {
@@ -254,16 +347,25 @@ const UpdateProduct = () => {
     try {
       const pid = String(data.productId || "").trim();
       if (!pid) {
-        Swal.fire({ icon: "warning", title: "بيانات ناقصة!", text: "يرجى إدخال معرّف المنتج.", confirmButtonText: "حسناً" });
+        Swal.fire({
+          icon: "warning",
+          title: "بيانات ناقصة!",
+          text: "يرجى إدخال معرّف المنتج.",
+          confirmButtonText: "حسناً",
+        });
         return;
       }
 
-      // ✅ category keys exactly like DB/controller
       const allowedCategories = ["men", "women", "children"];
       const finalCategory = allowedCategories.includes(data.category) ? data.category : "";
 
       if (!finalCategory) {
-        Swal.fire({ icon: "warning", title: "بيانات ناقصة!", text: "يرجى اختيار الفئة.", confirmButtonText: "حسناً" });
+        Swal.fire({
+          icon: "warning",
+          title: "بيانات ناقصة!",
+          text: "يرجى اختيار الفئة.",
+          confirmButtonText: "حسناً",
+        });
         return;
       }
 
@@ -293,11 +395,22 @@ const UpdateProduct = () => {
       }
 
       if (preparedColors.length === 0) {
-        Swal.fire({ icon: "warning", title: "بيانات ناقصة!", text: "أضِف لونًا واحدًا على الأقل مع صورة.", confirmButtonText: "حسناً" });
+        Swal.fire({
+          icon: "warning",
+          title: "بيانات ناقصة!",
+          text: "أضِف لونًا واحدًا على الأقل مع صورة.",
+          confirmButtonText: "حسناً",
+        });
         return;
       }
+
       if (preparedColors.some((c) => !Array.isArray(c.images) || c.images.length === 0)) {
-        Swal.fire({ icon: "warning", title: "صورة مفقودة!", text: "كل لون يجب أن يحتوي على صورة واحدة على الأقل.", confirmButtonText: "حسناً" });
+        Swal.fire({
+          icon: "warning",
+          title: "صورة مفقودة!",
+          text: "كل لون يجب أن يحتوي على صورة واحدة على الأقل.",
+          confirmButtonText: "حسناً",
+        });
         return;
       }
 
@@ -309,7 +422,12 @@ const UpdateProduct = () => {
 
       if (!coverImage) coverImage = preparedColors[0]?.images?.[0] || "";
       if (!coverImage) {
-        Swal.fire({ icon: "warning", title: "الصورة الرئيسية!", text: "يرجى تحديد صورة رئيسية.", confirmButtonText: "حسناً" });
+        Swal.fire({
+          icon: "warning",
+          title: "الصورة الرئيسية!",
+          text: "يرجى تحديد صورة رئيسية.",
+          confirmButtonText: "حسناً",
+        });
         return;
       }
 
@@ -327,25 +445,19 @@ const UpdateProduct = () => {
       const payload = {
         id,
         productId: pid,
-
         description: (data.description || "").trim(),
         category: finalCategory,
         subCategory: finalSubCategory,
-
         embroideryCategory: (data.embroideryCategory || "").trim(),
-
         coupe: (data.coupe || "").trim(),
         matiere: (data.matiere || "").trim(),
         composition: (data.composition || "").trim(),
         madeIn: (data.madeIn || "").trim(),
         isHandmade: !!data.isHandmade,
-
         coverImage,
         colors: colorsForServer,
-
         oldPrice,
         newPrice,
-
         stockQuantity: colorsForServer.reduce((sum, c) => sum + (c.stock || 0), 0),
         trending: !!data.trending,
         rating: Math.max(0, Math.min(5, Number(data.rating ?? 0))),
@@ -354,11 +466,21 @@ const UpdateProduct = () => {
 
       await updateProduct(payload).unwrap();
 
-      Swal.fire({ icon: "success", title: "تم تحديث المنتج بنجاح!", confirmButtonText: "حسناً" });
+      Swal.fire({
+        icon: "success",
+        title: "تم تحديث المنتج بنجاح!",
+        confirmButtonText: "حسناً",
+      });
+
       navigate("/dashboard/manage-products");
     } catch (error) {
       console.error("❌ Error updating product:", error?.data || error);
-      Swal.fire({ icon: "error", title: "خطأ!", text: error?.data?.message || "فشل في تحديث المنتج.", confirmButtonText: "حسناً" });
+      Swal.fire({
+        icon: "error",
+        title: "خطأ!",
+        text: error?.data?.message || "فشل في تحديث المنتج.",
+        confirmButtonText: "حسناً",
+      });
     }
   };
 
@@ -427,10 +549,15 @@ const UpdateProduct = () => {
 
           <div className="wz-ap__field">
             <label className="wz-ap__label">وصف المنتج</label>
-            <textarea {...register("description")} className="wz-ap__textarea" placeholder="اكتب وصفًا واضحًا للمنتج..." required rows={3} />
+            <textarea
+              {...register("description")}
+              className="wz-ap__textarea"
+              placeholder="اكتب وصفًا واضحًا للمنتج..."
+              required
+              rows={3}
+            />
           </div>
 
-          {/* ✅ MAIN category keys */}
           <div className="wz-ap__field">
             <label className="wz-ap__label">الفئة</label>
             <select {...register("category")} className="wz-ap__select" required>
@@ -454,7 +581,11 @@ const UpdateProduct = () => {
 
           <div className="wz-ap__field">
             <label className="wz-ap__label">فئة التطريز (اختياري)</label>
-            <input {...register("embroideryCategory")} className="wz-ap__input" placeholder="مثال: تطريز يدوي / تقليدي..." />
+            <input
+              {...register("embroideryCategory")}
+              className="wz-ap__input"
+              placeholder="مثال: تطريز يدوي / تقليدي..."
+            />
           </div>
 
           <div className="wz-ap__block">
@@ -502,7 +633,6 @@ const UpdateProduct = () => {
             <span style={{ fontWeight: 900 }}>منتج رائج</span>
           </div>
 
-          {/* Cover */}
           <div className="wz-ap__block">
             <div className="wz-ap__blockTitle">تغيير الصورة الرئيسية (اختياري)</div>
 
@@ -533,11 +663,15 @@ const UpdateProduct = () => {
             </div>
 
             {coverPreviewURL && (
-              <img src={coverPreviewURL} alt="cover-preview" className="wz-ap__coverPreview" onClick={() => openInNewTab(coverPreviewURL)} />
+              <img
+                src={coverPreviewURL}
+                alt="cover-preview"
+                className="wz-ap__coverPreview"
+                onClick={() => openInNewTab(coverPreviewURL)}
+              />
             )}
           </div>
 
-          {/* Colors */}
           <div className="wz-ap__block">
             <div className="wz-ap__blockTitle">ألوان المنتج</div>
 
@@ -557,7 +691,15 @@ const UpdateProduct = () => {
 
                   <div className="wz-ap__field">
                     <label className="wz-ap__label">الكمية في المخزون</label>
-                    <input type="number" className="wz-ap__input" value={color.stock} onChange={(e) => setColorAt(index, { stock: Number(e.target.value) || 0 })} placeholder="0" required min="0" />
+                    <input
+                      type="number"
+                      className="wz-ap__input"
+                      value={color.stock}
+                      onChange={(e) => setColorAt(index, { stock: Number(e.target.value) || 0 })}
+                      placeholder="0"
+                      required
+                      min="0"
+                    />
                   </div>
 
                   <div className="wz-ap__fileRow" style={{ justifyContent: "flex-end" }}>
@@ -567,15 +709,31 @@ const UpdateProduct = () => {
                       </button>
                     )}
 
-                    <button type="button" onClick={() => uploadPendingColorFile(index)} disabled={!color.pendingFile || color.uploading} className="wz-ap__btn wz-ap__btnAccent wz-ap__btnInline">
+                    <button
+                      type="button"
+                      onClick={() => uploadPendingColorFile(index)}
+                      disabled={!color.pendingFile || color.uploading}
+                      className="wz-ap__btn wz-ap__btnAccent wz-ap__btnInline"
+                    >
                       {color.uploading ? "جارٍ الرفع..." : "رفع"}
                     </button>
 
-                    <button type="button" onClick={() => cancelPendingColorFile(index)} disabled={!color.pendingFile || color.uploading} className="wz-ap__btn wz-ap__btnSoft wz-ap__btnInline">
+                    <button
+                      type="button"
+                      onClick={() => cancelPendingColorFile(index)}
+                      disabled={!color.pendingFile || color.uploading}
+                      className="wz-ap__btn wz-ap__btnSoft wz-ap__btnInline"
+                    >
                       إلغاء
                     </button>
 
-                    <input id={`color-file-${index}`} type="file" accept="image/*" className="hidden" onChange={(e) => handlePickColorFile(index, e.target.files?.[0])} />
+                    <input
+                      id={`color-file-${index}`}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handlePickColorFile(index, e.target.files?.[0])}
+                    />
                     <label htmlFor={`color-file-${index}`} className="wz-ap__fileLabel">
                       اختيار صورة
                     </label>
@@ -584,7 +742,12 @@ const UpdateProduct = () => {
                   {color.pendingPreview && (
                     <div className="wz-ap__pendingPreviewRow">
                       <span className="wz-ap__pendingPreviewText">معاينة (قبل الرفع):</span>
-                      <img src={color.pendingPreview} alt="pending" className="wz-ap__pendingThumb" onClick={() => openInNewTab(color.pendingPreview)} />
+                      <img
+                        src={color.pendingPreview}
+                        alt="pending"
+                        className="wz-ap__pendingThumb"
+                        onClick={() => openInNewTab(color.pendingPreview)}
+                      />
                     </div>
                   )}
 
@@ -594,10 +757,23 @@ const UpdateProduct = () => {
                         const final = fullUrl(img);
                         return (
                           <div key={imgIdx}>
-                            <img src={final} alt={`img-${imgIdx}`} className="wz-ap__thumb" onClick={() => openInNewTab(final)} />
+                            <img
+                              src={final}
+                              alt={`img-${imgIdx}`}
+                              className="wz-ap__thumb"
+                              onClick={() => openInNewTab(final)}
+                            />
                             <div className="wz-ap__thumbActions">
-                              <a className="wz-ap__openLink" href={final} target="_blank" rel="noreferrer noopener">فتح</a>
-                              <button type="button" onClick={() => removeColorImage(index, imgIdx)} className="wz-ap__thumbRemove">حذف</button>
+                              <a className="wz-ap__openLink" href={final} target="_blank" rel="noreferrer noopener">
+                                فتح
+                              </a>
+                              <button
+                                type="button"
+                                onClick={() => removeColorImage(index, imgIdx)}
+                                className="wz-ap__thumbRemove"
+                              >
+                                حذف
+                              </button>
                             </div>
                           </div>
                         );

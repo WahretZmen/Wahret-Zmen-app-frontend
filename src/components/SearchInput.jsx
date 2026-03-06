@@ -20,7 +20,7 @@ const SearchInput = ({ setSearchTerm }) => {
 
   return (
     <FadeInSection delay={0.1}>
-      <div className="w-full max-w-md relative group transition-all duration-300" dir="rtl">
+      <div className="w-full max-w-md relative group transition-all duration-300 Search-Input" dir="rtl">
         {/* Hidden label for accessibility */}
         <label htmlFor="search" className="sr-only">
           ابحث عن المنتجات
@@ -32,7 +32,7 @@ const SearchInput = ({ setSearchTerm }) => {
           type="text"
           placeholder=" ابحث عن الجبب..."
           onChange={handleChange}
-          className="w-full px-5 py-3 text-gray-800 bg-white rounded-xl border border-gray-300 shadow-inner
+          className="w-full px-5 py-3 text-gray-800 bg-white  border border-gray-300 shadow-inner 
                      transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]
                      focus:border-[#A67C52] focus:shadow-md placeholder-gray-400 text-sm sm:text-base
                      hover:border-[#A67C52]"

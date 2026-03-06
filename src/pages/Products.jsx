@@ -26,7 +26,9 @@ const capitalize = (s) => {
   return n ? n.charAt(0).toUpperCase() + n.slice(1) : "";
 };
 
-/* ✅ CATEGORY is ONLY Men/Women/Children */
+/* ---------------------------
+   Category helpers
+--------------------------- */
 const CATEGORY_ALIAS_TO_UI = {
   all: "All",
   tous: "All",
@@ -73,17 +75,61 @@ const mapURLCategoryToUI = (raw) => {
 
 const uiCategoryToUrl = (ui) => UI_TO_URL_CATEGORY[ui] ?? "";
 
-/* ✅ Fixed Sub Categories list (Arabic labels) */
+/* ---------------------------
+   Subcategory helpers
+--------------------------- */
 const SUBCATEGORY_OPTIONS = [
   { value: "All", label: "الكل" },
-  { value: "إكسسوارات", label: "إكسسوارات" },
-  { value: "بدلة", label: "بدلة" },
-  { value: "صدريّة", label: "صدريّة" },
-  { value: "عباية رجالي", label: "عباية رجالي" },
-  { value: "جبة", label: "جبة" },
+  { value: "accessories", label: "إكسسوارات" },
+  { value: "costume", label: "بدلة" },
+  { value: "vest", label: "صدريّة" },
+  { value: "mens_abaya", label: "عباية رجالي" },
+  { value: "jebba", label: "جبة" },
 ];
 
-/* ✅ Subcategory text (string OR {ar,fr,en}) + supports many field names */
+const SUBCATEGORY_ALIAS_TO_KEY = {
+  all: "All",
+  "الكل": "All",
+
+  accessories: "accessories",
+  accessory: "accessories",
+  accessoires: "accessories",
+  "إكسسوارات": "accessories",
+  اكسسوارات: "accessories",
+
+  costume: "costume",
+  suit: "costume",
+  "بدلة": "costume",
+  بدلة: "costume",
+
+  vest: "vest",
+  gilet: "vest",
+  "صدريّة": "vest",
+  "صدرية": "vest",
+  صدريّة: "vest",
+  صدرية: "vest",
+
+  mens_abaya: "mens_abaya",
+  "mens abaya": "mens_abaya",
+  "men abaya": "mens_abaya",
+  "abaya homme": "mens_abaya",
+  "عباية رجالي": "mens_abaya",
+  "عباية رجالية": "mens_abaya",
+
+  jebba: "jebba",
+  jebbah: "jebba",
+  "جبة": "jebba",
+  "جبّة": "jebba",
+};
+
+const canonicalSubCategory = (raw) => {
+  const n = normalize(raw);
+  return SUBCATEGORY_ALIAS_TO_KEY[n] || String(raw || "").trim() || "";
+};
+
+/* ---------------------------
+   Product field helpers
+--------------------------- */
 const pickText = (v) => {
   if (!v) return "";
   if (typeof v === "string") return v.trim();
@@ -102,7 +148,7 @@ const getProductSubCategory = (p) => {
     p?.sub_categorie ??
     p?.subCategoryName;
 
-  return pickText(raw);
+  return canonicalSubCategory(pickText(raw));
 };
 
 const numericPrice = (p) => {
@@ -142,10 +188,160 @@ const getEmbroideryLabel = (emb) => {
 };
 
 /* ---------------------------
+   Premium dynamic copy
+--------------------------- */
+const CATEGORY_COPY = {
+  All: {
+    badge: "مجموعة وهرة زمان",
+    title: "اكتشف تشكيلة راقية تجمع بين الأصالة والفخامة",
+    description:
+      "تأمل مجموعة وهرة زمان المختارة بعناية من الأزياء والقطع التقليدية الراقية، حيث يلتقي التراث التونسي بجمال التفاصيل الراقية لتمنحك إطلالة أنيقة، متوازنة، ومميزة في كل مناسبة.",
+  },
+  Men: {
+    badge: "أناقة رجالية أصيلة",
+    title: "قطع رجالية بهوية تقليدية وحضور فاخر",
+    description:
+      "تصفح تشكيلة الرجال المصممة لتجسّد الوقار، الرقي، والهوية التونسية الأصيلة، مع قصّات مدروسة وتفاصيل أنيقة تمنح كل إطلالة طابعًا فخمًا وواثقًا.",
+  },
+  Women: {
+    badge: "أناقة نسائية فاخرة",
+    title: "تصاميم نسائية راقية تعكس الجمال والتراث",
+    description:
+      "اكتشف مجموعة النساء التي تجمع بين نعومة الحضور وفخامة التفاصيل، مع لمسات مستوحاة من التراث التونسي لتمنحك إطلالة أنثوية راقية تناسب المناسبات الراقية واليومية.",
+  },
+  Children: {
+    badge: "أناقة الأطفال",
+    title: "قطع أطفال أنيقة بلمسة تقليدية ساحرة",
+    description:
+      "تشكيلة الأطفال في وهرة زمان صُممت لتجمع بين الراحة، الجمال، والهوية التقليدية، مع تصاميم أنيقة تمنح الصغار حضورًا مميزًا ومظهرًا مرتبًا في مختلف المناسبات.",
+  },
+};
+
+const SUBCATEGORY_COPY = {
+  All: {
+    badge: "تشكيلة مختارة بعناية",
+    title: "مجموعة متكاملة من القطع التقليدية الراقية",
+    description:
+      "استكشف تشكيلة متنوعة من القطع المختارة لتلائم مختلف الأذواق والمناسبات، مع توازن جميل بين الفخامة، الهوية، وجودة التفاصيل في كل منتج.",
+  },
+  accessories: {
+    badge: "إكسسوارات فاخرة",
+    title: "إكسسوارات راقية تكمل الإطلالة بأناقة",
+    description:
+      "مجموعة من الإكسسوارات المنتقاة بعناية لتضفي على الزي التقليدي لمسة نهائية أنيقة ومتناغمة، وتمنح الإطلالة عمقًا بصريًا وجاذبية أكثر رقيًا.",
+  },
+  costume: {
+    badge: "بدلات أنيقة",
+    title: "بدلات تقليدية بحضور رسمي ولمسة فخمة",
+    description:
+      "اكتشف بدلات تجمع بين الهيبة، التناسق، والأناقة الراقية، صُممت لتمنحك مظهرًا مرتبًا ومميزًا يليق بالمناسبات الخاصة والإطلالات الرفيعة.",
+  },
+  vest: {
+    badge: "صدريّات راقية",
+    title: "صدريّات تضيف عمقًا وأناقة إلى المظهر",
+    description:
+      "تشكيلة من الصدريّات التي تبرز جمال الزي التقليدي وتمنحه لمسة فاخرة ومتوازنة، مع تفاصيل أنيقة تضيف قيمة واضحة إلى الإطلالة الكاملة.",
+  },
+  mens_abaya: {
+    badge: "عباية رجالي",
+    title: "عبايات رجالية بطابع أصيل وحضور مميز",
+    description:
+      "قطع رجالية راقية تعكس الوقار والهوية التونسية في قالب أنيق وفخم، مع خطوط هادئة وتفاصيل تمنح المظهر تميّزًا بصريًا راقيًا.",
+  },
+  jebba: {
+    badge: "جبب تونسية أصيلة",
+    title: "جبب تجمع بين التراث والفخامة المعاصرة",
+    description:
+      "اكتشف تشكيلة الجبب التي تعبّر عن روح التراث التونسي بلمسة راقية، مع خامات جميلة وتفاصيل أنيقة تمنح كل قطعة حضورًا مميزًا وهوية واضحة.",
+  },
+};
+
+const CATEGORY_LABEL_AR = {
+  All: "كل الفئات",
+  Men: "الرجال",
+  Women: "النساء",
+  Children: "الأطفال",
+};
+
+const SUBCATEGORY_LABEL_AR = {
+  All: "كل القطع",
+  accessories: "الإكسسوارات",
+  costume: "البدلات",
+  vest: "الصدريّات",
+  mens_abaya: "العبايات الرجالية",
+  jebba: "الجبب",
+};
+
+const getFilterIntro = ({ categoryKey, subCategoryKey, count }) => {
+  const category = CATEGORY_COPY[categoryKey] || CATEGORY_COPY.All;
+  const sub = SUBCATEGORY_COPY[subCategoryKey] || SUBCATEGORY_COPY.All;
+
+  const isCatAll = categoryKey === "All";
+  const isSubAll = subCategoryKey === "All";
+
+  if (!isCatAll && !isSubAll) {
+    const catLabel = CATEGORY_LABEL_AR[categoryKey] || "هذه الفئة";
+    const subLabel = SUBCATEGORY_LABEL_AR[subCategoryKey] || "هذه القطعة";
+
+    return {
+      badge: `${category.badge} • ${sub.badge}`,
+      title: `${subLabel} ضمن مجموعة ${catLabel}`,
+      description: `استكشف أجمل خيارات ${subLabel} ضمن فئة ${catLabel} في وهرة زمان، حيث تلتقي جودة الاختيار بفخامة التفاصيل لتقديم منتجات تعبّر عن الذوق الرفيع والهوية التقليدية الأنيقة.`,
+      countLabel:
+        count === 0
+          ? `لا توجد منتجات مطابقة حاليًا ضمن ${subLabel} في فئة ${catLabel}.`
+          : count === 1
+          ? `تم العثور على منتج واحد ضمن ${subLabel} في فئة ${catLabel}.`
+          : `تم العثور على ${count} منتجات ضمن ${subLabel} في فئة ${catLabel}.`,
+    };
+  }
+
+  if (!isCatAll) {
+    return {
+      badge: category.badge,
+      title: category.title,
+      description: category.description,
+      countLabel:
+        count === 0
+          ? "لا توجد منتجات مطابقة حاليًا ضمن هذه الفئة."
+          : count === 1
+          ? "تم العثور على منتج واحد ضمن هذه الفئة."
+          : `تم العثور على ${count} منتجات ضمن هذه الفئة.`,
+    };
+  }
+
+  if (!isSubAll) {
+    return {
+      badge: sub.badge,
+      title: sub.title,
+      description: sub.description,
+      countLabel:
+        count === 0
+          ? "لا توجد منتجات مطابقة حاليًا ضمن هذا النوع من القطع."
+          : count === 1
+          ? "تم العثور على منتج واحد ضمن هذا النوع من القطع."
+          : `تم العثور على ${count} منتجات ضمن هذا النوع من القطع.`,
+    };
+  }
+
+  return {
+    badge: CATEGORY_COPY.All.badge,
+    title: CATEGORY_COPY.All.title,
+    description: CATEGORY_COPY.All.description,
+    countLabel:
+      count === 0
+        ? "لا توجد منتجات مطابقة حاليًا."
+        : count === 1
+        ? "تم العثور على منتج واحد."
+        : `تم العثور على ${count} منتجات في المجموعة الحالية.`,
+  };
+};
+
+/* ---------------------------
    Component
 --------------------------- */
 const Products = () => {
-  const LOAD_STEP = 8;
+  const LOAD_STEP = 9;
 
   // Filters
   const [categorySel, setCategorySel] = useState("All");
@@ -195,7 +391,7 @@ const Products = () => {
     window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
   }, [location.pathname, location.search]);
 
-  // Read URL params (category/search/sub) => UI state
+  // Read URL params => UI state
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const rawCat = params.get("category");
@@ -207,15 +403,18 @@ const Products = () => {
     setCategorySel(mapURLCategoryToUI(rawCat));
     setSearchTerm(rawQ);
 
-    const subVal = rawSub ? rawSub : "All";
+    const canonicalSub = rawSub ? canonicalSubCategory(rawSub) : "All";
     const isAllowed =
-      subVal === "All" ||
-      SUBCATEGORY_OPTIONS.some((o) => normalize(o.value) === normalize(subVal));
-    setSubCategorySel(isAllowed ? subVal : "All");
+      canonicalSub === "All" ||
+      SUBCATEGORY_OPTIONS.some((o) => normalize(o.value) === normalize(canonicalSub));
 
+    setSubCategorySel(isAllowed ? canonicalSub : "All");
     setVisibleCount(LOAD_STEP);
 
-    const t = setTimeout(() => (isSyncingFromURL.current = false), 0);
+    const t = setTimeout(() => {
+      isSyncingFromURL.current = false;
+    }, 0);
+
     return () => clearTimeout(t);
   }, [location.search]);
 
@@ -225,17 +424,15 @@ const Products = () => {
 
     const params = new URLSearchParams(location.search);
 
-    // category
     const urlCat = uiCategoryToUrl(categorySel);
     if (!urlCat) params.delete("category");
     else params.set("category", urlCat);
 
-    // subcategory
     if (!subCategorySel || subCategorySel === "All") {
       params.delete("sub");
       params.delete("subcategory");
     } else {
-      params.set("sub", subCategorySel);
+      params.set("sub", canonicalSubCategory(subCategorySel));
     }
 
     navigate({ search: params.toString() }, { replace: true });
@@ -245,6 +442,7 @@ const Products = () => {
   // Search debounce
   const handleSearchChange = (term) => {
     setSearchLoading(true);
+
     const id = setTimeout(() => {
       setSearchTerm(term);
       setSearchLoading(false);
@@ -254,7 +452,7 @@ const Products = () => {
     return () => clearTimeout(id);
   };
 
-  // Build options for right sidebar
+  // Build options
   const { categories, colors, minPrice, maxPrice, embroideryTypes } = useMemo(() => {
     const catSet = new Set(["All", "Men", "Women", "Children"]);
     const colorSet = new Set(["All"]);
@@ -314,16 +512,15 @@ const Products = () => {
   const matched = useMemo(() => {
     const q = normalize(searchTerm);
     const sel = canonicalCategory(categorySel) || "All";
-    const subSel = normalize(subCategorySel || "All");
+    const subSel = canonicalSubCategory(subCategorySel || "All");
     const embroideryFilter = normalize(embroiderySel || "All");
 
     return products.filter((p) => {
       const catOfProduct = canonicalCategory(p?.category);
       const catOk = sel === "All" || catOfProduct === sel;
 
-      // Sub category
       const subOfProduct = getProductSubCategory(p);
-      const subOk = subSel === "all" || !subSel ? true : normalize(subOfProduct) === subSel;
+      const subOk = subSel === "All" || !subSel ? true : subOfProduct === subSel;
 
       const pColors = productColorNames(p).map((c) => normalize(c));
       const colorOk = colorSel === "All" || pColors.includes(normalize(colorSel));
@@ -338,7 +535,13 @@ const Products = () => {
         normalize(embroideryText).includes(embroideryFilter);
 
       const pid = String(p?.productId || "");
-      const searchPool = [pid, embroideryText, catOfProduct, subOfProduct, ...productColorNames(p)]
+      const searchPool = [
+        pid,
+        embroideryText,
+        catOfProduct,
+        subOfProduct,
+        ...productColorNames(p),
+      ]
         .filter(Boolean)
         .map((t) => normalize(t));
 
@@ -350,6 +553,18 @@ const Products = () => {
 
   // Visible slice
   const filtered = useMemo(() => matched.slice(0, visibleCount), [matched, visibleCount]);
+
+  // Dynamic intro
+  const filterIntro = useMemo(() => {
+    const categoryKey = canonicalCategory(categorySel || "All") || "All";
+    const subCategoryKey = canonicalSubCategory(subCategorySel || "All") || "All";
+
+    return getFilterIntro({
+      categoryKey,
+      subCategoryKey,
+      count: matched.length,
+    });
+  }, [categorySel, subCategorySel, matched.length]);
 
   // Load more
   const handleLoadMore = () => {
@@ -401,13 +616,7 @@ const Products = () => {
             <title>المنتجات - Wahret Zmen</title>
           </Helmet>
 
-          <header className="wz-collections-header" dir="rtl">
-            <h1 className="wz-collections-title premium-gradient">مجموعة المنتجات</h1>
-            <p className="wz-collections-sub">
-              اكتشف أحدث تشكيلات الجبّة، القفطان والأزياء التقليدية من وهرة زمان،
-              واختر الموديل الذي يناسب ذوقك ومناسباتك.
-            </p>
-          </header>
+          
 
           {/* Search */}
           <div className="products-grid grid gap-6 grid-cols-1" dir="rtl">
@@ -438,7 +647,7 @@ const Products = () => {
           )}
 
           <div className="flex flex-col lg:flex-row gap-8 mt-4">
-            {/* Filters (right) */}
+            {/* Filters */}
             <div className="w-full lg:w-[360px]">
               <SelectorPageProducts
                 categorySel={categorySel}
@@ -461,12 +670,33 @@ const Products = () => {
               />
             </div>
 
-            {/* List */}
+            {/* Products */}
             <div className="flex-1">
-              <div
-                className="products-list grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 place-items-stretch"
-                style={{ justifyItems: "stretch" }}
-              >
+              <div className="wz-filterIntro" dir="rtl">
+                <div className="wz-filterIntroBadge">{filterIntro.badge}</div>
+                <h2 className="wz-filterIntroTitle">{filterIntro.title}</h2>
+                <p className="wz-filterIntroDesc">{filterIntro.description}</p>
+
+                <div className="wz-filterIntroMeta">
+                  <span className="wz-filterIntroCount">{filterIntro.countLabel}</span>
+
+                  {(canonicalSubCategory(subCategorySel || "All") !== "All" ||
+                    canonicalCategory(categorySel || "All") !== "All" ||
+                    normalize(searchTerm) ||
+                    normalize(colorSel) !== "all" ||
+                    normalize(embroiderySel) !== "all") && (
+                    <button
+                      type="button"
+                      className="wz-filterIntroReset"
+                      onClick={clearFilters}
+                    >
+                      عرض جميع المنتجات
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="products-list wz-productsGrid3">
                 {filtered.length ? (
                   filtered.map((product, index) => (
                     <FadeInSection
@@ -479,9 +709,20 @@ const Products = () => {
                     </FadeInSection>
                   ))
                 ) : (
-                  <p className="col-span-full text-center text-gray-500">
-                    لم يتم العثور على منتجات مطابقة لبحثك.
-                  </p>
+                  <div className="wz-emptyState" dir="rtl">
+                    <h3 className="wz-emptyStateTitle">لا توجد نتائج مطابقة</h3>
+                    <p className="wz-emptyStateText">
+                      لم يتم العثور على منتجات مطابقة للفلاتر الحالية. جرّب تعديل
+                      الفئة أو نوع القطعة أو نطاق السعر للحصول على نتائج أقرب لما تبحث عنه.
+                    </p>
+                    <button
+                      type="button"
+                      className="wz-emptyStateBtn"
+                      onClick={clearFilters}
+                    >
+                      مسح الفلاتر وعرض الكل
+                    </button>
+                  </div>
                 )}
               </div>
 
@@ -500,7 +741,10 @@ const Products = () => {
                       <span>
                         {isLoadingMore
                           ? "جاري تحميل المزيد…"
-                          : `عرض المزيد (${Math.min(LOAD_STEP, matched.length - filtered.length)} منتجات)`}
+                          : `عرض المزيد (${Math.min(
+                              LOAD_STEP,
+                              matched.length - filtered.length
+                            )} منتجات)`}
                       </span>
                     </span>
                   </button>

@@ -1,25 +1,21 @@
 // src/components/SelectorProductsPage.jsx
 
-
 import React, { useMemo } from "react";
 import { Filter } from "lucide-react";
 import "../Styles/StylesSelectorProductsPage.css";
 
 // Map different aliases of categories (FR / AR / EN) to one canonical value
 const CANONICAL = {
-  // All
   all: "All",
   tous: "All",
   "الكل": "All",
 
-  // EN
   men: "Men",
   women: "Women",
   children: "Children",
   kids: "Children",
   kid: "Children",
 
-  // FR
   hommes: "Men",
   homme: "Men",
   femmes: "Women",
@@ -27,7 +23,6 @@ const CANONICAL = {
   enfants: "Children",
   enfant: "Children",
 
-  // AR
   رجال: "Men",
   نساء: "Women",
   أطفال: "Children",
@@ -52,14 +47,54 @@ function categoryLabel(canon) {
   return canon;
 }
 
-/* ✅ SubCategory labels (match your actual values) */
+/* SubCategory stored keys -> Arabic labels */
 const SUB_LABELS_AR = {
   All: "الكل",
-  accessoires: "إكسسوارات",
+  accessories: "إكسسوارات",
   costume: "بدلة",
-  "صدريّة": "صدريّة",
-  "عباية رجالي": "عباية رجالي",
-  جبة: "جبة",
+  vest: "صدريّة",
+  mens_abaya: "عباية رجالي",
+  jebba: "جبة",
+};
+
+const SUBCATEGORY_ALIAS_TO_KEY = {
+  all: "All",
+  "الكل": "All",
+
+  accessories: "accessories",
+  accessory: "accessories",
+  accessoires: "accessories",
+  "إكسسوارات": "accessories",
+  اكسسوارات: "accessories",
+
+  costume: "costume",
+  suit: "costume",
+  "بدلة": "costume",
+  بدلة: "costume",
+
+  vest: "vest",
+  gilet: "vest",
+  "صدريّة": "vest",
+  "صدرية": "vest",
+  صدريّة: "vest",
+  صدرية: "vest",
+
+  mens_abaya: "mens_abaya",
+  "mens abaya": "mens_abaya",
+  "men abaya": "mens_abaya",
+  "abaya homme": "mens_abaya",
+  "عباية رجالي": "mens_abaya",
+  "عباية رجالية": "mens_abaya",
+
+  jebba: "jebba",
+  jebbah: "jebba",
+  "جبة": "jebba",
+  "جبّة": "jebba",
+};
+
+const canonicalizeSubCategory = (raw) => {
+  const key = normalize(raw);
+  return SUBCATEGORY_ALIAS_TO_KEY[key] || normStr(raw) || "";
 };
 
 const subLabel = (key) => SUB_LABELS_AR[key] || key;
@@ -69,7 +104,6 @@ const SelectorPageProducts = ({
   setCategorySel,
   categories,
 
-  /* ✅ SubCategory (optional) */
   subCategorySel,
   setSubCategorySel,
   subCategories,
@@ -114,13 +148,12 @@ const SelectorPageProducts = ({
     return canonList;
   }, [categories]);
 
-  /* ✅ normalize subCategories */
   const normalizedSubCategories = useMemo(() => {
     const list = [];
     const seen = new Set();
 
     const push = (v) => {
-      const key = normStr(v);
+      const key = canonicalizeSubCategory(v);
       if (!key || seen.has(key)) return;
       seen.add(key);
       list.push(key);
@@ -128,13 +161,12 @@ const SelectorPageProducts = ({
 
     for (const s of subCategories || []) push(s);
 
-    if (!seen.has("All")) list.unshift("All");
-    else {
-      const withoutAll = list.filter((x) => x !== "All");
-      return ["All", ...withoutAll];
+    if (!seen.has("All")) {
+      return ["All", ...list];
     }
 
-    return list;
+    const withoutAll = list.filter((x) => x !== "All");
+    return ["All", ...withoutAll];
   }, [subCategories]);
 
   const normalizedEmbroideryTypes = useMemo(() => {
@@ -180,7 +212,7 @@ const SelectorPageProducts = ({
 
   const selectedCategoryForUI = canonicalizeCategory(categorySel || "All");
   const selectedEmbroideryForUI = normStr(embroiderySel || "All") || "All";
-  const selectedSubForUI = normStr(subCategorySel || "All") || "All";
+  const selectedSubForUI = canonicalizeSubCategory(subCategorySel || "All") || "All";
 
   const onCategoryChange = (e) => {
     const picked = canonicalizeCategory(e.target.value);
@@ -193,11 +225,10 @@ const SelectorPageProducts = ({
   };
 
   const onSubCategoryChange = (e) => {
-    const picked = e.target.value || "All";
+    const picked = canonicalizeSubCategory(e.target.value || "All");
     setSubCategorySel?.(picked);
   };
 
-  // Clamp price values so min <= max
   const clampMin = Math.min(Math.max(minPrice, priceRange[0]), priceRange[1]);
   const clampMax = Math.max(Math.min(maxPrice, priceRange[1]), priceRange[0]);
 
@@ -233,12 +264,12 @@ const SelectorPageProducts = ({
           </select>
         </div>
 
-        {/* ✅ SubCategory */}
+        {/* SubCategory */}
         {showSub && (
           <div className="filter-group">
             <label className="filter-label" htmlFor="subcategory-select">
-             نوع القطعة           
-             </label>
+              نوع القطعة
+            </label>
             <select
               id="subcategory-select"
               className="filter-select"
@@ -247,7 +278,7 @@ const SelectorPageProducts = ({
             >
               {normalizedSubCategories.map((s) => (
                 <option key={s} value={s}>
-                  {s === "All" ? "الكل" : subLabel(s)}
+                  {subLabel(s)}
                 </option>
               ))}
             </select>
