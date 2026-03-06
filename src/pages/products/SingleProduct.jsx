@@ -738,7 +738,7 @@ const SingleProduct = () => {
           <FadeInSection delay={0.08} yOffset={24}>
             <div className="sp2-right sp2-reveal sp2-reveal--side">
               <div className="sp2-titleBlock">
-                <span className="sp2-titleKicker">Wahret Zmen</span>
+                <span className="sp2-titleKicker">وهرة زمان</span>
                 <h1 className="sp2-title">{translatedTitle}</h1>
               </div>
 
