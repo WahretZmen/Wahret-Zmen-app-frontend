@@ -16,7 +16,7 @@
   width: 100%;
   max-width: 100vw;
   padding: 2rem 1.5rem;
-  background: transparent !important;
+  
   margin: 0 auto;
   position: relative;
   overflow-x: hidden;
@@ -28,7 +28,7 @@
 .our-sellers-section {
   width: 100%;
   padding: 2rem 1rem;
-  background: transparent !important;
+  
 }
 
 .our-sellers-container {

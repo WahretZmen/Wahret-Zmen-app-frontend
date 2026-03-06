@@ -136,7 +136,6 @@ const SUBCATEGORY_AR_MAP = {
 
   costume: "بدلة",
   suit: "بدلة",
-  "بدلة": "بدلة",
   بدلة: "بدلة",
 
   vest: "صدريّة",
@@ -155,7 +154,7 @@ const SUBCATEGORY_AR_MAP = {
 
   jebba: "جبة",
   jebbah: "جبة",
-  "جبة": "جبة",
+  جبة: "جبة",
   "جبّة": "جبة",
 };
 
@@ -555,6 +554,11 @@ const SingleProduct = () => {
     sameCategoryProducts,
   ]);
 
+  const goToProductReload = (e, productId) => {
+    e.preventDefault();
+    window.location.href = `/products/${productId}`;
+  };
+
   if (isLoading) {
     return (
       <div className="max-w-6xl mx-auto p-8">
@@ -591,7 +595,7 @@ const SingleProduct = () => {
                       <li key={p._id} className="sp2-searchItem">
                         <Link
                           to={`/products/${p._id}`}
-                          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                          onClick={(e) => goToProductReload(e, p._id)}
                           className="sp2-searchLink"
                         >
                           <img
@@ -941,7 +945,7 @@ const SingleProduct = () => {
                   <Link
                     to={`/products/${p._id}`}
                     className="sp2-likeCard sp2-likeCard--lux"
-                    onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                    onClick={(e) => goToProductReload(e, p._id)}
                   >
                     <div className="sp2-likeBrand">وهرة زمان</div>
 
@@ -1009,7 +1013,7 @@ const SingleProduct = () => {
                   <Link
                     to={`/products/${p._id}`}
                     className="sp2-likeCard sp2-likeCard--lux"
-                    onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                    onClick={(e) => goToProductReload(e, p._id)}
                   >
                     <div className="sp2-likeBrand">وهرة زمان</div>
 

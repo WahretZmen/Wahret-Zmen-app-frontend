@@ -1,5 +1,5 @@
 // src/pages/home/Home.jsx
-// Home page (Arabic / RTL) — UPDATED: adds <VideoShowcase /> after LargeBanner
+// Home page (Arabic / RTL)
 
 import React from "react";
 import { Helmet } from "react-helmet";
@@ -8,7 +8,7 @@ import FadeInSection from "../../Animations/FadeInSection.jsx";
 import "../../Styles/StylesHome.css";
 
 import LargeBanner from "../../components/LargeBanner.jsx";
-import VideoShowcase from "../../components/VideoShowcase.jsx"; // ✅ NEW
+import VideoShowcase from "../../components/VideoShowcase.jsx";
 import Banner from "./Banner";
 import ShopByCategory from "../../components/ShopByCategory.jsx";
 import OurSellers from "./OurSellers";
@@ -57,7 +57,7 @@ const Home = () => {
         />
       </Helmet>
 
-      {/* ✅ HERO / Large Banner */}
+      {/* HERO */}
       <FadeInSection delay={0} yOffset={0}>
         <div className="anim-scale-in">
           <FullWidth dir={isRTL ? "rtl" : "ltr"}>
@@ -66,17 +66,10 @@ const Home = () => {
         </div>
       </FadeInSection>
 
-      {/* ✅ NEW: Premium Video Showcase (right after LargeBanner) */}
+      {/* Video Showcase */}
       <FadeInSection delay={0.12}>
         <div className="anim-fade-up anim-delay" style={{ "--d": "80ms" }}>
-          <VideoShowcase
-            dir={isRTL ? "rtl" : "ltr"}
-            // optional overrides:
-            // title="لمسة أصالة… بتفاصيل فاخرة"
-            // subtitle="فيديو قصير يُبرز جودة القماش، دقة التطريز، وأناقة اللمسات التقليدية الحديثة."
-            ctaTo="/products"
-            ctaLabel="تسوّق الآن"
-          />
+          <VideoShowcase dir={isRTL ? "rtl" : "ltr"} ctaLabel="تسوّق الآن" />
         </div>
       </FadeInSection>
 
@@ -84,8 +77,6 @@ const Home = () => {
         className="home-container px-4 sm:px-6 md:px-10 lg:px-20 max-w-[1440px] mx-auto"
         dir={isRTL ? "rtl" : "ltr"}
       >
-        
-
         <FadeInSection delay={0.2}>
           <section
             className="mb-16 anim-scale-in anim-delay"
@@ -124,12 +115,13 @@ const Home = () => {
           </div>
         </FadeInSection>
 
+        {/* Collections / Our Sellers */}
         <FadeInSection delay={0.3}>
           <section
-            className="py-12 bg-[#ffffff] rounded-2xl shadow-xl mt-12 anim-fade-up anim-delay"
+            className="home-transparent-section home-our-sellers-block anim-fade-up anim-delay"
             style={{ "--d": "100ms" }}
           >
-            <div className="text-center px-4">
+            <div className="text-center px-4 mb-4">
               <h2
                 className="text-3xl font-bold text-[#8A5D3B] drop-shadow-sm t-anim t-tracking t-glow t-delay"
                 style={{ "--t-delay": "140ms" }}
@@ -151,12 +143,13 @@ const Home = () => {
           </section>
         </FadeInSection>
 
+        {/* News */}
         <FadeInSection delay={0.4}>
           <section
-            className="py-12 bg-white rounded-2xl shadow-md mt-12 anim-fade-up anim-delay"
+            className="home-transparent-section home-news-block anim-fade-up anim-delay"
             style={{ "--d": "120ms" }}
           >
-            <div className="text-center px-4">
+            <div className="text-center px-4 mb-2">
               <h2
                 className="text-3xl font-semibold text-[#5C3D2E] t-anim t-tracking t-delay"
                 style={{ "--t-delay": "160ms" }}
@@ -180,7 +173,6 @@ const Home = () => {
           </div>
         </FadeInSection>
 
-        {/* ✅ Testimonials Overview */}
         <FadeInSection delay={0.44}>
           <div className="anim-fade-up anim-delay" style={{ "--d": "90ms" }}>
             <TestimonialsOverview />

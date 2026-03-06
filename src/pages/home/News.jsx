@@ -1,8 +1,5 @@
 // src/pages/home/News.jsx
-// -----------------------------------------------------------------------------
-// News section for Wahret Zmen.
-// Arabic-only text with a premium carousel (react-slick), RTL-aware.
-// -----------------------------------------------------------------------------
+
 
 import React from "react";
 import Slider from "react-slick";

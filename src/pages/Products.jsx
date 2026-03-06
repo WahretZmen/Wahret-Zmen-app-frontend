@@ -342,6 +342,7 @@ const getFilterIntro = ({ categoryKey, subCategoryKey, count }) => {
 --------------------------- */
 const Products = () => {
   const LOAD_STEP = 9;
+  const isRTL = true;
 
   // Filters
   const [categorySel, setCategorySel] = useState("All");
@@ -616,8 +617,6 @@ const Products = () => {
             <title>المنتجات - Wahret Zmen</title>
           </Helmet>
 
-          
-
           {/* Search */}
           <div className="products-grid grid gap-6 grid-cols-1" dir="rtl">
             <SearchInput
@@ -674,7 +673,12 @@ const Products = () => {
             <div className="flex-1">
               <div className="wz-filterIntro" dir="rtl">
                 <div className="wz-filterIntroBadge">{filterIntro.badge}</div>
-                <h2 className="wz-filterIntroTitle">{filterIntro.title}</h2>
+
+                <h2 className={`wz-filterIntroTitle sparkle ${isRTL ? "rtl" : "ltr"}`}>
+                  <span className="wz-filterIntroTitle__text">{filterIntro.title}</span>
+                  <span className="wz-filterIntroTitle__underline" />
+                </h2>
+
                 <p className="wz-filterIntroDesc">{filterIntro.description}</p>
 
                 <div className="wz-filterIntroMeta">
