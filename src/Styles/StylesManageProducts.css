@@ -1,0 +1,242 @@
+/* ============================================================================
+   StylesManageProducts.css — Manage Products (RTL)
+   ✅ Pro/simple design
+   ✅ NO border-radius anywhere
+   ========================================================================== */
+
+.mp-page{
+  background:#fff;
+  min-height:100vh;
+  padding:16px;
+  direction:rtl;
+  color:#111827;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+}
+
+/* toolbar */
+.mp-toolbar{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  justify-content:flex-end;
+  margin-bottom:14px;
+}
+
+@media (min-width:768px){
+  .mp-toolbar{
+    flex-direction:row;
+    align-items:center;
+  }
+}
+
+.mp-input{
+  width:100%;
+  max-width:100%;
+  padding:10px 12px;
+  border:1px solid rgba(15,23,42,.16);
+  background:#fff;
+  outline:none;
+  box-shadow: 0 8px 18px rgba(2,6,23,.06);
+  text-align:right;
+}
+
+@media (min-width:768px){
+  .mp-input{
+    width: 360px;
+  }
+}
+
+.mp-input:focus{
+  border-color: rgba(139,92,62,.55);
+  box-shadow: 0 10px 22px rgba(2,6,23,.08);
+}
+
+/* table wrap */
+.mp-tablewrap{
+  width:100%;
+  overflow-x:auto;
+  border:1px solid rgba(15,23,42,.14);
+  background:#fff;
+  box-shadow: 0 10px 26px rgba(2,6,23,.06);
+}
+
+/* table */
+.mp-table{
+  width:100%;
+  min-width:1100px;
+  border-collapse:collapse;
+  text-align:right;
+}
+
+.mp-table thead th{
+  background:#f3f4f6;
+  color:#374151;
+  font-weight:800;
+  padding:14px 12px;
+  border-bottom:1px solid rgba(15,23,42,.14);
+  border-left:1px solid rgba(15,23,42,.10);
+  white-space:nowrap;
+}
+
+.mp-table tbody td{
+  padding:14px 12px;
+  border-bottom:1px solid rgba(15,23,42,.10);
+  border-left:1px solid rgba(15,23,42,.08);
+  vertical-align:middle;
+}
+
+.mp-table tbody tr:hover{
+  background:#fafafa;
+}
+
+.mp-td{}
+
+/* empty row */
+.mp-empty{
+  text-align:center;
+  padding:22px !important;
+  color:#374151;
+}
+
+.mp-empty--error{
+  color:#b91c1c;
+}
+
+/* ID cell */
+.mp-idcell{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:10px;
+}
+
+.mp-idtext{
+  font-size:12px;
+  color:#374151;
+  word-break:break-all;
+}
+
+/* image */
+.mp-imgwrap{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.mp-img{
+  width:72px;
+  height:72px;
+  object-fit:cover;
+  border:1px solid rgba(15,23,42,.14);
+}
+
+/* muted text */
+.mp-muted{
+  color:#374151;
+}
+
+/* colors list */
+.mp-colors{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:flex-end;
+  gap:10px 14px;
+}
+
+.mp-coloritem{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.mp-colorname{
+  font-size:13px;
+  color:#374151;
+}
+
+.mp-colorstock{
+  font-size:12px;
+  color:#6b7280;
+}
+
+.mp-dash{
+  color:#6b7280;
+}
+
+/* stock */
+.mp-stock{
+  font-weight:800;
+  color:#92400e; /* amber-ish */
+}
+.mp-stock--zero{
+  color:#b91c1c;
+}
+
+/* stars */
+.mp-stars{
+  color:#f59e0b;
+  font-size:16px;
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+}
+.mp-stars__value{
+  color:#6b7280;
+  font-size:12px;
+}
+
+/* actions */
+.mp-actions{
+  display:flex;
+  gap:10px;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+}
+
+/* buttons (NO radius) */
+.mp-btn{
+  min-width:96px;
+  height:38px;
+  padding:0 12px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid rgba(15,23,42,.14);
+  font-weight:800;
+  text-decoration:none;
+  cursor:pointer;
+  transition: transform .15s ease, filter .15s ease, border-color .15s ease;
+  background:#fff;
+  color:#111827;
+}
+
+.mp-btn:hover{
+  transform: translateY(-1px);
+  border-color: rgba(15,23,42,.22);
+  filter: brightness(.99);
+}
+
+.mp-btn:active{
+  transform: translateY(0px);
+}
+
+/* variants */
+.mp-btn--ghost{
+  background:#ffffff;
+  border-color: rgba(139,92,62,.35);
+  color:#8b5c3e;
+}
+
+.mp-btn--edit{
+  background:#111827;
+  color:#fff;
+  border-color: rgba(255,255,255,.14);
+}
+
+.mp-btn--delete{
+  background:#dc2626;
+  color:#fff;
+  border-color: rgba(255,255,255,.16);
+}

@@ -1,0 +1,183 @@
+/* ============================================================================
+   StylesContact-form.css — Wahret Zmen Contact Form (Premium / Pro)
+   Works with Contact-form.jsx (classes: wz-form, wz-input, wz-btn...)
+   ========================================================================== */
+
+.wz-form{
+  display: block;
+}
+
+.wz-form__grid{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.wz-field{
+  display: grid;
+  gap: 8px;
+}
+
+.wz-label{
+  font-size: 13px;
+  font-weight: 900;
+  color: #111827;
+}
+
+.wz-req{
+  color: #b91c1c;
+  font-weight: 900;
+}
+
+.wz-input,
+.wz-textarea{
+  width: 100%;
+  padding: 12px 12px;
+  border: 1px solid rgba(15,23,42,.14);
+  border-radius: 14px;
+  background: #fff;
+  color: #111827;
+  font-size: 14px;
+  outline: none;
+  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+.wz-input::placeholder,
+.wz-textarea::placeholder{
+  color: #9ca3af;
+}
+
+.wz-input:focus,
+.wz-textarea:focus{
+  border-color: rgba(214,167,74,.55);
+  box-shadow: 0 0 0 4px rgba(214,167,74,.12);
+}
+
+.wz-input:disabled,
+.wz-textarea:disabled{
+  opacity: .75;
+  background: rgba(249,250,251,.8);
+  cursor: not-allowed;
+}
+
+.wz-textarea{
+  resize: none;
+  line-height: 1.9;
+}
+
+.wz-form__actions{
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.wz-form__hint{
+  margin: 0;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.7;
+}
+
+/* Buttons */
+.wz-btn{
+  border: 0;
+  cursor: pointer;
+  background-color: #d36f2c !important;
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-weight: 900;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: transform .2s ease, filter .2s ease, background .2s ease, border-color .2s ease;
+}
+
+.wz-btn:disabled{
+  opacity: .75;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Primary */
+.wz-btn--primary{
+  color: #111827;
+  background: linear-gradient(180deg, #e0b55a 0%, #b9872b 100%);
+  border: 1px solid rgba(214,167,74,.35);
+  box-shadow: 0 14px 40px rgba(185,135,43,.22);
+}
+
+.wz-btn--primary:hover{
+  filter: brightness(1.02);
+  transform: translateY(-1px);
+}
+
+/* Ghost (sidebar) */
+.wz-btn--ghost{
+  width: 100%;
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.18);
+}
+
+.wz-btn--ghost:hover{
+  background: rgba(255,255,255,.06);
+  transform: translateY(-1px);
+}
+
+/* Spinner */
+.wz-spinner{
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 2px solid rgba(255,255,255,.35);
+  border-top-color: rgba(255,255,255,.92);
+  animation: wzspin 0.8s linear infinite;
+}
+
+@keyframes wzspin{
+  to{ transform: rotate(360deg); }
+}
+
+/* Alert */
+.wz-alert{
+  margin-top: 12px;
+  padding: 12px 12px;
+  border-radius: 14px;
+  font-weight: 800;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.wz-alert--error{
+  border: 1px solid rgba(239,68,68,.25);
+  background: rgba(239,68,68,.06);
+  color: #991b1b;
+}
+
+/* Responsive */
+@media (max-width: 720px){
+  .wz-form__grid{
+    grid-template-columns: 1fr;
+  }
+  .wz-input,
+  .wz-textarea,
+  .wz-btn{
+    border-radius: 12px;
+  }
+}
+
+.wz-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: space-between; /* pushes number to right */
+  text-align: right;
+}
+
+.wz-line span {
+  flex: 1;
+  text-align: right;
+}

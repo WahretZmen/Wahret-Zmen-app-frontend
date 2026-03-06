@@ -1,0 +1,276 @@
+/* ===========================================================
+   StylesDashboardLayout.css — Admin Dashboard Layout (RTL)
+   ✅ Pro/simple buttons
+   ✅ NO border-radius anywhere
+   =========================================================== */
+
+/* ---------- App container ---------- */
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #ffffff; /* ✅ pure white main background */
+  direction: rtl;
+}
+
+/* ===========================================================
+   SIDEBAR
+   =========================================================== */
+.sidebar {
+  width: 64px; /* collapsed */
+  min-height: 100vh;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar:hover {
+  width: 220px;
+  transition: width 0.2s ease-in-out;
+}
+
+.sidebar-logo img {
+  width: 40px;
+  height: 40px;
+}
+
+/* Home button (NO radius) */
+.sidebar-homebtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 56px;
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.08);
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.sidebar-homebtn:hover {
+  background: #f7f7f7;
+  border-color: rgba(15, 23, 42, 0.18);
+  transform: translateY(-1px);
+}
+
+.sidebar-homeimg {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+/* Vertical nav links */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 10px;
+}
+
+/* Link appearance */
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 10px 12px;
+  color: #c9c9c9;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Active (Dashboard) */
+.sidebar-link--active {
+  background: #8b5c3e;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+/* Label hidden by default (collapsed) */
+.sidebar-text {
+  display: none;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+/* On hover, reveal labels (desktop) */
+.sidebar:hover .sidebar-text {
+  display: inline;
+}
+
+/* Hover highlight */
+.sidebar-link:hover {
+  background-color: rgba(139, 92, 62, 0.18);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+/* Logout icon button (NO radius) */
+.sidebar-logouticon {
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(220, 38, 38, 0.9);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: filter 0.2s ease, transform 0.2s ease;
+}
+
+.sidebar-logouticon:hover {
+  filter: brightness(0.95);
+  transform: translateY(-1px);
+}
+
+/* ===========================================================
+   HEADER (Top actions)
+   =========================================================== */
+.dashboard-header {
+  background: #ffffff;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.1);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dashboard-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #8b5c3e;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .dashboard-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .dashboard-title {
+    width: auto;
+    text-align: right;
+  }
+}
+
+/* actions container */
+.dashboard-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .dashboard-actions {
+    width: auto;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+}
+
+/* Pro buttons (NO radius) */
+.dashbtn {
+  height: 56px;
+  padding: 0 18px;
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  background: #ffffff;
+  color: #111827;
+
+  box-shadow: 0 10px 22px rgba(2, 6, 23, 0.08);
+  transition: transform 0.15s ease, border-color 0.15s ease, filter 0.15s ease;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.dashbtn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(15, 23, 42, 0.22);
+  filter: brightness(0.99);
+}
+
+.dashbtn:active {
+  transform: translateY(0px);
+}
+
+@media (min-width: 768px) {
+  .dashbtn {
+    width: auto;
+    min-width: 190px;
+  }
+}
+
+/* variants */
+.dashbtn--primary {
+  background: #0b5ed7; /* pro blue */
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+.dashbtn--neutral {
+  background: #0f172a; /* deep neutral */
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+.dashbtn--danger {
+  background: #dc2626;
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+/* ===========================================================
+   MOBILE SIDEBAR (RTL)
+   =========================================================== */
+@media (max-width: 767px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    right: -280px; /* hidden offscreen */
+    width: 280px;
+    height: 100vh;
+    transition: right 0.35s ease-in-out;
+    z-index: 50;
+  }
+
+  .sidebar.open {
+    right: 0;
+  }
+
+  /* labels always visible on mobile */
+  .sidebar-text {
+    display: inline;
+  }
+}
+
+/* ===========================================================
+   MOBILE MENU BUTTON (RTL)
+   =========================================================== */
+.mobile-menu-button {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 100;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: #8b5c3e;
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(2, 6, 23, 0.12);
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.mobile-menu-button:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.98);
+}
+
+.mobile-menu-button:active {
+  transform: translateY(0px);
+}

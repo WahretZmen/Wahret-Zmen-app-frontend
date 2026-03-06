@@ -1,0 +1,296 @@
+/* src/Styles/StylesNewsletter.css */
+/* ============================================================================
+   Wahret Zmen — Newsletter (Capture-matching) — Plain CSS (FULL UPDATED)
+   ✅ Fix: Input gets the majority width, button stays fixed (no stretching)
+   ✅ RTL section + form row forced LTR (email UX + TSX layout)
+   ✅ Fully responsive (stacks on small screens)
+============================================================================ */
+
+:root {
+  /* Capture-like palette */
+  --wz-luxury: #6b341e;               /* warm brown background */
+  --wz-luxury-deep: #4f2414;          /* deeper brown for shadows */
+
+  --wz-foreground: #ffffff;           /* title */
+  --wz-muted: rgba(255, 229, 214, 0.78);
+  --wz-muted-2: rgba(255, 229, 214, 0.55);
+
+  --wz-line: rgba(255, 255, 255, 0.18);
+
+  --wz-border: rgba(255, 255, 255, 0.18);
+  --wz-border-strong: rgba(255, 255, 255, 0.26);
+
+  --wz-input-bg: rgba(0, 0, 0, 0.10);
+  --wz-input-placeholder: rgba(255, 235, 225, 0.45);
+
+  --wz-radius-pill: 9999px;
+
+  --wz-shadow-soft: 0 18px 40px rgba(0, 0, 0, 0.25);
+  --wz-shadow-btn: 0 14px 30px rgba(0, 0, 0, 0.25);
+}
+
+/* section (py-24, overflow-hidden) */
+.wz-newsletter {
+  position: relative;
+  overflow: hidden;
+  padding: 6rem 0;
+  direction: rtl;
+}
+
+/* background */
+.wz-newsletter__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(900px 420px at 50% 10%,
+      rgba(255, 255, 255, 0.10) 0%,
+      rgba(255, 255, 255, 0.04) 40%,
+      rgba(255, 255, 255, 0.00) 70%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.10), rgba(0, 0, 0, 0.22)),
+    var(--wz-luxury);
+}
+
+/* plus pattern overlay */
+.wz-newsletter__pattern {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg width='56' height='56' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* lines top/bottom */
+.wz-newsletter__line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  z-index: 2;
+  background: linear-gradient(to right, transparent, var(--wz-line), transparent);
+}
+.wz-newsletter__line--top { top: 0; }
+.wz-newsletter__line--bottom { bottom: 0; }
+
+/* container */
+.wz-newsletter__container {
+  position: relative;
+  z-index: 10;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* wrap */
+.wz-newsletter__wrap {
+  max-width: 42rem;
+  margin: 0 auto;
+  text-align: center;
+}
+
+/* icon circle */
+.wz-newsletter__icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 9999px;
+  border: 1px solid var(--wz-border);
+  background: rgba(255, 255, 255, 0.02);
+  box-shadow: var(--wz-shadow-soft);
+  backdrop-filter: blur(6px);
+}
+
+.wz-newsletter__iconSvg {
+  width: 24px;
+  height: 24px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* title/subtitle */
+.wz-newsletter__title {
+  margin: 0 0 12px;
+  color: var(--wz-foreground);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-size: 2.05rem;
+  line-height: 1.15;
+  font-family: "El Messiri", "Cairo", system-ui, -apple-system, Segoe UI, Arial;
+}
+
+@media (min-width: 768px) {
+  .wz-newsletter__title {
+    font-size: 2.55rem;
+  }
+}
+
+.wz-newsletter__subtitle {
+  margin: 0 auto 34px;
+  max-width: 34rem;
+  color: var(--wz-muted);
+  font-size: 1.07rem;
+  line-height: 1.9;
+  font-family: "Cairo", system-ui, -apple-system, Segoe UI, Arial;
+}
+
+/* form */
+.wz-newsletter__form {
+  width: 100%;
+  max-width: 720px;            /* ✅ wider so input looks premium */
+  margin: 0 auto;
+}
+
+/* row: LTR to match TSX layout */
+.wz-newsletter__row {
+  direction: ltr;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  justify-content: center;
+}
+
+/* ✅ INPUT: takes MOST width */
+.wz-newsletter__input {
+  flex: 1 1 auto;              /* ✅ grows */
+  min-width: 320px;            /* ✅ prevents looking tiny */
+  height: 56px;                /* ✅ same height as button */
+  padding: 0 22px;
+  border-radius: var(--wz-radius-pill);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: var(--wz-input-bg);
+  color: rgba(255, 255, 255, 0.95);
+  outline: none;
+  font-size: 0.98rem;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+
+.wz-newsletter__input::placeholder {
+  color: var(--wz-input-placeholder);
+}
+
+.wz-newsletter__input:focus {
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.12);
+}
+
+/* ✅ BUTTON: fixed width (so it doesn't become huge) */
+.wz-newsletter__btn {
+  flex: 0 0 168px;              /* ✅ fixed like TSX */
+  height: 56px;
+  padding: 0 18px;
+  border-radius: var(--wz-radius-pill);
+  border: none;
+  background: #ffffff;
+  color: var(--wz-luxury);
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: var(--wz-shadow-btn);
+  transition: transform 160ms ease, opacity 160ms ease;
+  white-space: nowrap;
+}
+
+.wz-newsletter__btn:hover {
+  background-color: #ffffff;
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.wz-newsletter__btn:active {
+  transform: translateY(0);
+}
+
+.wz-newsletter__btnText {
+  font-size: 0.95rem;
+}
+
+/* arrow bubble (small, not oversized) */
+.wz-newsletter__btnIconWrap {
+  width: 34px;
+  height: 34px;
+  border-radius: 9999px;
+  display: grid;
+  place-items: center;
+  background: rgba(107, 52, 30, 0.08);
+}
+
+.wz-newsletter__btnIcon {
+  width: 18px;
+  height: 18px;
+}
+
+/* success state */
+.wz-newsletter__success {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.wz-newsletter__successIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.wz-newsletter__successText {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-family: "Cairo", system-ui, -apple-system, Segoe UI, Arial;
+}
+
+/* trust line */
+.wz-newsletter__trust {
+  margin-top: 18px;
+  color: rgba(255, 229, 214, 0.35);
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-family: "Cairo", system-ui, -apple-system, Segoe UI, Arial;
+}
+
+/* ✅ Responsive: stack on small screens */
+@media (max-width: 680px) {
+  .wz-newsletter {
+    padding: 4.5rem 0;
+  }
+
+  .wz-newsletter__form {
+    max-width: 100%;
+  }
+
+  .wz-newsletter__row {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .wz-newsletter__input {
+    min-width: 0;              /* ✅ allow full width */
+    width: 100%;
+  }
+
+  .wz-newsletter__btn {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+}
+
+/* sr-only */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}

@@ -1,0 +1,511 @@
+/* src/Styles/StylesAdminManageOrders.css */
+/* =============================================================================
+   Wahret Zmen — AdminManageOrders (RTL)
+   ✅ Top horizontal scrollbar
+   ✅ Column grid lines
+   ✅ Wider status selector column + dropdown
+   ✅ ZERO border-radius everywhere (page + SweetAlert2 modal + buttons)
+   ✅ Update: SweetAlert confirm button (إغلاق) BLACK
+   ✅ NEW: Bigger product image + fully visible (contain) + open in new tab
+============================================================================= */
+
+.wz-amo {
+  direction: rtl;
+  background: #ffffff;
+  color: #0b0b0c;
+  padding: 24px 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* FORCE ZERO RADIUS (page scope) */
+.wz-amo,
+.wz-amo * {
+  border-radius: 0 !important;
+}
+
+/* Prevent vertical letter breaking */
+.wz-amo,
+.wz-amo * {
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+/* LTR helper */
+.wz-amo__ltr {
+  direction: ltr;
+  unicode-bidi: plaintext;
+}
+
+.wz-amo__container {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.wz-amo__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 12px;
+  border: 1px solid rgba(15, 23, 42, 0.16);
+  background: #ffffff;
+}
+
+.wz-amo__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+/* ===============================
+   TOP SCROLLBAR (table)
+================================= */
+
+.wz-amo__tableWrap {
+  margin-top: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.18);
+  background: #ffffff;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  /* Top scrollbar trick */
+  transform: rotateX(180deg);
+}
+
+.wz-amo__table {
+  transform: rotateX(180deg);
+}
+
+/* Scrollbar styling */
+.wz-amo__tableWrap::-webkit-scrollbar {
+  height: 10px;
+}
+.wz-amo__tableWrap::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+.wz-amo__tableWrap::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+}
+.wz-amo__tableWrap::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+/* ===============================
+   TABLE
+================================= */
+
+.wz-amo__table {
+  width: 100%;
+  min-width: 1550px;
+  table-layout: auto;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* Header (grid lines) */
+.wz-amo__table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+
+  background: #0b0b0c;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 900;
+
+  padding: 14px 12px;
+  text-align: right;
+  white-space: nowrap;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.wz-amo__table thead th:first-child {
+  border-left: none;
+}
+
+/* Body (grid lines) */
+.wz-amo__table tbody td {
+  padding: 14px 12px;
+  font-size: 14px;
+  line-height: 1.7;
+  text-align: right;
+  vertical-align: top;
+
+  border-top: 1px solid rgba(15, 23, 42, 0.10);
+  border-left: 1px solid rgba(15, 23, 42, 0.12);
+  background: #ffffff;
+}
+
+.wz-amo__table tbody td:first-child {
+  border-left: none;
+}
+
+/* Zebra + hover */
+.wz-amo__table tbody tr:nth-child(even) td {
+  background: #fafafa;
+}
+.wz-amo__table tbody tr:hover td {
+  background: #f3f4f6;
+}
+
+/* ===============================
+   COLUMN WIDTHS
+================================= */
+
+.wz-amo__table th:nth-child(1),
+.wz-amo__table td:nth-child(1) {
+  width: 70px;
+}
+
+.wz-amo__table th:nth-child(2),
+.wz-amo__table td:nth-child(2) {
+  width: 200px;
+}
+
+.wz-amo__table th:nth-child(3),
+.wz-amo__table td:nth-child(3) {
+  width: 520px;
+}
+
+.wz-amo__table th:nth-child(4),
+.wz-amo__table td:nth-child(4) {
+  width: 200px;
+}
+
+.wz-amo__table th:nth-child(5),
+.wz-amo__table td:nth-child(5) {
+  width: 260px;
+}
+
+.wz-amo__table th:nth-child(6),
+.wz-amo__table td:nth-child(6) {
+  width: 190px;
+}
+
+/* ✅ Address column wider */
+.wz-amo__table th:nth-child(7),
+.wz-amo__table td:nth-child(7) {
+  width: 520px;
+  min-width: 520px;
+}
+
+.wz-amo__addr {
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.wz-amo__table th:nth-child(8),
+.wz-amo__table td:nth-child(8) {
+  width: 160px;
+}
+
+/* ✅ Wider status column */
+.wz-amo__table th:nth-child(9),
+.wz-amo__table td:nth-child(9) {
+  width: 320px;
+  min-width: 320px;
+}
+
+/* Actions */
+.wz-amo__table th:nth-child(10),
+.wz-amo__table td:nth-child(10) {
+  width: 190px;
+}
+
+/* ===============================
+   ORDER CELL / ADDRESS
+================================= */
+
+.wz-amo__orderCell {
+  display: grid;
+  gap: 6px;
+}
+
+.wz-amo__sub {
+  font-size: 12px;
+  color: #6b7280;
+}
+.wz-amo__subLabel {
+  font-weight: 900;
+  color: #111827;
+}
+
+.wz-amo__addr {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ===============================
+   PRODUCTS
+   ✅ Bigger image, fully visible, clickable
+================================= */
+
+.wz-amo__products {
+  min-width: 520px;
+}
+
+.wz-amo__product {
+  display: grid;
+  grid-template-columns: 1fr 150px; /* ✅ bigger image column */
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  background: #ffffff;
+}
+
+.wz-amo__product + .wz-amo__product {
+  margin-top: 10px;
+}
+
+.wz-amo__productInfo {
+  display: grid;
+  gap: 4px;
+}
+
+.wz-amo__line {
+  display: grid;
+  grid-template-columns: 95px 1fr;
+  gap: 8px;
+}
+
+.wz-amo__k {
+  font-weight: 900;
+  white-space: nowrap;
+  color: #111827;
+}
+
+.wz-amo__v {
+  overflow-wrap: anywhere;
+  color: #111827;
+}
+
+.wz-amo__thumb {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+}
+
+.wz-amo__imgLink {
+  display: block;
+  width: 140px;   /* ✅ bigger */
+  height: 140px;  /* ✅ bigger */
+  border: 1px solid rgba(15, 23, 42, 0.18);
+  background: #ffffff;
+  cursor: zoom-in;
+}
+
+.wz-amo__imgLink:focus {
+  outline: 2px solid #0b0b0c;
+  outline-offset: 2px;
+}
+
+.wz-amo__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* ✅ fully seen */
+  background: #ffffff;
+  display: block;
+}
+
+.wz-amo__img--empty {
+  width: 140px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #6b7280;
+  padding: 8px;
+  border: 1px solid rgba(15, 23, 42, 0.18);
+  background: #ffffff;
+}
+
+/* ===============================
+   STATUS SELECTOR
+================================= */
+
+.wz-amo__select {
+  width: 100%;
+  min-width: 280px;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 700;
+
+  border: 1px solid rgba(15, 23, 42, 0.18);
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.wz-amo__select:focus {
+  outline: none;
+  border-color: #0b0b0c;
+}
+
+.wz-amo__hint {
+  margin-top: 8px;
+  font-size: 11px;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+.wz-amo__saving {
+  color: #111827;
+  font-weight: 900;
+}
+
+/* ===============================
+   BUTTONS
+================================= */
+
+.wz-amo__actions {
+  display: grid;
+  gap: 10px;
+}
+
+.wz-amo__btn {
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 900;
+  border: 1px solid rgba(15, 23, 42, 0.18);
+  background: #000000 !important;
+  color: #ffffff !important;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease,
+    transform 0.05s ease;
+}
+
+.wz-amo__btn:hover {
+  background: #f3f4f6;
+  border-color: rgba(15, 23, 42, 0.28);
+}
+
+.wz-amo__btn:active {
+  transform: translateY(1px);
+}
+
+.wz-amo__btn--ghost {
+  background: #ffffff;
+  color: #0b0b0c;
+}
+
+.wz-amo__btn--dark {
+  background: #0b0b0c;
+  color: #ffffff;
+  border-color: #0b0b0c;
+}
+
+.wz-amo__btn--dark:hover {
+  background: #111827;
+  border-color: #111827;
+}
+
+.wz-amo__btn--danger {
+  background: #b91c1c;
+  color: #ffffff;
+  border-color: #b91c1c;
+}
+
+.wz-amo__btn--danger:hover {
+  background: #991b1b;
+  border-color: #991b1b;
+}
+
+/* ===============================
+   SWEETALERT2 (DETAILS MODAL)
+   ✅ Square + BLACK confirm button
+================================= */
+
+.swal2-popup {
+  border-radius: 0 !important;
+  padding: 28px !important;
+  box-shadow: 0 14px 50px rgba(0, 0, 0, 0.18) !important;
+}
+
+.swal2-title {
+  border-radius: 0 !important;
+  font-size: 20px !important;
+  font-weight: 900 !important;
+  color: #111827 !important;
+  margin: 0 0 10px !important;
+}
+
+.swal2-html-container {
+  border-radius: 0 !important;
+  font-size: 14px !important;
+  line-height: 1.75 !important;
+  color: #111827 !important;
+  margin: 0 !important;
+}
+
+.swal2-actions {
+  border-radius: 0 !important;
+  margin-top: 22px !important;
+}
+
+/* ✅ Modal button (إغلاق) BLACK */
+.swal2-styled.swal2-confirm {
+  border-radius: 0 !important;
+  padding: 12px 30px !important;
+  font-size: 14px !important;
+  font-weight: 900 !important;
+
+  background-color: #0b0b0c !important;
+  color: #fff !important;
+  border: 1px solid #0b0b0c !important;
+
+  box-shadow: none !important;
+  outline: none !important;
+  transition: transform 0.08s ease, background 0.2s ease,
+    border-color 0.2s ease !important;
+}
+
+.swal2-styled.swal2-confirm:hover {
+  background: #111827 !important;
+  border-color: #111827 !important;
+  transform: translateY(-1px);
+}
+
+.swal2-styled.swal2-confirm:active {
+  transform: translateY(0);
+}
+
+/* Make any other swal buttons square too */
+.swal2-styled,
+.swal2-confirm,
+.swal2-cancel,
+.swal2-deny {
+  border-radius: 0 !important;
+}
+
+.swal2-input,
+.swal2-select,
+.swal2-textarea {
+  border-radius: 0 !important;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .wz-amo__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .wz-amo__btn {
+    width: 100%;
+  }
+
+  .wz-amo__product {
+    grid-template-columns: 1fr 130px;
+  }
+
+  .wz-amo__imgLink,
+  .wz-amo__img--empty {
+    width: 120px;
+    height: 120px;
+  }
+}

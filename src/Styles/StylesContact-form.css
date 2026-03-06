@@ -1,0 +1,373 @@
+/* ===========================================================
+   StylesContact.css — Wahret Zmen Contact (Premium / Pro)
+   Arabic RTL page + hero pattern + cards + panels + map
+   =========================================================== */
+
+.wz-contact{
+  direction: rtl;
+  unicode-bidi: plaintext;
+  background: #fff;
+  color: #0b0b0c;
+}
+
+/* Wrapper spacing */
+.wz-contact__wrap{
+  padding-bottom: 64px;
+}
+
+/* =========================
+   HERO
+   ========================= */
+.wz-contact-hero{
+  position: relative;
+  overflow: hidden;
+  padding: 88px 18px 120px;
+  margin-top: 8px;
+  background: linear-gradient(180deg, #7d380d 0%, #111827 80%);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 18px;
+}
+
+.wz-contact-hero__pattern{
+  position: absolute;
+  inset: 0;
+  opacity: .06;
+  color: #ffffff;
+  pointer-events: none;
+}
+
+.wz-contact-hero__inner{
+  position: relative;
+  z-index: 2;
+  max-width: 980px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.wz-contact-hero__kicker{
+  margin: 0 0 14px;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  font-size: 12px;
+  color: #d6a74a;
+  font-weight: 500;
+}
+
+.wz-contact-hero__title{
+  margin: 0 0 14px;
+  font-size: clamp(34px, 4.2vw, 58px);
+  font-weight: 800;
+  line-height: 1.08;
+  color: #fff;
+}
+
+.wz-contact-hero__divider{
+  width: 92px;
+  height: 2px;
+  margin: 0 auto 16px;
+  background: linear-gradient(90deg, transparent, #d6a74a, transparent);
+}
+
+.wz-contact-hero__subtitle{
+  margin: 0 auto;
+  max-width: 780px;
+  font-size: 16px;
+  line-height: 1.9;
+  opacity: .88;
+  font-weight: 300;
+}
+
+/* =========================
+   INFO CARDS
+   ========================= */
+.wz-contact-cards{
+  margin-top: -64px;
+  position: relative;
+  z-index: 4;
+}
+
+.wz-contact-cards__grid{
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/* Card */
+.wz-card{
+  background: #fff;
+  border: 1px solid rgba(15,23,42,.12);
+  border-radius: 16px;
+  padding: 18px 16px;
+  text-align: center;
+  box-shadow: 0 18px 60px rgba(2,6,23,.08);
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+
+.wz-card:hover{
+  transform: translateY(-4px);
+  box-shadow: 0 22px 70px rgba(2,6,23,.12);
+  border-color: rgba(214,167,74,.35);
+}
+
+.wz-card__icon{
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 12px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(214,167,74,.10);
+  border: 1px solid rgba(214,167,74,.18);
+}
+
+.wz-icon{
+  width: 22px;
+  height: 22px;
+  color: #b9872b;
+}
+
+.wz-card__title{
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.wz-card__text{
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.8;
+  color: #6b7280;
+}
+
+/* =========================
+   MAIN GRID
+   ========================= */
+.wz-contact-main{
+  margin-top: 34px;
+}
+
+.wz-contact-main__grid{
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 18px;
+  align-items: start;
+}
+
+/* Panels */
+.wz-panel{
+  background: #fff;
+  border: 1px solid rgba(15,23,42,.12);
+  border-radius: 18px;
+  box-shadow: 0 18px 60px rgba(2,6,23,.08);
+  padding: 22px;
+}
+
+.wz-panel--tight{
+  padding: 18px;
+}
+
+.wz-panel__head{
+  margin-bottom: 14px;
+}
+
+.wz-panel__title{
+  margin: 0 0 6px;
+  font-size: 26px;
+  font-weight: 900;
+  color: #111827;
+}
+
+.wz-panel__desc{
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.9;
+}
+
+.wz-panel__miniTitle{
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 900;
+  color: #111827;
+}
+
+.wz-panel__miniDesc{
+  margin: 0 0 14px;
+  color: #6b7280;
+  font-size: 13px;
+  line-height: 1.85;
+}
+
+/* Status message */
+.wz-form-status{
+  margin-top: 14px;
+  padding: 12px 12px;
+  border: 1px solid rgba(34,197,94,.25);
+  background: rgba(34,197,94,.07);
+  color: #166534;
+  border-radius: 14px;
+  font-weight: 800;
+  text-align: center;
+}
+
+/* =========================
+   Luxury sidebar block
+   ========================= */
+.wz-lux{
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  padding: 18px;
+  color: #0b0b0c;
+  border: 1px solid rgba(255,255,255,.10);
+  box-shadow: 0 18px 60px rgba(2,6,23,.14);
+  margin-bottom: 18px;
+}
+
+.wz-lux__pattern{
+  position: absolute;
+  inset: 0;
+  opacity: .06;
+  color: #fff;
+  pointer-events: none;
+}
+
+.wz-lux__content{
+  position: relative;
+  z-index: 2;
+}
+
+.wz-lux__title{
+  margin: 0 0 10px;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.wz-lux__desc{
+  margin: 0 0 14px;
+  font-size: 13px;
+  line-height: 1.9;
+  opacity: .85;
+}
+
+/* Social */
+.wz-social{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.wz-social__btn{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 12px;
+  width: 100%;
+  border: 1px solid rgba(15,23,42,.12);
+  background: #fff;
+  color: #111827;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: transform .2s ease, border-color .2s ease, background .2s ease;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.wz-social__btn:hover{
+  transform: translateY(-2px);
+  border-color: rgba(214,167,74,.35);
+  background: rgba(214,167,74,.06);
+}
+
+/* FAQ list */
+.wz-faq{
+  margin: 0;
+  padding: 0 18px 0 0;
+  color: #6b7280;
+  font-size: 13px;
+  line-height: 1.9;
+}
+
+.wz-faq li{
+  margin: 6px 0;
+}
+
+/* Map */
+.wz-map{
+  width: 100%;
+  height: 320px;
+  margin: 18px 0;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(15,23,42,.12);
+  box-shadow: 0 18px 60px rgba(2,6,23,.08);
+}
+
+.wz-contact-lines{
+  display: grid;
+  gap: 10px;
+}
+
+.wz-line{
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  align-items: start;
+  gap: 10px;
+  color: #374151;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.wz-line svg{
+  color: #b9872b;
+}
+
+/* =========================
+   Responsive
+   ========================= */
+@media (max-width: 1024px){
+  .wz-contact-cards__grid{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wz-contact-main__grid{
+    grid-template-columns: 1fr;
+  }
+
+  .wz-map{
+    height: 280px;
+  }
+}
+
+@media (max-width: 520px){
+  .wz-contact-hero{
+    padding: 72px 14px 110px;
+    border-radius: 14px;
+  }
+
+  .wz-contact-cards{
+    margin-top: -52px;
+  }
+
+  .wz-card{
+    border-radius: 14px;
+  }
+
+  .wz-panel{
+    border-radius: 14px;
+  }
+
+  .wz-lux{
+    border-radius: 14px;
+  }
+
+  .wz-map{
+    border-radius: 14px;
+    height: 240px;
+  }
+}
+

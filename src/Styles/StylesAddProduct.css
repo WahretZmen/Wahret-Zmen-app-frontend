@@ -1,0 +1,416 @@
+/* =============================================================================
+   StylesAddProduct.css — Wahret Zmen Admin (Add/Update Product)
+   ✅ Pro / Simple / RTL
+   ✅ NO border-radius anywhere
+   ✅ Bigger previews + open in new tab
+   ✅ FIX: checkboxes + upload buttons aligned to RIGHT
+============================================================================= */
+
+:root {
+  --ap-bg: #ffffff;
+  --ap-text: #0f172a;
+  --ap-muted: #64748b;
+
+  --ap-border: rgba(15, 23, 42, 0.16);
+  --ap-border-strong: rgba(15, 23, 42, 0.26);
+
+  /* Pro palette */
+  --ap-primary: #0f172a;       /* deep slate */
+  --ap-primary-hover: #0b1220;
+
+  --ap-accent: #334155;        /* calm slate */
+  --ap-accent-hover: #1f2937;
+
+  --ap-soft: #f1f5f9;
+  --ap-soft-hover: #e2e8f0;
+
+  --ap-danger: #dc2626;
+  --ap-danger-hover: #b91c1c;
+
+  --ap-focus: rgba(15, 23, 42, 0.10);
+  --ap-shadow: 0 14px 40px rgba(2, 6, 23, 0.08);
+}
+
+* { box-sizing: border-box; }
+
+.wz-ap {
+  direction: rtl;
+  background: var(--ap-bg);
+  color: var(--ap-text);
+  padding: 18px;
+  width: 100%;
+}
+
+.wz-ap__card {
+  max-width: 760px;
+  margin: 0 auto;
+  border: 1px solid var(--ap-border);
+  box-shadow: var(--ap-shadow);
+  background: #fff;
+  padding: 16px;
+  border-radius: 0 !important;
+}
+
+.wz-ap__title {
+  margin: 0 0 14px 0;
+  text-align: center;
+  font-weight: 900;
+  font-size: 22px;
+  letter-spacing: 0.2px;
+}
+
+.wz-ap__form {
+  display: grid;
+  gap: 12px;
+}
+
+.wz-ap__row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.wz-ap__row3 {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.wz-ap__label {
+  font-weight: 900;
+  font-size: 13px;
+  text-align: right;
+}
+
+.wz-ap__hint {
+  color: var(--ap-muted);
+  font-size: 12px;
+  margin-top: 8px;
+  text-align: right;
+}
+
+.wz-ap__input,
+.wz-ap__select,
+.wz-ap__textarea {
+  width: 100%;
+  border: 1px solid var(--ap-border);
+  background: #fff;
+  color: var(--ap-text);
+  padding: 10px 12px;
+  outline: none;
+  border-radius: 0 !important;
+  font-size: 14px;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.wz-ap__textarea {
+  min-height: 92px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.wz-ap__input:focus,
+.wz-ap__select:focus,
+.wz-ap__textarea:focus {
+  border-color: var(--ap-border-strong);
+  box-shadow: 0 0 0 3px var(--ap-focus);
+}
+
+/* ==========================================================================
+   ✅ Checkbox (make the box appear on the RIGHT)
+   - We force RTL row layout + put items aligned to right
+   - Then we force the checkbox itself to be the last item visually
+   ========================================================================== */
+.wz-ap__checkRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 2px 0;
+  direction: rtl;            /* important */
+  text-align: right;
+}
+
+.wz-ap__checkRow .wz-ap__checkbox {
+  order: 2;                  /* checkbox on the right */
+}
+
+.wz-ap__checkRow span,
+.wz-ap__checkRow label {
+  order: 1;                  /* text before checkbox */
+}
+
+.wz-ap__checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--ap-primary);
+}
+
+/* Sections */
+.wz-ap__block {
+  border: 1px solid var(--ap-border);
+  padding: 12px;
+  background: #fff;
+  border-radius: 0 !important;
+}
+
+.wz-ap__blockTitle {
+  font-weight: 900;
+  font-size: 14px;
+  margin-bottom: 10px;
+  text-align: right;
+}
+
+/* Sizes */
+.wz-ap__sizes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.wz-ap__sizeBtn {
+  width: auto;
+  padding: 10px 14px;
+  border: 1px solid var(--ap-border);
+  background: #fff;
+  color: var(--ap-text);
+  font-weight: 900;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 0 !important;
+  transition: background 160ms ease, border-color 160ms ease, transform 120ms ease;
+}
+
+.wz-ap__sizeBtn:hover {
+  border-color: var(--ap-border-strong);
+  background: rgba(15, 23, 42, 0.03);
+}
+
+.wz-ap__sizeBtn.is-active {
+  background: var(--ap-primary);
+  border-color: var(--ap-primary);
+  color: #fff;
+}
+
+.wz-ap__sizeBtn:active { transform: scale(0.99); }
+
+/* Buttons */
+.wz-ap__btn {
+  width: 100%;
+  border: 1px solid var(--ap-border);
+  padding: 10px 12px;
+  cursor: pointer;
+  font-weight: 900;
+  font-size: 14px;
+  border-radius: 0 !important;
+  transition: background 160ms ease, border-color 160ms ease, transform 120ms ease, opacity 160ms ease;
+  background: #fff;
+  color: var(--ap-text);
+}
+
+.wz-ap__btn:active { transform: scale(0.99); }
+
+.wz-ap__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.wz-ap__btnPrimary {
+  background: var(--ap-primary);
+  border-color: var(--ap-primary);
+  color: #fff;
+}
+.wz-ap__btnPrimary:hover {
+  background: var(--ap-primary-hover);
+  border-color: var(--ap-primary-hover);
+}
+
+.wz-ap__btnAccent {
+  background: var(--ap-accent);
+  border-color: var(--ap-accent);
+  color: #fff;
+}
+.wz-ap__btnAccent:hover {
+  background: var(--ap-accent-hover);
+  border-color: var(--ap-accent-hover);
+}
+
+.wz-ap__btnSoft {
+  background: var(--ap-soft);
+  border-color: var(--ap-border);
+  color: var(--ap-text);
+}
+.wz-ap__btnSoft:hover {
+  background: var(--ap-soft-hover);
+  border-color: var(--ap-border-strong);
+}
+
+.wz-ap__btnDanger {
+  background: var(--ap-danger);
+  border-color: var(--ap-danger);
+  color: #fff;
+}
+.wz-ap__btnDanger:hover {
+  background: var(--ap-danger-hover);
+  border-color: var(--ap-danger-hover);
+}
+
+.wz-ap__btnInline {
+  width: auto;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+/* ==========================================================================
+   ✅ File row (upload buttons aligned to RIGHT)
+   - direction: rtl makes first item appear on the right
+   - We also force fileLabel to appear on the RIGHT edge (order)
+   ========================================================================== */
+.wz-ap__fileRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+
+  direction: rtl;      /* important */
+  text-align: right;
+}
+
+.wz-ap__fileLabel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ap-border);
+  background: #fff;
+  color: var(--ap-text);
+  padding: 10px 12px;
+  cursor: pointer;
+  font-weight: 900;
+  font-size: 13px;
+  border-radius: 0 !important;
+  transition: background 160ms ease, border-color 160ms ease;
+
+  order: 0; /* file button stays at the RIGHT in rtl flow */
+}
+
+.wz-ap__fileLabel:hover {
+  background: rgba(15, 23, 42, 0.03);
+  border-color: var(--ap-border-strong);
+}
+
+/* BIG cover preview */
+.wz-ap__coverPreview {
+  display: block;
+  width: 320px;
+  height: 320px;
+  object-fit: cover;
+  border: 1px solid var(--ap-border);
+  margin: 12px auto 0;
+  border-radius: 0 !important;
+  cursor: pointer;
+}
+
+/* Colors card */
+.wz-ap__colorCard {
+  border: 1px solid var(--ap-border);
+  padding: 12px;
+  background: #fff;
+  border-radius: 0 !important;
+  display: grid;
+  gap: 10px;
+}
+
+/* Pending preview bigger */
+.wz-ap__pendingPreviewRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-end;
+  direction: rtl;
+  text-align: right;
+}
+
+.wz-ap__pendingPreviewText {
+  font-size: 12px;
+  color: var(--ap-muted);
+}
+
+.wz-ap__pendingThumb {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border: 1px solid var(--ap-border);
+  border-radius: 0 !important;
+  cursor: pointer;
+}
+
+/* Thumbs grid BIGGER */
+.wz-ap__thumbGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 680px) {
+  .wz-ap__row2 { grid-template-columns: 1fr; }
+  .wz-ap__row3 { grid-template-columns: 1fr; }
+  .wz-ap__thumbGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .wz-ap__coverPreview { width: 100%; max-width: 360px; height: 280px; }
+}
+
+.wz-ap__thumb {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border: 1px solid var(--ap-border);
+  border-radius: 0 !important;
+  cursor: pointer;
+  background: #fff;
+}
+
+.wz-ap__thumbActions {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  direction: rtl;
+}
+
+.wz-ap__openLink {
+  width: auto;
+  padding: 8px 10px;
+  border: 1px solid var(--ap-border);
+  background: var(--ap-soft);
+  color: var(--ap-text);
+  font-weight: 900;
+  cursor: pointer;
+  border-radius: 0 !important;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.wz-ap__openLink:hover {
+  background: var(--ap-soft-hover);
+  border-color: var(--ap-border-strong);
+}
+
+.wz-ap__thumbRemove {
+  width: auto;
+  padding: 8px 10px;
+  border: 1px solid var(--ap-danger);
+  background: var(--ap-danger);
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+  border-radius: 0 !important;
+}
+.wz-ap__thumbRemove:hover {
+  background: var(--ap-danger-hover);
+  border-color: var(--ap-danger-hover);
+}

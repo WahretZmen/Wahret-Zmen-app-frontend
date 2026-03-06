@@ -1,0 +1,182 @@
+/* ============================================================================
+   StylesProducts.css — Wahret Zmen (Products page)
+   - Pro loaders + Load More button
+============================================================================ */
+
+html { -webkit-text-size-adjust: 100%; }
+
+/* ---------------------------
+   Tokens
+--------------------------- */
+:root{
+  --wz-fg:#0f172a;
+  --wz-muted:rgba(15,23,42,.66);
+  --wz-border:rgba(15,23,42,.14);
+  --wz-shadow:0 14px 40px rgba(2,6,23,.08);
+  --wz-font:"Cairo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* ---------------------------
+   Reusable spinner
+--------------------------- */
+.wz-btnSpinner{
+  width:16px;
+  height:16px;
+  border:2px solid rgba(15,23,42,.22);
+  border-top-color: rgba(15,23,42,.92);
+  border-radius:999px;
+  animation: wzSpin .7s linear infinite;
+}
+@keyframes wzSpin{ to { transform: rotate(360deg); } }
+
+/* ---------------------------
+   First full page loader
+--------------------------- */
+.wz-products-firstLoad{
+  min-height:70vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  padding-top: calc(var(--navbar-height, 70px) + 24px);
+}
+
+.wz-firstLoadCard{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px 16px;
+  border:1px solid var(--wz-border);
+  background:#fff;
+  box-shadow: var(--wz-shadow);
+  font-family: var(--wz-font);
+  font-weight:900;
+  color: var(--wz-fg);
+}
+
+.wz-firstLoadText{
+  margin:0;
+  font-size:14px;
+}
+
+/* ---------------------------
+   Small inline loader (search)
+--------------------------- */
+.wz-inlineLoader{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  font-family: var(--wz-font);
+  font-weight:900;
+  color: var(--wz-muted);
+  font-size:13px;
+}
+
+/* ---------------------------
+   Error box
+--------------------------- */
+.wz-products-error{
+  margin-top:12px;
+  padding:10px 12px;
+  border:1px solid rgba(220,38,38,.18);
+  background: rgba(220,38,38,.06);
+  color:#991b1b;
+  font-family: var(--wz-font);
+  font-weight:900;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.wz-retryBtn{
+  height:36px;
+  padding:0 12px;
+  border:1px solid rgba(220,38,38,.26);
+  background:#fff;
+  color:#991b1b;
+  font-weight:1000;
+  cursor:pointer;
+}
+.wz-retryBtn:hover{ background: rgba(220,38,38,.06); }
+
+/* ---------------------------
+   Load More section
+--------------------------- */
+.wz-loadMoreWrap{
+  margin-top:18px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+}
+
+.wz-loadMoreBtn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  height:46px;
+  padding:0 18px;
+  border:1px solid rgba(15,23,42,.18);
+  background:#fff;
+  color: var(--wz-fg);
+  font-family: var(--wz-font);
+  font-weight:1000;
+  cursor:pointer;
+  box-shadow: 0 10px 26px rgba(2,6,23,.06);
+  transition: transform .15s ease, background .15s ease, border-color .15s ease;
+}
+
+.wz-loadMoreBtn:hover{
+  background:#f8fafc;
+  border-color: rgba(15,23,42,.26);
+  transform: translateY(-1px);
+}
+
+.wz-loadMoreBtn:disabled{
+  opacity:.75;
+  cursor:not-allowed;
+  transform:none;
+}
+
+.wz-loadMoreInner{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+}
+
+.wz-loadMoreHint{
+  font-size:13px;
+  color: var(--wz-muted);
+  font-family: var(--wz-font);
+}
+.wz-loadMoreHint strong{
+  color: var(--wz-fg);
+  font-weight:1000;
+}
+
+/* =============================================================================
+   ✅ NEW: Merge Subcategory card with the main filters card visually
+   (SelectorPageProducts renders its own .wz-products-filterCard)
+============================================================================= */
+
+/* the subcategory card should not create spacing below */
+.wz-subcat-card{
+  margin-bottom: 0 !important;
+}
+
+/* When two filter cards are back-to-back, make them look like ONE block */
+.wz-products-filterCard + .wz-products-filterCard{
+  margin-top: -1px !important;          /* overlap borders */
+  border-top-color: transparent !important;
+}
+
+/* If SelectorPageProducts adds top margin, neutralize it in this context */
+.wz-subcat-card + .wz-products-filterCard{
+  margin-top: -1px !important;
+}
+
+/* Optional: keep consistent internal spacing for the first (subcategory) card */
+.wz-subcat-card .wz-products-filterTitle{
+  margin-bottom: 10px;
+}
