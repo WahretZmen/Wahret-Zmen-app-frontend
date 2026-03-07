@@ -9,7 +9,7 @@ import "../../Styles/StylesPremiumBanner.css";
 
 const AUTOPLAY_MS = 5000;
 
-const Banner = () => {
+const PremiumBanner = () => {
   const slides = useMemo(
     () => [
       {
@@ -68,11 +68,12 @@ const Banner = () => {
       ([entry]) => {
         if (entry.isIntersecting) {
           setHasEntered(true);
+          observer.unobserve(node);
         }
       },
       {
-        threshold: 0.22,
-        rootMargin: "0px 0px -8% 0px",
+        threshold: 0.28,
+        rootMargin: "0px 0px -10% 0px",
       }
     );
 
@@ -111,7 +112,9 @@ const Banner = () => {
   return (
     <section
       ref={bannerRef}
-      className={`banner-container-enhanced wz-carousel ${hasEntered ? "is-inview" : ""}`}
+      className={`banner-container-enhanced wz-carousel ${
+        hasEntered ? "is-inview" : "is-hidden-before-view"
+      }`}
       dir="rtl"
       aria-label="وهرة زمان بانر"
       onMouseEnter={() => setPaused(true)}
@@ -136,28 +139,40 @@ const Banner = () => {
             >
               <div className="wz-slide__inner">
                 <div
-                  className={`banner-image-wrapper ${shouldAnimate ? "is-active" : ""}`}
+                  className={`banner-image-wrapper ${
+                    shouldAnimate ? "is-active" : ""
+                  }`}
                 >
                   <div className="wz-media">
                     <img
                       src={slide.image}
                       alt={slide.title}
-                      className={`banner-img ${shouldAnimate ? "banner-img-enter" : ""}`}
+                      className={`banner-img ${
+                        shouldAnimate ? "banner-img-enter" : ""
+                      }`}
                       loading={i === 0 ? "eager" : "lazy"}
                     />
                   </div>
                 </div>
 
                 <div
-                  className={`banner-text-wrapper ${shouldAnimate ? "is-active" : ""}`}
+                  className={`banner-text-wrapper ${
+                    shouldAnimate ? "is-active" : ""
+                  }`}
                 >
                   <h2 className="banner-title wz-royal-title">{slide.title}</h2>
 
                   <p className="banner-description">{slide.description}</p>
 
-                  <Link to={slide.ctaTo} reloadDocument className="link-wrapper">
+                  <Link
+                    to={slide.ctaTo}
+                    reloadDocument
+                    className="link-wrapper"
+                  >
                     <button type="button" className="btn-premium">
-                      <span className="btn-premium__text">{slide.ctaLabel}</span>
+                      <span className="btn-premium__text">
+                        {slide.ctaLabel}
+                      </span>
                     </button>
                   </Link>
                 </div>
@@ -210,4 +225,4 @@ const Banner = () => {
   );
 };
 
-export default Banner;
+export default PremiumBanner;
