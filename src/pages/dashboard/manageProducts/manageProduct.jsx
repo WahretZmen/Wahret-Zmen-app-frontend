@@ -1,7 +1,10 @@
 // src/pages/dashboard/products/ManageProducts.jsx
 
 import { Link } from "react-router-dom";
-import { useDeleteProductMutation, useGetAllProductsQuery } from "../../../redux/features/products/productsApi";
+import {
+  useDeleteProductMutation,
+  useGetAllProductsQuery,
+} from "../../../redux/features/products/productsApi";
 import Swal from "sweetalert2";
 import { getImgUrl } from "../../../utils/getImgUrl";
 import { useDispatch, useSelector } from "react-redux";
@@ -39,7 +42,9 @@ const toSearchString = (value) => {
   if (typeof value === "string") return value;
   if (typeof value === "object") {
     try {
-      return Object.values(value).filter((v) => typeof v === "string").join(" ");
+      return Object.values(value)
+        .filter((v) => typeof v === "string")
+        .join(" ");
     } catch {
       return "";
     }
@@ -57,7 +62,12 @@ const getEmbroideryLabel = (emb) => {
 const getColorName = (color) => {
   if (!color) return "افتراضي";
   if (typeof color.colorName === "object") {
-    return color.colorName.ar || color.colorName.en || color.colorName.fr || "افتراضي";
+    return (
+      color.colorName.ar ||
+      color.colorName.en ||
+      color.colorName.fr ||
+      "افتراضي"
+    );
   }
   return color.colorName || "افتراضي";
 };
@@ -72,18 +82,31 @@ const SUBCATEGORY_AR = {
 };
 
 const ManageProducts = () => {
-  const { data: products = [], isLoading, isError, refetch } = useGetAllProductsQuery();
-  const [deleteProduct, { isLoading: deleting }] = useDeleteProductMutation();
+  const {
+    data: products = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useGetAllProductsQuery();
+
+  const [deleteProduct, { isLoading: deleting }] =
+    useDeleteProductMutation();
 
   const dispatch = useDispatch();
-  const shouldRefetch = useSelector((state) => state.productEvents.shouldRefetch);
+  const shouldRefetch = useSelector(
+    (state) => state.productEvents.shouldRefetch
+  );
 
   const [searchTerm, setSearchTerm] = useState("");
   const [searchMongoId, setSearchMongoId] = useState("");
   const [searchProductId, setSearchProductId] = useState("");
 
   // ✅ DB keys are lowercase
-  const categoryMapping = { men: "رجال", women: "نساء", children: "أطفال" };
+  const categoryMapping = {
+    men: "رجال",
+    women: "نساء",
+    children: "أطفال",
+  };
 
   useEffect(() => {
     if (shouldRefetch) {
@@ -111,7 +134,12 @@ const ManageProducts = () => {
       Swal.fire("تم الحذف!", "تم حذف المنتج بنجاح.", "success");
       refetch();
     } catch (error) {
-      Swal.fire("خطأ!", error?.data?.message || "فشل في حذف المنتج. يرجى المحاولة مرة أخرى.", "error");
+      Swal.fire(
+        "خطأ!",
+        error?.data?.message ||
+          "فشل في حذف المنتج. يرجى المحاولة مرة أخرى.",
+        "error"
+      );
     }
   };
 
@@ -120,7 +148,12 @@ const ManageProducts = () => {
     if (!idText) return;
 
     const okToast = () =>
-      Swal.fire({ icon: "success", title: "تم النسخ", text: "تم النسخ بنجاح.", confirmButtonColor: "#8B5C3E" });
+      Swal.fire({
+        icon: "success",
+        title: "تم النسخ",
+        text: "تم النسخ بنجاح.",
+        confirmButtonColor: "#8B5C3E",
+      });
 
     try {
       await navigator.clipboard.writeText(idText);
@@ -137,7 +170,12 @@ const ManageProducts = () => {
         document.body.removeChild(ta);
         okToast();
       } catch {
-        Swal.fire({ icon: "error", title: "تعذّر النسخ", text: "يرجى النسخ يدويًا.", confirmButtonColor: "#d33" });
+        Swal.fire({
+          icon: "error",
+          title: "تعذّر النسخ",
+          text: "يرجى النسخ يدويًا.",
+          confirmButtonColor: "#d33",
+        });
       }
     }
   };
@@ -148,10 +186,15 @@ const ManageProducts = () => {
     const pidTerm = searchProductId.trim().toLowerCase();
 
     return (products || []).filter((p) => {
-      const mongoOk = mongoTerm === "" || (p?._id && String(p._id).toLowerCase().includes(mongoTerm));
+      const mongoOk =
+        mongoTerm === "" ||
+        (p?._id && String(p._id).toLowerCase().includes(mongoTerm));
       if (!mongoOk) return false;
 
-      const pidOk = pidTerm === "" || (p?.productId && String(p.productId).toLowerCase().includes(pidTerm));
+      const pidOk =
+        pidTerm === "" ||
+        (p?.productId &&
+          String(p.productId).toLowerCase().includes(pidTerm));
       if (!pidOk) return false;
 
       if (!term) return true;
@@ -162,7 +205,9 @@ const ManageProducts = () => {
         p?.category,
         p?.subCategory,
         SUBCATEGORY_AR[p?.subCategory || ""] || "",
-        ...(Array.isArray(p?.colors) ? p.colors.map((c) => getColorName(c)) : []),
+        ...(Array.isArray(p?.colors)
+          ? p.colors.map((c) => getColorName(c))
+          : []),
       ]
         .map(toSearchString)
         .filter(Boolean)
@@ -226,22 +271,36 @@ const ManageProducts = () => {
           <tbody>
             {isLoading && (
               <tr>
-                <td colSpan="11" className="mp-empty">جارٍ تحميل المنتجات...</td>
+                <td colSpan="11" className="mp-empty">
+                  جارٍ تحميل المنتجات...
+                </td>
               </tr>
             )}
 
             {isError && !isLoading && (
               <tr>
-                <td colSpan="11" className="mp-empty mp-empty--error">حدث خطأ أثناء تحميل المنتجات.</td>
+                <td colSpan="11" className="mp-empty mp-empty--error">
+                  حدث خطأ أثناء تحميل المنتجات.
+                </td>
               </tr>
             )}
 
             {!isLoading && !isError && filteredProducts.length > 0 ? (
               filteredProducts.map((p, index) => {
-                const totalStock = p?.colors?.reduce((sum, c) => sum + (c?.stock || 0), 0) || 0;
-                const embroideryLabel = getEmbroideryLabel(p?.embroideryCategory);
+                const totalStock =
+                  p?.colors?.reduce(
+                    (sum, c) => sum + (c?.stock || 0),
+                    0
+                  ) || 0;
+
+                const embroideryLabel = getEmbroideryLabel(
+                  p?.embroideryCategory
+                );
                 const catAr = categoryMapping[p.category] || "غير مصنّف";
-                const subAr = SUBCATEGORY_AR[p?.subCategory || ""] || "—";
+                const subAr =
+                  SUBCATEGORY_AR[p?.subCategory || ""] || "—";
+
+                const imageUrl = getImgUrl(p.coverImage);
 
                 return (
                   <tr key={p._id}>
@@ -249,10 +308,19 @@ const ManageProducts = () => {
 
                     <td className="mp-td">
                       <div className="mp-idcell">
-                        <span style={ltrTextStyle} className="mp-idtext" title={String(p.productId || "")}>
+                        <span
+                          style={ltrTextStyle}
+                          className="mp-idtext"
+                          title={String(p.productId || "")}
+                        >
                           {String(p.productId || "—")}
                         </span>
-                        <button type="button" className="mp-btn mp-btn--ghost" onClick={() => handleCopyId(p.productId)}>
+
+                        <button
+                          type="button"
+                          className="mp-btn mp-btn--ghost"
+                          onClick={() => handleCopyId(p.productId)}
+                        >
                           نسخ
                         </button>
                       </div>
@@ -260,10 +328,19 @@ const ManageProducts = () => {
 
                     <td className="mp-td">
                       <div className="mp-idcell">
-                        <span style={ltrTextStyle} className="mp-idtext" title={String(p._id)}>
+                        <span
+                          style={ltrTextStyle}
+                          className="mp-idtext"
+                          title={String(p._id)}
+                        >
                           {String(p._id)}
                         </span>
-                        <button type="button" className="mp-btn mp-btn--ghost" onClick={() => handleCopyId(p._id)}>
+
+                        <button
+                          type="button"
+                          className="mp-btn mp-btn--ghost"
+                          onClick={() => handleCopyId(p._id)}
+                        >
                           نسخ
                         </button>
                       </div>
@@ -271,7 +348,21 @@ const ManageProducts = () => {
 
                     <td className="mp-td">
                       <div className="mp-imgwrap">
-                        <img src={getImgUrl(p.coverImage)} alt="product" className="mp-img" loading="lazy" />
+                        <a
+                          href={imageUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="عرض الصورة كاملة في تبويب جديد"
+                          aria-label="عرض الصورة كاملة في تبويب جديد"
+                          className="mp-imglink"
+                        >
+                          <img
+                            src={imageUrl}
+                            alt={`product ${p.productId || ""}`}
+                            className="mp-img"
+                            loading="lazy"
+                          />
+                        </a>
                       </div>
                     </td>
 
@@ -285,8 +376,12 @@ const ManageProducts = () => {
                         {p?.colors?.length ? (
                           p.colors.map((c, idx) => (
                             <div key={idx} className="mp-coloritem">
-                              <span className="mp-colorname">{getColorName(c)}</span>
-                              <span className="mp-colorstock">({Number(c.stock || 0)})</span>
+                              <span className="mp-colorname">
+                                {getColorName(c)}
+                              </span>
+                              <span className="mp-colorstock">
+                                ({Number(c.stock || 0)})
+                              </span>
                             </div>
                           ))
                         ) : (
@@ -296,8 +391,16 @@ const ManageProducts = () => {
                     </td>
 
                     <td className="mp-td">
-                      <span className={totalStock === 0 ? "mp-stock mp-stock--zero" : "mp-stock"}>
-                        {totalStock > 0 ? `${totalStock} في المخزون` : "غير متوفر"}
+                      <span
+                        className={
+                          totalStock === 0
+                            ? "mp-stock mp-stock--zero"
+                            : "mp-stock"
+                        }
+                      >
+                        {totalStock > 0
+                          ? `${totalStock} في المخزون`
+                          : "غير متوفر"}
                       </span>
                     </td>
 
@@ -307,7 +410,10 @@ const ManageProducts = () => {
 
                     <td className="mp-td">
                       <div className="mp-actions">
-                        <Link to={`/dashboard/edit-product/${p._id}`} className="mp-btn mp-btn--edit">
+                        <Link
+                          to={`/dashboard/edit-product/${p._id}`}
+                          className="mp-btn mp-btn--edit"
+                        >
                           تعديل
                         </Link>
 
@@ -328,7 +434,9 @@ const ManageProducts = () => {
               !isLoading &&
               !isError && (
                 <tr>
-                  <td colSpan="11" className="mp-empty">لا توجد منتجات.</td>
+                  <td colSpan="11" className="mp-empty">
+                    لا توجد منتجات.
+                  </td>
                 </tr>
               )
             )}
