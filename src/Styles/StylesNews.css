@@ -1,5 +1,3 @@
-/* ========================================================================== */
-
 /* ==========================================================================
    1) Section & Container
    ========================================================================== */
@@ -24,7 +22,6 @@
   margin-inline: auto;
 }
 
-
 /* ==========================================================================
    2) Header (title, lines, subtitle)
    ========================================================================== */
@@ -32,15 +29,28 @@
 .news-header {
   text-align: center;
   margin-bottom: 2.25rem;
-  animation: news-fade-up 700ms ease forwards;
+}
+
+.news-title-pro,
+.news-sub {
   opacity: 0;
-  transform: translateY(12px);
+  transform: translateY(-22px);
+  filter: blur(8px);
+}
+
+.news-section.is-visible .news-title-pro {
+  animation: newsFadeTopToBottom 900ms cubic-bezier(.22,.78,.22,1) forwards;
+  animation-delay: 60ms;
+}
+
+.news-section.is-visible .news-sub {
+  animation: newsFadeTopToBottom 920ms cubic-bezier(.22,.78,.22,1) forwards;
+  animation-delay: 180ms;
 }
 
 .news-title-pro {
   position: relative;
   display: inline-block;
-  /* Match global heading font: El Messiri + Cairo fallback */
   font-family: "El Messiri", "Cairo", ui-sans-serif, system-ui, -apple-system,
     "Segoe UI", Roboto, Arial, serif;
   font-weight: 700;
@@ -49,6 +59,7 @@
   color: #2b2520;
   margin: 0;
   font-size: clamp(1.6rem, 2.2vw + 1rem, 2.5rem);
+  text-shadow: 0 12px 28px rgba(17, 24, 39, 0.08);
 }
 
 /* Decorative lines for title */
@@ -57,7 +68,8 @@
   content: "";
   position: absolute;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) scaleX(0.3);
+  transform-origin: center;
   height: 2px;
   width: 52%;
   border-radius: 999px;
@@ -67,10 +79,26 @@
     rgba(212,175,55,0.9) 50%,
     rgba(212,175,55,0) 100%
   );
+  opacity: 0;
 }
 
-.news-title-topline { top: -10px; opacity: 0.6; }
-.news-title-underline { bottom: -10px; opacity: 0.9; }
+.news-section.is-visible .news-title-topline {
+  animation: newsLineReveal 850ms cubic-bezier(.22,.78,.22,1) forwards;
+  animation-delay: 160ms;
+}
+
+.news-section.is-visible .news-title-underline {
+  animation: newsLineReveal 900ms cubic-bezier(.22,.78,.22,1) forwards;
+  animation-delay: 240ms;
+}
+
+.news-title-topline {
+  top: -10px;
+}
+
+.news-title-underline {
+  bottom: -10px;
+}
 
 /* Subtitle */
 .news-sub {
@@ -78,9 +106,8 @@
   max-width: 780px;
   color: #6b6762;
   font-size: clamp(0.95rem, 0.6vw + 0.75rem, 1.05rem);
-  /* Text inherits Cairo from body / .font-body */
+  line-height: 1.8;
 }
-
 
 /* ==========================================================================
    3) Slider (wrap + slick dots)
@@ -106,25 +133,39 @@
   bottom: -36px;
 }
 
-
 /* ==========================================================================
-   4) Slide item (stagger reveal)
+   4) Slide item (directional reveal on scroll)
    ========================================================================== */
 
 .news-slide {
   padding: 0.9rem 0.8rem;
-  animation: news-fade-up 800ms ease forwards;
-  opacity: 0;
-  transform: translateY(18px);
+  opacity: 1;
+  transform: none;
 }
 
-/* Stagger delays */
-.news-slide:nth-child(1) { animation-delay: 120ms; }
-.news-slide:nth-child(2) { animation-delay: 220ms; }
-.news-slide:nth-child(3) { animation-delay: 320ms; }
-.news-slide:nth-child(4) { animation-delay: 420ms; }
-.news-slide:nth-child(5) { animation-delay: 520ms; }
+.news-slide--from-left,
+.news-slide--from-right {
+  opacity: 0;
+  filter: blur(10px);
+}
 
+.news-slide--from-left {
+  transform: translateX(-56px) scale(.988);
+}
+
+.news-slide--from-right {
+  transform: translateX(56px) scale(.988);
+}
+
+.news-section.is-visible .news-slide--from-left {
+  animation: newsFadeLeftToRight 980ms cubic-bezier(.22,.78,.22,1) forwards;
+  animation-delay: var(--news-delay, 140ms);
+}
+
+.news-section.is-visible .news-slide--from-right {
+  animation: newsFadeRightToLeft 980ms cubic-bezier(.22,.78,.22,1) forwards;
+  animation-delay: var(--news-delay, 260ms);
+}
 
 /* ==========================================================================
    5) Card (base + hover effects)
@@ -145,16 +186,28 @@
     box-shadow 420ms ease,
     border-color 240ms ease;
   will-change: transform;
+  isolation: isolate;
+}
+
+.news-card-pro::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.24), rgba(255,255,255,0) 32%, rgba(212,175,55,.08) 72%, rgba(255,255,255,.14));
+  opacity: .65;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .news-card-pro:hover {
   transform: translateY(-8px);
   box-shadow:
     0 18px 38px rgba(0,0,0,0.12),
+    0 0 0 1px rgba(212,175,55,.10),
     inset 0 0 0 1px rgba(255,255,255,0.45);
   border-color: rgba(212,175,55,0.42);
 }
-
 
 /* ==========================================================================
    6) Media (image, shine pass, gold border accent)
@@ -162,7 +215,7 @@
 
 .news-media {
   position: relative;
-  aspect-ratio: 16/9;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
   background: #eae7e2;
 }
@@ -172,12 +225,15 @@
   height: 100%;
   object-fit: cover;
   transform-origin: center;
-  transition: transform 700ms cubic-bezier(.2,.8,.2,1);
+  transition:
+    transform 700ms cubic-bezier(.2,.8,.2,1),
+    filter 700ms cubic-bezier(.2,.8,.2,1);
 }
 
 /* Subtle zoom/tilt on hover */
 .news-card-pro:hover .news-img {
   transform: scale(1.06) rotate(0.25deg);
+  filter: brightness(1.03) contrast(1.03);
 }
 
 /* Shine sweep overlay */
@@ -216,7 +272,7 @@
   mask-composite: exclude;
   padding: 2px;
   background: linear-gradient(90deg, #c59d37, #e6c768, #b8860b) border-box;
-  opacity: 0.0;
+  opacity: 0;
   transition: opacity 400ms ease;
 }
 
@@ -224,13 +280,14 @@
   opacity: 0.75;
 }
 
-
 /* ==========================================================================
    7) Body (heading, paragraph, CTA)
    ========================================================================== */
 
 .news-body {
   padding: 1rem 1rem 1.2rem;
+  position: relative;
+  z-index: 1;
 }
 
 .news-heading-pro {
@@ -239,15 +296,13 @@
   line-height: 1.35;
   color: #2b2520;
   letter-spacing: 0.2px;
-  /* font-heading class in JSX already forces El Messiri */
 }
 
 .news-desc-pro {
   margin: 0;
   color: #6b6762;
   font-size: 0.95rem;
-  line-height: 1.55;
-  /* inherits Cairo via .font-body */
+  line-height: 1.62;
 }
 
 .news-cta {
@@ -265,53 +320,138 @@
   transform: translateX(-4px);
 }
 
-
 /* ==========================================================================
    8) Animations
    ========================================================================== */
 
-@keyframes news-fade-up {
-  from { opacity: 0; transform: translateY(18px); }
-  to   { opacity: 1; transform: translateY(0); }
+@keyframes newsFadeTopToBottom {
+  0% {
+    opacity: 0;
+    transform: translateY(-22px);
+    filter: blur(8px);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
 }
 
+@keyframes newsLineReveal {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) scaleX(0.3);
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) scaleX(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes newsFadeLeftToRight {
+  0% {
+    opacity: 0;
+    transform: translateX(-56px) scale(.988);
+    filter: blur(10px);
+  }
+  60% {
+    opacity: 1;
+    transform: translateX(0) scale(1.002);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes newsFadeRightToLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(56px) scale(.988);
+    filter: blur(10px);
+  }
+  60% {
+    opacity: 1;
+    transform: translateX(0) scale(1.002);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    filter: blur(0);
+  }
+}
 
 /* ==========================================================================
    9) Responsive (tablet / mobile)
    ========================================================================== */
 
 @media (max-width: 1024px) {
-  .news-section { padding: 3.25rem 0 3.25rem; }
-  .news-sub { max-width: 720px; }
+  .news-section {
+    padding: 3.25rem 0 3.25rem;
+  }
+
+  .news-sub {
+    max-width: 720px;
+  }
 }
 
 @media (max-width: 768px) {
-  .news-section { padding: 2.5rem 0 3.5rem; }
-  .news-slide { padding: 0.7rem; }
-  .news-body { padding: 0.9rem 0.9rem 1.1rem; }
+  .news-section {
+    padding: 2.5rem 0 3.5rem;
+  }
+
+  .news-slide {
+    padding: 0.7rem;
+  }
+
+  .news-body {
+    padding: 0.9rem 0.9rem 1.1rem;
+  }
 }
 
 @media (max-width: 480px) {
-  .news-sub { font-size: 0.9rem; }
-  .slick-dots { bottom: -28px; }
-}
+  .news-sub {
+    font-size: 0.9rem;
+  }
 
+  .slick-dots {
+    bottom: -28px;
+  }
+}
 
 /* ==========================================================================
    10) Reduced Motion (accessibility)
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
+  .news-title-pro,
+  .news-sub,
+  .news-title-topline,
+  .news-title-underline,
   .news-slide,
-  .news-header {
+  .news-slide--from-left,
+  .news-slide--from-right {
     animation: none !important;
-    opacity: 1;
-    transform: none;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
   }
 
   .news-card-pro,
   .news-img,
-  .news-media-shine {
+  .news-media-shine,
+  .news-gold-border,
+  .news-cta {
     transition: none !important;
   }
 }

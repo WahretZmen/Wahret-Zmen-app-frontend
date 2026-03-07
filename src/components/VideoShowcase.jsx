@@ -1,13 +1,5 @@
 // src/components/VideoShowcase.jsx
-// ============================================================================
-// Wahret Zmen — VideoShowcase (TSX-like premium) — JSX + Plain CSS
-// ✅ 3 videos SAME dimensions (3 equal columns)
-// ✅ ONE Play/Pause button controls ALL 3 videos (TSX-style circular button)
-// ✅ Mute button REMOVED
-// ✅ Premium heading (kicker + brand)
-// ✅ CTA button upgraded to premium ("Shop now") look
-// ✅ Responsive: side videos hide on small screens
-// ===========================================================================
+
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";

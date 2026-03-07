@@ -1,7 +1,6 @@
 // src/pages/home/News.jsx
 
-
-import React from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Slider from "react-slick";
 import { Link } from "react-router-dom";
 
@@ -23,38 +22,66 @@ const News = () => {
   const dir = "rtl";
   const arrow = "←";
 
+  const sectionRef = useRef(null);
+  const [inView, setInView] = useState(false);
+
   const reduceMotion =
     typeof window !== "undefined" &&
     window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 
-  // Static Arabic news items
-  const items = [
-    {
-      title: "مجموعة جديدة من الجبب التقليدية",
-      description:
-        "اكتشفوا أحدث تصاميم وهرة زمان المستوحاة من التراث التونسي مع لمسة عصرية تناسب مناسباتكم الخاصة.",
-      img: news1,
-    },
-    {
-      title: "لمسة من مشغل وهرة زمان",
-      description:
-        "نشارككم لحظات من داخل المشغل، حيث تتجسد الحرفية في كل غرزة وتُحاك التفاصيل بحب وشغف.",
-      img: news2,
-    },
-    {
-      title: "تطريز يدوي بتوقيع تونسي",
-      description:
-        "تعرّفوا على تفاصيل التطريز اليدوي الذي يزيّن قطعنا ويمنحها طابعاً فريداً لا يشبه أي قطعة أخرى.",
-      img: news3,
-    },
-  ];
+  useEffect(() => {
+    const node = sectionRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+        }
+      },
+      {
+        threshold: 0.2,
+        rootMargin: "0px 0px -8% 0px",
+      }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  const items = useMemo(
+    () => [
+      {
+        key: "news-1",
+        title: "مجموعة جديدة من الجبب التقليدية",
+        description:
+          "اكتشفوا أحدث تصاميم وهرة زمان المستوحاة من التراث التونسي مع لمسة عصرية تناسب مناسباتكم الخاصة.",
+        img: news1,
+      },
+      {
+        key: "news-2",
+        title: "لمسة من مشغل وهرة زمان",
+        description:
+          "نشارككم لحظات من داخل المشغل، حيث تتجسد الحرفية في كل غرزة وتُحاك التفاصيل بحب وشغف.",
+        img: news2,
+      },
+      {
+        key: "news-3",
+        title: "تطريز يدوي بتوقيع تونسي",
+        description:
+          "تعرّفوا على تفاصيل التطريز اليدوي الذي يزيّن قطعنا ويمنحها طابعاً فريداً لا يشبه أي قطعة أخرى.",
+        img: news3,
+      },
+    ],
+    []
+  );
 
   const onlyOne = items.length <= 1;
 
   const settings = {
     dots: true,
     infinite: !onlyOne,
-    speed: 650,
+    speed: 700,
     slidesToShow: Math.min(2, items.length || 1),
     slidesToScroll: 1,
     autoplay: !reduceMotion && !onlyOne,
@@ -69,15 +96,20 @@ const News = () => {
     ],
   };
 
+  const getSlideDirectionClass = (idx) => {
+    if (idx % 2 === 0) return "news-slide--from-left";
+    return "news-slide--from-right";
+  };
+
   return (
     <section
-      className="news-section"
+      ref={sectionRef}
+      className={`news-section ${inView ? "is-visible" : ""}`}
       dir={dir}
       aria-labelledby="news-heading"
       aria-live="off"
     >
       <div className="news-container">
-        {/* Header */}
         <header className="news-header">
           <h2 id="news-heading" className="news-title-pro">
             <span className="news-title-topline" />
@@ -91,21 +123,23 @@ const News = () => {
           </p>
         </header>
 
-        {/* Carousel */}
         <div className="news-slider-wrap">
           <Slider {...settings}>
             {items.map((item, idx) => {
-              const { img, title, description } = item;
+              const { img, title, description, key } = item;
 
               return (
-                <div key={idx} className="news-slide">
+                <div
+                  key={key}
+                  className={`news-slide ${getSlideDirectionClass(idx)}`}
+                  style={{ "--news-delay": `${140 + idx * 120}ms` }}
+                >
                   <Link
                     to="/about"
                     reloadDocument
                     className="news-card-pro"
                     aria-label={title}
                   >
-                    {/* Media */}
                     <div className="news-media">
                       <img
                         src={img}
@@ -121,7 +155,6 @@ const News = () => {
                       <span className="news-gold-border" />
                     </div>
 
-                    {/* Content */}
                     <div className="news-body">
                       <h3 className="news-heading-pro">{title}</h3>
                       <p className="news-desc-pro">{description}</p>

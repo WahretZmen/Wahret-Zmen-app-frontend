@@ -1,7 +1,4 @@
-// src/components/LargeBanner.jsx
-// -----------------------------------------------------------------------------
-// Large hero banner with background carousel and CTA buttons (Arabic only).
-// -----------------------------------------------------------------------------
+// src/components/WahretZmenLargeBanner.jsx
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -12,12 +9,12 @@ import heroAvif2 from "../assets/Home/LargeBanner/Large-Banner2.avif";
 import heroAvif3 from "../assets/Home/LargeBanner/Large-Banner3.avif";
 import logoImg from "../assets/Logo/Logo-Boutique-Wahret-Zmen.png";
 
-import "../Styles/StylesLargeBanner.css";
+import "../Styles/StylesWahretZmenLargeBanner.css";
 
 const AUTOPLAY_MS = 6000; // slide duration
 const TRANSITION_MS = 700; // fade duration
 
-const LargeBanner = () => {
+const WahretZmenLargeBanner = () => {
   const isRTL = true;
 
   // Track image load + active slide + autoplay state
@@ -301,4 +298,4 @@ const LargeBanner = () => {
   );
 };
 
-export default LargeBanner;
+export default WahretZmenLargeBanner;

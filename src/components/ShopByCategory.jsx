@@ -1,7 +1,7 @@
 // src/components/ShopByCategory.jsx
 // Shop by category (Arabic / RTL)
 
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import "../Styles/ShopByCategory.css";
 
@@ -10,9 +10,24 @@ import femmeJebba from "../assets/Jebbas/Femmes/Jebba-Femme.jpg";
 import enfantJebba from "../assets/Jebbas/Enfants/Jebba-Enfant.jpg";
 
 const DEFAULT_ITEMS = [
-  { key: "hommes", label: "رجال", image: hommeJebba, to: "/products?category=hommes" },
-  { key: "femmes", label: "نساء", image: femmeJebba, to: "/products?category=femmes" },
-  { key: "enfants", label: "أطفال", image: enfantJebba, to: "/products?category=enfants" },
+  {
+    key: "hommes",
+    label: "رجال",
+    image: hommeJebba,
+    to: "/products?category=hommes",
+  },
+  {
+    key: "femmes",
+    label: "نساء",
+    image: femmeJebba,
+    to: "/products?category=femmes",
+  },
+  {
+    key: "enfants",
+    label: "أطفال",
+    image: enfantJebba,
+    to: "/products?category=enfants",
+  },
 ];
 
 const getLabel = (label) => {
@@ -22,13 +37,59 @@ const getLabel = (label) => {
   return String(label);
 };
 
-const ShopByCategory = ({ items = DEFAULT_ITEMS, title = "تسوّق حسب الفئة" }) => {
+const getDirectionClass = (itemKey) => {
+  switch (itemKey) {
+    case "hommes":
+      return "cat-card--from-right";
+    case "femmes":
+      return "cat-card--from-bottom";
+    case "enfants":
+      return "cat-card--from-left";
+    default:
+      return "cat-card--from-bottom";
+  }
+};
+
+const ShopByCategory = ({
+  items = DEFAULT_ITEMS,
+  title = "تسوّق حسب الفئة",
+}) => {
   const isRTL = true;
   const overline = "المجموعة";
   const cta = "اكتشف";
 
+  const sectionRef = useRef(null);
+  const [isInView, setIsInView] = useState(false);
+
+  useEffect(() => {
+    const node = sectionRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.unobserve(node);
+        }
+      },
+      {
+        threshold: 0.22,
+        rootMargin: "0px 0px -8% 0px",
+      }
+    );
+
+    observer.observe(node);
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <section className="shopcat-section" aria-label="تسوّق حسب الفئة" dir={isRTL ? "rtl" : "ltr"}>
+    <section
+      ref={sectionRef}
+      className={`shopcat-section ${isInView ? "is-inview" : ""}`}
+      aria-label="تسوّق حسب الفئة"
+      dir={isRTL ? "rtl" : "ltr"}
+    >
       <div className="shopcat-head">
         <h2 className="shopcat-title">{title}</h2>
       </div>
@@ -36,15 +97,16 @@ const ShopByCategory = ({ items = DEFAULT_ITEMS, title = "تسوّق حسب ال
       <div className="shopcat-grid">
         {items.map((it, idx) => {
           const titleText = getLabel(it.label);
+          const directionClass = getDirectionClass(it.key);
 
           return (
             <Link
               key={it.key || idx}
               to={it.to}
-              className="cat-card"
+              reloadDocument
+              className={`cat-card ${directionClass}`}
               style={{ "--i": idx }}
               aria-label={`${overline} – ${titleText}`}
-              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
             >
               <div className="cat-media">
                 <img
@@ -54,6 +116,9 @@ const ShopByCategory = ({ items = DEFAULT_ITEMS, title = "تسوّق حسب ال
                   decoding="async"
                   onDragStart={(e) => e.preventDefault()}
                 />
+
+                <span className="cat-media-shine" aria-hidden="true" />
+                <span className="cat-media-glow" aria-hidden="true" />
               </div>
 
               <div className="cat-overlay">

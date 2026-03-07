@@ -1,7 +1,6 @@
 // src/pages/products/ProductCard.jsx
 
-import React, { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useMemo, useState, useCallback } from "react";
 import { Star } from "lucide-react";
 
 import { getImgUrl } from "../../utils/getImgUrl";
@@ -192,6 +191,16 @@ const ProductCard = ({ product, showStockBadge = true }) => {
 
   if (!product) return null;
 
+  const productUrl = `/products/${product._id}`;
+
+  const goToProductWithReload = useCallback(
+    (e) => {
+      if (e) e.preventDefault();
+      window.location.href = productUrl;
+    },
+    [productUrl]
+  );
+
   const rawEmbroideryValue = useMemo(() => {
     const ec = product?.embroideryCategory;
     if (!ec) return "";
@@ -310,9 +319,9 @@ const ProductCard = ({ product, showStockBadge = true }) => {
 
   return (
     <article className="pc-card" dir={isRTL ? "rtl" : "ltr"}>
-      <Link
-        to={`/products/${product._id}`}
-        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+      <a
+        href={productUrl}
+        onClick={goToProductWithReload}
         className="pc-mediaLink"
         aria-label={displayName}
       >
@@ -350,7 +359,7 @@ const ProductCard = ({ product, showStockBadge = true }) => {
 
           <div className="pc-mediaShade" />
         </div>
-      </Link>
+      </a>
 
       <div className="pc-body">
         <div className="pc-topMeta">
@@ -366,13 +375,13 @@ const ProductCard = ({ product, showStockBadge = true }) => {
           )}
         </div>
 
-        <Link
-          to={`/products/${product._id}`}
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        <a
+          href={productUrl}
+          onClick={goToProductWithReload}
           className="pc-titleLink"
         >
           <h3 className="pc-title">{displayName}</h3>
-        </Link>
+        </a>
 
         <div className="pc-ratingRow">
           <div className="pc-stars">{renderStars(ratingValue)}</div>
@@ -417,13 +426,13 @@ const ProductCard = ({ product, showStockBadge = true }) => {
           </div>
         )}
 
-        <Link
-          to={`/products/${product._id}`}
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        <a
+          href={productUrl}
+          onClick={goToProductWithReload}
           className="pc-action"
         >
           عرض التفاصيل
-        </Link>
+        </a>
       </div>
     </article>
   );
