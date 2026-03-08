@@ -2,9 +2,8 @@
 // ============================================================================
 // CartPage (Arabic / RTL)
 // - Shows cart items with quantity controls and totals
-// - ✅ Category is forced to Arabic (maps FR/EN keys -> AR)
-// - ✅ COD flow: checkout is public guest checkout (NO AUTH)
-// - ✅ Works with stable cartItem.colorKey for remove/updateQuantity
+// - Uses productId instead of product Mongo _id
+// - Works with stable cartItem.colorKey for remove/updateQuantity
 // ============================================================================
 
 import React, { useEffect, useMemo } from "react";
@@ -48,7 +47,6 @@ const normalizeKey = (s) => {
     .replace(/\s+/g, "-");
 };
 
-// Put here every category you use in DB/UI (FR/EN/keys -> AR)
 const CATEGORY_AR_MAP = {
   hommes: "رجال",
   homme: "رجال",
@@ -86,12 +84,21 @@ const CATEGORY_AR_MAP = {
 const safeText = (v) =>
   typeof v === "string" ? v.trim() : String(v ?? "").trim();
 
+const getProductId = (p) =>
+  safeText(
+    p?.productId ||
+      p?.id ||
+      p?._id ||
+      p?.product?.productId ||
+      p?.product?.id ||
+      p?.product?._id
+  );
+
 /* =============================================================================
    Component
 ============================================================================= */
 
 const CartPage = () => {
-  // Scroll to top on entry
   useEffect(() => {
     if (typeof window !== "undefined" && typeof window.scrollTo === "function") {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -104,18 +111,16 @@ const CartPage = () => {
   const lang = "ar";
   const isRTL = true;
 
-  // Title (Arabic first)
   const titleFor = (p) =>
     p?.translations?.ar?.title || p?.titleAr || p?.title || "بدون عنوان";
 
-  // Category (force Arabic output)
   const categoryFor = (p) => {
     const raw =
       p?.translations?.ar?.category ||
       p?.categoryAr ||
       p?.category ||
       p?.product?.category ||
-      p?.productId?.category;
+      p?.productData?.category;
 
     if (!raw) return "غير مصنّف";
 
@@ -151,16 +156,14 @@ const CartPage = () => {
     return CATEGORY_AR_MAP[key] || str;
   };
 
-  // Embroidery type (string or {en, fr, ar})
   const embroideryFor = (item) => {
     const raw =
       item?.embroideryCategory ||
       item?.embroidery ||
       item?.product?.embroideryCategory ||
-      item?.productId?.embroideryCategory;
+      item?.productData?.embroideryCategory;
 
     if (!raw) return null;
-
     if (typeof raw === "string") return raw;
 
     if (typeof raw === "object") {
@@ -194,20 +197,20 @@ const CartPage = () => {
     return safeText(v) || "أصلي";
   };
 
-  // Quantity (1..stock)
   const setQuantity = (product, quantity) => {
     const max =
       typeof product?.color?.stock === "number" ? product.color.stock : 999;
 
     const next = Math.min(Math.max(1, Number(quantity) || 1), max);
+    const productId = getProductId(product);
 
-    if (next !== Number(product.quantity || 1)) {
+    if (next !== Number(product.quantity || 1) && productId) {
       dispatch(
         updateQuantity({
-          _id: product._id,
+          productId,
           color: product.color,
           coverImage: product.coverImage,
-          colorKey: product.colorKey, // ✅ important stable key
+          colorKey: product.colorKey,
           quantity: next,
         })
       );
@@ -217,15 +220,19 @@ const CartPage = () => {
   const inc = (p) => setQuantity(p, Number(p.quantity || 1) + 1);
   const dec = (p) => setQuantity(p, Number(p.quantity || 1) - 1);
 
-  const handleRemove = (product) =>
+  const handleRemove = (product) => {
+    const productId = getProductId(product);
+    if (!productId) return;
+
     dispatch(
       removeFromCart({
-        _id: product._id,
+        productId,
         color: product.color,
         coverImage: product.coverImage,
-        colorKey: product.colorKey, // ✅ important stable key
+        colorKey: product.colorKey,
       })
     );
+  };
 
   const handleClearCart = () => cartItems.length && dispatch(clearCart());
 
@@ -236,7 +243,6 @@ const CartPage = () => {
       0
     );
 
-    // Keep your current rule
     const shipping = subtotal > 500 ? 0 : cartItems.length ? 25 : 0;
     const total = subtotal + shipping;
 
@@ -266,6 +272,8 @@ const CartPage = () => {
               {/* Items */}
               <div className="lg:col-span-2 space-y-4">
                 {cartItems.map((product, index) => {
+                  const productId = getProductId(product);
+
                   const imgSrc = getImgUrl(
                     product?.color?.images?.[0] ||
                       product?.color?.image ||
@@ -291,7 +299,7 @@ const CartPage = () => {
 
                   return (
                     <Card
-                      key={`${product._id}-${product.colorKey || index}`}
+                      key={`${productId}-${product.colorKey || index}`}
                       className={`cart-card rounded-none animate-fade-in-delay-${
                         (index + 1) * 100
                       }`}
@@ -313,7 +321,7 @@ const CartPage = () => {
                             <div className="flex flex-wrap justify-between items-start gap-3 mb-2">
                               <h3 className="text-lg sm:text-xl font-semibold text-foreground text-center md:text-start w-full md:w-auto">
                                 <Link
-                                  to={`/products/${product._id}`}
+                                  to={`/products/${encodeURIComponent(productId)}`}
                                   className="hover:underline"
                                 >
                                   {titleFor(product)}

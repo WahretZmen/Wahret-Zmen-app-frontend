@@ -191,14 +191,16 @@ const ProductCard = ({ product, showStockBadge = true }) => {
 
   if (!product) return null;
 
-  const productUrl = `/products/${product._id}`;
+  const pid = displayProductId(product);
+  const productUrl = `/products/${encodeURIComponent(pid)}`;
 
   const goToProductWithReload = useCallback(
     (e) => {
       if (e) e.preventDefault();
+      if (!pid) return;
       window.location.href = productUrl;
     },
-    [productUrl]
+    [pid, productUrl]
   );
 
   const rawEmbroideryValue = useMemo(() => {
@@ -293,7 +295,6 @@ const ProductCard = ({ product, showStockBadge = true }) => {
   );
 
   const ratingValue = Math.max(0, Math.min(5, safeNum(product?.rating, 0)));
-  const pid = displayProductId(product);
 
   const renderStars = (value) =>
     Array.from({ length: 5 }).map((_, i) => {
@@ -330,9 +331,7 @@ const ProductCard = ({ product, showStockBadge = true }) => {
 
           {showStockBadge && (
             <span
-              className={`pc-badge pc-badge--stock ${
-                displayedStock > 0 ? "is-in" : "is-out"
-              }`}
+              className={`pc-badge pc-badge--stock ${displayedStock > 0 ? "is-in" : "is-out"}`}
               title={stockText}
               aria-label={stockText}
             >
@@ -412,7 +411,7 @@ const ProductCard = ({ product, showStockBadge = true }) => {
           <div className="pc-swatchesWrap">
             {product.colors.slice(0, 5).map((c, idx) => (
               <span
-                key={`${product._id}-clr-${idx}`}
+                key={`${pid || "product"}-clr-${idx}`}
                 className="pc-swatchesTag"
                 title={getColorLabel(c)}
               >

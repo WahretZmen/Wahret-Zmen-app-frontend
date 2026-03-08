@@ -30,8 +30,19 @@ const money = (n) => {
   const x = Number(n);
   return Number.isFinite(x) ? x.toFixed(2) : "0.00";
 };
+
 const safeText = (v) =>
   typeof v === "string" ? v.trim() : String(v ?? "").trim();
+
+const getProductId = (it) =>
+  safeText(
+    it?.productId ||
+      it?.id ||
+      it?._id ||
+      it?.product?.productId ||
+      it?.product?.id ||
+      it?.product?._id
+  );
 
 const pickItemImage = (it) => {
   const images = Array.isArray(it?.color?.images) ? it.color.images.filter(Boolean) : [];
@@ -117,7 +128,6 @@ export default function CheckoutPage() {
   const navigate = useNavigate();
   const cartItems = useSelector((s) => s.cart.cartItems || []);
 
-  // totals
   const subtotal = useMemo(
     () =>
       cartItems.reduce(
@@ -131,7 +141,7 @@ export default function CheckoutPage() {
   // ✅ FREE DELIVERY ALWAYS
   const shipping = 0;
 
-  // ✅ Total = Subtotal (since shipping is free)
+  // ✅ Total = Subtotal
   const total = useMemo(() => subtotal + shipping, [subtotal, shipping]);
 
   const [createOrder, { isLoading }] = useCreateOrderMutation();
@@ -148,7 +158,7 @@ export default function CheckoutPage() {
     postal: "",
   });
 
-  // errors (red border)
+  // errors
   const [errors, setErrors] = useState({});
 
   // terms checkbox + modal
@@ -177,13 +187,15 @@ export default function CheckoutPage() {
       "state",
       "postal",
     ];
+
     const next = {};
     required.forEach((f) => {
       if (!safeText(formData[f])) next[f] = true;
     });
 
-    if (Object.keys(next).length)
+    if (Object.keys(next).length) {
       return { msg: "الرجاء إدخال كل المعلومات المطلوبة.", fields: next };
+    }
 
     if (!agree) {
       return {
@@ -197,6 +209,8 @@ export default function CheckoutPage() {
 
   const buildPayload = () => {
     const products = cartItems.map((it) => {
+      const productId = getProductId(it);
+
       const colorName =
         it?.color?.colorName?.ar ||
         it?.color?.colorName?.fr ||
@@ -207,16 +221,18 @@ export default function CheckoutPage() {
       const images = Array.isArray(it?.color?.images)
         ? it.color.images.filter(Boolean)
         : [];
+
       const mainImg = it?.color?.image || images[0] || it?.coverImage || "";
 
       return {
-        productId: it._id,
+        productId,
         quantity: Number(it?.quantity || 1),
         color: {
           colorName,
           image: mainImg,
           images: images.length ? images : mainImg ? [mainImg] : [],
         },
+        colorKey: safeText(it?.colorKey || ""),
         size: safeText(it?.size || it?.selectedSize || ""),
       };
     });
@@ -240,7 +256,7 @@ export default function CheckoutPage() {
       paymentMethod: "cod",
       totals: {
         subtotal: Number(subtotal.toFixed(2)),
-        shipping: 0, // ✅ force 0
+        shipping: 0,
         total: Number(total.toFixed(2)),
       },
       consent: { agreed: true, at: new Date().toISOString() },
@@ -263,7 +279,14 @@ export default function CheckoutPage() {
     }
 
     try {
-      const res = await createOrder(buildPayload()).unwrap();
+      const payload = buildPayload();
+
+      const hasInvalidProduct = payload.products.some((p) => !safeText(p.productId));
+      if (hasInvalidProduct) {
+        throw new Error("يوجد منتج بدون معرّف productId صالح.");
+      }
+
+      const res = await createOrder(payload).unwrap();
 
       // ✅ Support multiple backend shapes
       const order = res?.order || res?.data?.order || res || null;
@@ -274,7 +297,7 @@ export default function CheckoutPage() {
         throw new Error("لم يتم استلام مرجع الطلب من السيرفر.");
       }
 
-      // ✅ Cache full order for OrderTrack fallback (important)
+      // ✅ Cache full order for OrderTrack fallback
       try {
         sessionStorage.setItem(
           "wz_last_order",
@@ -285,12 +308,10 @@ export default function CheckoutPage() {
       // ✅ Clear cart AFTER we have order
       dispatch(clearCart());
 
-      // ✅ Go to OrderSuccess (so it can show products + pass order to OrderTrack)
+      // ✅ Go to OrderSuccess
       navigate(`/order-success/${encodeURIComponent(orderId)}`, {
         state: { order },
       });
-
-      // (Optional) If you still want OrderConfirm as well, user can click "عرض التأكيد" inside OrderSuccess.
     } catch (err) {
       Swal.fire({
         icon: "error",
@@ -307,7 +328,7 @@ export default function CheckoutPage() {
 
       <main className="cz-main">
         <div className="cz-container">
-          {/* Breadcrumb — ✅ RTL correct order: السلة > التأكيد > الدفع */}
+          {/* Breadcrumb */}
           <div className="cz-breadcrumb animate-fade-in-up" aria-label="مسار الصفحات">
             <Link to="/cart" className="cz-breadcrumb__link">
               السلة
@@ -327,7 +348,6 @@ export default function CheckoutPage() {
             <h1 className="cz-h1">إتمام الطلب بأمان</h1>
             <p className="cz-subtitle">أكمل طلبك — الدفع عند الاستلام</p>
 
-            {/* ✅ FREE DELIVERY badge line */}
             <div className="cz-freeShipLine" aria-live="polite">
               <Truck className="cz-freeShipLine__icon" />
               <span>
@@ -601,10 +621,12 @@ export default function CheckoutPage() {
 
                 <div className="cz-card__content">
                   <div className="cz-summary">
-                    {/* Items with bigger images ✅ */}
+                    {/* Items with bigger images */}
                     <div className="cz-items cz-items--withImg">
                       {cartItems.length ? (
                         cartItems.slice(0, 8).map((it, idx) => {
+                          const pid = getProductId(it);
+
                           const title =
                             it?.translations?.ar?.title ||
                             it?.translations?.fr?.title ||
@@ -622,7 +644,7 @@ export default function CheckoutPage() {
                           return (
                             <div
                               className="cz-item cz-item--img"
-                              key={`${it._id}-${it.colorKey || idx}`}
+                              key={`${pid}-${it.colorKey || idx}`}
                             >
                               <div
                                 className="cz-item__thumb cz-item__thumb--lg"

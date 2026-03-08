@@ -15,16 +15,26 @@ const pick = (v, d = "") => {
   return String(v);
 };
 
+const getProductId = (payload) =>
+  pick(
+    payload?.productId ||
+      payload?.id ||
+      payload?._id ||
+      payload?.product?.productId ||
+      payload?.product?.id ||
+      payload?.product?._id,
+    ""
+  );
+
 const normalizeColorNameToObj = (colorName) => {
-  // Keep your multilingual shape
   if (typeof colorName === "object" && colorName) return colorName;
   const s = pick(colorName, "Original");
   return { en: s || "Original", fr: s || "Original", ar: "أصلي" };
 };
 
 /**
- * Build a stable "colorKey" stored in cart lines.
- * - BEST: selected image (img:<url>) -> stable across languages
+ * Build a stable color key stored in cart lines.
+ * - BEST: selected image (img:<url>)
  * - fallback: name object (name:<json>)
  */
 const buildColorKey = (color, coverImage = "") => {
@@ -75,13 +85,13 @@ const cartSlice = createSlice({
     // addToCart
     addToCart: (state, action) => {
       const payload = action.payload || {};
-      const { _id, coverImage } = payload;
+      const productId = getProductId(payload);
+      const coverImage = payload?.coverImage || "";
 
-      if (!_id) return;
+      if (!productId) return;
 
       const incomingColor = payload.color || {};
       const normalizedColorName = normalizeColorNameToObj(incomingColor?.colorName);
-
       const { image, images } = ensureImages(incomingColor, coverImage);
 
       const normalizedColor = {
@@ -94,7 +104,7 @@ const cartSlice = createSlice({
       const colorKey = payload.colorKey || buildColorKey(normalizedColor, coverImage);
 
       const existingItem = state.cartItems.find(
-        (item) => item._id === _id && item.colorKey === colorKey
+        (item) => item.productId === productId && item.colorKey === colorKey
       );
 
       const qtyToAdd = Math.max(1, Number(payload.quantity || 1));
@@ -104,9 +114,11 @@ const cartSlice = createSlice({
       } else {
         state.cartItems.push({
           ...payload,
+          productId,
+          id: productId,
           quantity: qtyToAdd,
           color: normalizedColor,
-          colorKey, // ✅ stored for stable matching (used later in order tracking too)
+          colorKey,
         });
       }
 
@@ -116,8 +128,8 @@ const cartSlice = createSlice({
     // removeFromCart
     removeFromCart: (state, action) => {
       const payload = action.payload || {};
-      const { _id } = payload;
-      if (!_id) return;
+      const productId = getProductId(payload);
+      if (!productId) return;
 
       const computedKey =
         payload.colorKey ||
@@ -130,7 +142,7 @@ const cartSlice = createSlice({
         );
 
       state.cartItems = state.cartItems.filter(
-        (item) => !(item._id === _id && item.colorKey === computedKey)
+        (item) => !(item.productId === productId && item.colorKey === computedKey)
       );
 
       toast("info", "تم حذف المنتج من العربة");
@@ -139,8 +151,8 @@ const cartSlice = createSlice({
     // updateQuantity
     updateQuantity: (state, action) => {
       const payload = action.payload || {};
-      const { _id, quantity } = payload;
-      if (!_id) return;
+      const productId = getProductId(payload);
+      if (!productId) return;
 
       const computedKey =
         payload.colorKey ||
@@ -153,11 +165,11 @@ const cartSlice = createSlice({
         );
 
       const item = state.cartItems.find(
-        (it) => it._id === _id && it.colorKey === computedKey
+        (it) => it.productId === productId && it.colorKey === computedKey
       );
 
       if (item) {
-        const next = Math.max(1, Number(quantity || 1));
+        const next = Math.max(1, Number(payload.quantity || 1));
         item.quantity = next;
       }
     },

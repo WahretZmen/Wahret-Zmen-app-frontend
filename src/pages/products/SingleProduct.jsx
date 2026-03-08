@@ -31,8 +31,7 @@ const num = (v, d = 0) => (Number.isFinite(Number(v)) ? Number(v) : d);
 const safeStr = (v) => (typeof v === "string" ? v : String(v ?? ""));
 const unique = (arr) => [...new Set((arr || []).filter(Boolean))];
 const normalizeKey = (v) => String(v || "").trim().toLowerCase();
-
-const displayId = (p) => safeStr(p?.productId || "");
+const displayId = (p) => safeStr(p?.productId || "").trim();
 
 const pickText = (v) => {
   if (!v) return "";
@@ -112,7 +111,9 @@ const normalizeCategoryKey = (raw) => {
   const k = normalizeKey(raw);
   if (["women", "femme", "femmes", "نساء"].includes(k)) return "women";
   if (["men", "homme", "hommes", "رجال"].includes(k)) return "men";
-  if (["children", "kids", "kid", "enfant", "enfants", "أطفال"].includes(k)) return "children";
+  if (["children", "kids", "kid", "enfant", "enfants", "أطفال"].includes(k)) {
+    return "children";
+  }
   return k || "products";
 };
 
@@ -238,13 +239,14 @@ const getCardSubText = (p) => {
   return sub || emb || "";
 };
 
-const getCardRating = (p) => Math.max(0, Math.min(5, Math.round(Number(p?.rating ?? 0))));
+const getCardRating = (p) =>
+  Math.max(0, Math.min(5, Math.round(Number(p?.rating ?? 0))));
 
 /* =============================================================================
    Component
 ============================================================================= */
 const SingleProduct = () => {
-  const { id } = useParams();
+  const { productId } = useParams();
   const isRTL = true;
 
   useSelector((s) => {
@@ -254,7 +256,7 @@ const SingleProduct = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { data: product, isLoading, isError } = useGetProductByIdQuery(id);
+  const { data: product, isLoading, isError } = useGetProductByIdQuery(productId);
   const { data: allProducts = [] } = useGetAllProductsQuery();
 
   const [selectedColor, setSelectedColor] = useState(null);
@@ -327,7 +329,7 @@ const SingleProduct = () => {
     setActiveTab("desc");
 
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-  }, [product?._id]);
+  }, [product?.productId]);
 
   useEffect(() => {
     const n = activeGallery.length;
@@ -363,7 +365,7 @@ const SingleProduct = () => {
           ? p?.subCategory?.ar || p?.subCategory?.fr || p?.subCategory?.en || ""
           : p?.subCategory || ""
       ).toLowerCase();
-      const pid = safeStr(p?.productId).toLowerCase();
+      const pid = displayId(p).toLowerCase();
 
       const matchesTitle =
         titleMain.includes(q) || tAr.includes(q) || tFr.includes(q) || tEn.includes(q);
@@ -491,12 +493,12 @@ const SingleProduct = () => {
   const sameCategoryProducts = useMemo(() => {
     if (!product || !Array.isArray(allProducts)) return [];
 
-    const myId = safeStr(product?._id);
+    const myId = displayId(product);
     const myCat = normalizeCategoryKey(product?.category);
     const mySub = getSubCategoryKey(product);
 
     let list = allProducts
-      .filter((p) => safeStr(p?._id) !== myId)
+      .filter((p) => displayId(p) !== myId)
       .filter((p) => normalizeCategoryKey(p?.category) === myCat);
 
     if (mySub) {
@@ -505,12 +507,12 @@ const SingleProduct = () => {
     }
 
     return list.slice(0, 8);
-  }, [product?._id, product?.category, product?.subCategory, allProducts]);
+  }, [product, allProducts]);
 
   const similarProducts = useMemo(() => {
     if (!product || !Array.isArray(allProducts)) return [];
 
-    const myId = safeStr(product?._id);
+    const myId = displayId(product);
     const myCat = normalizeCategoryKey(product?.category);
     const mySub = getSubCategoryKey(product);
     const myEmb = embroideryKey;
@@ -519,7 +521,7 @@ const SingleProduct = () => {
 
     if (myEmb) {
       list = allProducts
-        .filter((p) => safeStr(p?._id) !== myId)
+        .filter((p) => displayId(p) !== myId)
         .filter((p) => normalizeCategoryKey(p?.category) === myCat)
         .filter((p) => (mySub ? getSubCategoryKey(p) === mySub : true))
         .filter((p) => getEmbroideryKey(p) === myEmb)
@@ -528,7 +530,7 @@ const SingleProduct = () => {
 
     if (list.length === 0 && mySub) {
       list = allProducts
-        .filter((p) => safeStr(p?._id) !== myId)
+        .filter((p) => displayId(p) !== myId)
         .filter((p) => normalizeCategoryKey(p?.category) === myCat)
         .filter((p) => getSubCategoryKey(p) === mySub)
         .filter((p) => Boolean(p?.trending || p?.isTrending || p?.tags?.includes?.("trending")))
@@ -537,26 +539,20 @@ const SingleProduct = () => {
 
     if (list.length === 0) {
       list = allProducts
-        .filter((p) => safeStr(p?._id) !== myId)
+        .filter((p) => displayId(p) !== myId)
         .filter((p) => normalizeCategoryKey(p?.category) === myCat)
         .filter((p) => Boolean(p?.trending || p?.isTrending || p?.tags?.includes?.("trending")))
         .slice(0, 8);
     }
 
-    const sameIds = new Set(sameCategoryProducts.map((p) => safeStr(p?._id)));
-    return list.filter((p) => !sameIds.has(safeStr(p?._id))).slice(0, 8);
-  }, [
-    product?._id,
-    product?.category,
-    product?.subCategory,
-    allProducts,
-    embroideryKey,
-    sameCategoryProducts,
-  ]);
+    const sameIds = new Set(sameCategoryProducts.map((p) => displayId(p)));
+    return list.filter((p) => !sameIds.has(displayId(p))).slice(0, 8);
+  }, [product, allProducts, embroideryKey, sameCategoryProducts]);
 
-  const goToProductReload = (e, productId) => {
+  const goToProductReload = (e, pid) => {
     e.preventDefault();
-    window.location.href = `/products/${productId}`;
+    if (!pid) return;
+    window.location.href = `/products/${encodeURIComponent(pid)}`;
   };
 
   if (isLoading) {
@@ -591,16 +587,17 @@ const SingleProduct = () => {
                     {filteredProducts.map((p, idx) => {
                       const rating = Math.max(0, Math.min(5, Math.round(Number(p?.rating ?? 0))));
                       const title = pickTitle(p);
+                      const pid = displayId(p);
 
                       return (
                         <li
-                          key={p._id}
+                          key={pid || idx}
                           className="sp2-searchItem sp2-staggerItem"
                           style={{ "--sp2-stagger": idx }}
                         >
                           <Link
-                            to={`/products/${p._id}`}
-                            onClick={(e) => goToProductReload(e, p._id)}
+                            to={`/products/${encodeURIComponent(pid)}`}
+                            onClick={(e) => goToProductReload(e, pid)}
                             className="sp2-searchLink"
                           >
                             <img
@@ -615,7 +612,7 @@ const SingleProduct = () => {
                               <div className="sp2-searchSub">
                                 <span className="sp2-searchStars">{renderStars(rating)}</span>
                                 <span className="sp2-searchId" dir="ltr">
-                                  #{displayId(p)}
+                                  #{pid}
                                 </span>
                               </div>
                             </div>
@@ -963,54 +960,58 @@ const SingleProduct = () => {
               </div>
 
               <div className="sp2-likeGrid sp2-likeGrid--lux">
-                {sameCategoryProducts.map((p, index) => (
-                  <FadeInSection key={p._id} delay={0.04 * index} yOffset={20}>
-                    <Link
-                      to={`/products/${p._id}`}
-                      className="sp2-likeCard sp2-likeCard--lux sp2-cardReveal"
-                      onClick={(e) => goToProductReload(e, p._id)}
-                    >
-                      <div className="sp2-likeBrand">وهرة زمان</div>
+                {sameCategoryProducts.map((p, index) => {
+                  const pid = displayId(p);
 
-                      <div className="sp2-likeImgWrap sp2-likeImgWrap--lux">
-                        <span className="sp2-likeShine" aria-hidden="true" />
-                        {Boolean(p?.trending || p?.isTrending) && (
-                          <span className="sp2-likeBadge">رائج</span>
-                        )}
+                  return (
+                    <FadeInSection key={pid || index} delay={0.04 * index} yOffset={20}>
+                      <Link
+                        to={`/products/${encodeURIComponent(pid)}`}
+                        className="sp2-likeCard sp2-likeCard--lux sp2-cardReveal"
+                        onClick={(e) => goToProductReload(e, pid)}
+                      >
+                        <div className="sp2-likeBrand">وهرة زمان</div>
 
-                        <img
-                          src={getImgUrl(p.coverImage)}
-                          alt={pickTitle(p)}
-                          className="sp2-likeImg sp2-likeImg--lux"
-                          loading="lazy"
-                        />
+                        <div className="sp2-likeImgWrap sp2-likeImgWrap--lux">
+                          <span className="sp2-likeShine" aria-hidden="true" />
+                          {Boolean(p?.trending || p?.isTrending) && (
+                            <span className="sp2-likeBadge">رائج</span>
+                          )}
 
-                        <span className="sp2-likeArrow" aria-hidden="true">
-                          <FiArrowUpRight />
-                        </span>
-                      </div>
+                          <img
+                            src={getImgUrl(p.coverImage)}
+                            alt={pickTitle(p)}
+                            className="sp2-likeImg sp2-likeImg--lux"
+                            loading="lazy"
+                          />
 
-                      <div className="sp2-likeMeta sp2-likeMeta--lux">
-                        <div className="sp2-likeName">{pickTitle(p)}</div>
+                          <span className="sp2-likeArrow" aria-hidden="true">
+                            <FiArrowUpRight />
+                          </span>
+                        </div>
 
-                        {getCardSubText(p) ? (
-                          <div className="sp2-likeMiniSub">{getCardSubText(p)}</div>
-                        ) : null}
+                        <div className="sp2-likeMeta sp2-likeMeta--lux">
+                          <div className="sp2-likeName">{pickTitle(p)}</div>
 
-                        <div className="sp2-likeBottom">
-                          <div className="sp2-likeMiniId" dir="ltr">
-                            #{displayId(p)}
-                          </div>
+                          {getCardSubText(p) ? (
+                            <div className="sp2-likeMiniSub">{getCardSubText(p)}</div>
+                          ) : null}
 
-                          <div className="sp2-likeRate" aria-label="التقييم">
-                            <Star className="sp2-likeRateStar" />
-                            <span>{getCardRating(p)}</span>
+                          <div className="sp2-likeBottom">
+                            <div className="sp2-likeMiniId" dir="ltr">
+                              #{pid}
+                            </div>
+
+                            <div className="sp2-likeRate" aria-label="التقييم">
+                              <Star className="sp2-likeRateStar" />
+                              <span>{getCardRating(p)}</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </Link>
-                  </FadeInSection>
-                ))}
+                      </Link>
+                    </FadeInSection>
+                  );
+                })}
               </div>
             </section>
           </FadeInSection>
@@ -1038,54 +1039,58 @@ const SingleProduct = () => {
               </div>
 
               <div className="sp2-likeGrid sp2-likeGrid--lux">
-                {similarProducts.map((p, index) => (
-                  <FadeInSection key={p._id} delay={0.04 * index} yOffset={20}>
-                    <Link
-                      to={`/products/${p._id}`}
-                      className="sp2-likeCard sp2-likeCard--lux sp2-cardReveal"
-                      onClick={(e) => goToProductReload(e, p._id)}
-                    >
-                      <div className="sp2-likeBrand">وهرة زمان</div>
+                {similarProducts.map((p, index) => {
+                  const pid = displayId(p);
 
-                      <div className="sp2-likeImgWrap sp2-likeImgWrap--lux">
-                        <span className="sp2-likeShine" aria-hidden="true" />
-                        {Boolean(p?.trending || p?.isTrending) && (
-                          <span className="sp2-likeBadge">رائج</span>
-                        )}
+                  return (
+                    <FadeInSection key={pid || index} delay={0.04 * index} yOffset={20}>
+                      <Link
+                        to={`/products/${encodeURIComponent(pid)}`}
+                        className="sp2-likeCard sp2-likeCard--lux sp2-cardReveal"
+                        onClick={(e) => goToProductReload(e, pid)}
+                      >
+                        <div className="sp2-likeBrand">وهرة زمان</div>
 
-                        <img
-                          src={getImgUrl(p.coverImage)}
-                          alt={pickTitle(p)}
-                          className="sp2-likeImg sp2-likeImg--lux"
-                          loading="lazy"
-                        />
+                        <div className="sp2-likeImgWrap sp2-likeImgWrap--lux">
+                          <span className="sp2-likeShine" aria-hidden="true" />
+                          {Boolean(p?.trending || p?.isTrending) && (
+                            <span className="sp2-likeBadge">رائج</span>
+                          )}
 
-                        <span className="sp2-likeArrow" aria-hidden="true">
-                          <FiArrowUpRight />
-                        </span>
-                      </div>
+                          <img
+                            src={getImgUrl(p.coverImage)}
+                            alt={pickTitle(p)}
+                            className="sp2-likeImg sp2-likeImg--lux"
+                            loading="lazy"
+                          />
 
-                      <div className="sp2-likeMeta sp2-likeMeta--lux">
-                        <div className="sp2-likeName">{pickTitle(p)}</div>
+                          <span className="sp2-likeArrow" aria-hidden="true">
+                            <FiArrowUpRight />
+                          </span>
+                        </div>
 
-                        {getCardSubText(p) ? (
-                          <div className="sp2-likeMiniSub">{getCardSubText(p)}</div>
-                        ) : null}
+                        <div className="sp2-likeMeta sp2-likeMeta--lux">
+                          <div className="sp2-likeName">{pickTitle(p)}</div>
 
-                        <div className="sp2-likeBottom">
-                          <div className="sp2-likeMiniId" dir="ltr">
-                            #{displayId(p)}
-                          </div>
+                          {getCardSubText(p) ? (
+                            <div className="sp2-likeMiniSub">{getCardSubText(p)}</div>
+                          ) : null}
 
-                          <div className="sp2-likeRate" aria-label="التقييم">
-                            <Star className="sp2-likeRateStar" />
-                            <span>{getCardRating(p)}</span>
+                          <div className="sp2-likeBottom">
+                            <div className="sp2-likeMiniId" dir="ltr">
+                              #{pid}
+                            </div>
+
+                            <div className="sp2-likeRate" aria-label="التقييم">
+                              <Star className="sp2-likeRateStar" />
+                              <span>{getCardRating(p)}</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </Link>
-                  </FadeInSection>
-                ))}
+                      </Link>
+                    </FadeInSection>
+                  );
+                })}
               </div>
             </section>
           </FadeInSection>

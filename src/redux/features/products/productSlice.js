@@ -8,6 +8,9 @@ const initialState = {
   lastUpdatedAt: null,
 };
 
+const getProductKey = (product) => String(product?.productId || "").trim();
+const getIdKey = (value) => String(value || "").trim();
+
 const productsSlice = createSlice({
   name: "product",
   initialState,
@@ -19,27 +22,37 @@ const productsSlice = createSlice({
       state.lastUpdatedAt = Date.now();
     },
 
-    // Add one product to cache (optional helper)
+    // Add one product to cache
     addOneProduct: (state, action) => {
       const p = action.payload;
-      if (!p?._id) return;
-      const exists = state.products.some((x) => x?._id === p._id);
+      const key = getProductKey(p);
+      if (!key) return;
+
+      const exists = state.products.some((x) => getProductKey(x) === key);
       if (!exists) state.products.unshift(p);
+
       state.lastUpdatedAt = Date.now();
     },
 
     // Update one product in cache
     updateOneProduct: (state, action) => {
       const p = action.payload;
-      if (!p?._id) return;
-      state.products = state.products.map((x) => (x?._id === p._id ? p : x));
+      const key = getProductKey(p);
+      if (!key) return;
+
+      state.products = state.products.map((x) =>
+        getProductKey(x) === key ? p : x
+      );
+
       state.lastUpdatedAt = Date.now();
     },
 
     // Remove one product from cache
     removeOneProduct: (state, action) => {
-      const id = action.payload;
-      state.products = state.products.filter((x) => x?._id !== id);
+      const id = getIdKey(action.payload);
+      if (!id) return;
+
+      state.products = state.products.filter((x) => getProductKey(x) !== id);
       state.lastUpdatedAt = Date.now();
     },
 

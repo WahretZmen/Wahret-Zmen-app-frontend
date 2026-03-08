@@ -22,6 +22,10 @@ import AboutImgn5 from "../assets/About/AboutImgn5.avif";
 import AboutImgn6 from "../assets/About/AboutImgn6.avif";
 import AboutImgn7 from "../assets/About/AboutImgn7.avif";
 
+// AboutPageLargeBannern2
+
+import AboutLargeBanner from "./AboutLargeBanner.jsx";
+
 // -----------------------------------------------------------------------------
 // Inline Icon component
 // -----------------------------------------------------------------------------
@@ -253,6 +257,11 @@ const About = () => {
           ))}
         </div>
       </section>
+
+
+      {/** LargeBannerAboutpage n°2 */}
+
+       <AboutLargeBanner/>
 
       {/* ------------------------------------------------------------------- */}
       {/* GALLERY                                                            */}

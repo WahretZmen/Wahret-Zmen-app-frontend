@@ -2,6 +2,7 @@
 // -----------------------------------------------------------------------------
 // RTK Query API: Products (Wahret Zmen)
 // -----------------------------------------------------------------------------
+// ✅ Uses productId as the public/business ID
 // ✅ Supports:
 //   • productId (custom chosen by admin)
 //   • category: men / women / children
@@ -13,9 +14,9 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import getBaseUrl from "../../../utils/baseURL";
 
-/* =============================================================================
+/* -----------------------------------------------------------------------------
    Helpers
-============================================================================= */
+----------------------------------------------------------------------------- */
 const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 
 const toNum = (v, d = 0) => {
@@ -37,6 +38,7 @@ const toLangObject = (v) => {
 const normalizeEmbroideryCategory = (v) => {
   if (!v) return "";
   if (typeof v === "string") return v.trim();
+
   if (typeof v === "object") {
     const ar = String(v.ar || "").trim();
     const fr = String(v.fr || "").trim();
@@ -44,21 +46,31 @@ const normalizeEmbroideryCategory = (v) => {
     if (!ar && !fr && !en) return "";
     return { ar, fr, en };
   }
+
   return "";
 };
 
 const normalizeSizes = (sizes) => {
   if (!sizes) return [];
-  if (Array.isArray(sizes)) return sizes.map((s) => String(s).trim()).filter(Boolean);
+
+  if (Array.isArray(sizes)) {
+    return sizes.map((s) => String(s).trim()).filter(Boolean);
+  }
 
   if (typeof sizes === "string") {
     try {
       const parsed = JSON.parse(sizes);
-      if (Array.isArray(parsed)) return parsed.map((s) => String(s).trim()).filter(Boolean);
+      if (Array.isArray(parsed)) {
+        return parsed.map((s) => String(s).trim()).filter(Boolean);
+      }
     } catch {
-      return sizes.split(",").map((s) => s.trim()).filter(Boolean);
+      return sizes
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
     }
   }
+
   return [];
 };
 
@@ -91,14 +103,13 @@ const normalizeProduct = (p) => {
 
   return {
     ...p,
+    id: p.productId ?? "",
 
     productId: p.productId ?? "",
-
     title: p.title ?? "",
     description: p.description ?? "",
     category: p.category ?? "",
-    subCategory: p.subCategory ?? "", // ✅ NEW
-
+    subCategory: p.subCategory ?? "",
     coverImage: p.coverImage ?? "",
 
     oldPrice: p.oldPrice === null ? null : Math.max(0, toNum(p.oldPrice, 0)),
@@ -137,9 +148,9 @@ const normalizeProduct = (p) => {
   };
 };
 
-/* =============================================================================
+/* -----------------------------------------------------------------------------
    Base Query
-============================================================================= */
+----------------------------------------------------------------------------- */
 const baseQuery = fetchBaseQuery({
   baseUrl: `${getBaseUrl().replace(/\/$/, "")}/api/products`,
   prepareHeaders: (headers) => {
@@ -149,9 +160,9 @@ const baseQuery = fetchBaseQuery({
   },
 });
 
-/* =============================================================================
+/* -----------------------------------------------------------------------------
    API Slice
-============================================================================= */
+----------------------------------------------------------------------------- */
 const productsApi = createApi({
   reducerPath: "productsApi",
   baseQuery,
@@ -165,16 +176,18 @@ const productsApi = createApi({
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ _id }) => ({ type: "Products", id: _id })),
+              ...result.map(({ productId }) => ({ type: "Products", id: productId })),
               { type: "Products", id: "LIST" },
             ]
           : [{ type: "Products", id: "LIST" }],
     }),
 
     getProductById: builder.query({
-      query: (id) => `/${id}`,
+      query: (productId) => `/${encodeURIComponent(productId)}`,
       transformResponse: (product) => normalizeProduct(product),
-      providesTags: (result, error, id) => [{ type: "Products", id }],
+      providesTags: (result, error, productId) => [
+        { type: "Products", id: productId },
+      ],
     }),
 
     searchProducts: builder.query({
@@ -188,15 +201,16 @@ const productsApi = createApi({
       query: (newProduct) => {
         const payload = {
           productId: String(newProduct?.productId ?? "").trim(),
-
+          title: String(newProduct?.title ?? "").trim(),
           description: newProduct?.description ?? "",
           category: newProduct?.category ?? "",
-          subCategory: newProduct?.subCategory ?? "", // ✅ NEW
-
+          subCategory: newProduct?.subCategory ?? "",
           coverImage: newProduct?.coverImage ?? "",
 
-          oldPrice: newProduct?.oldPrice === null ? null : toNum(newProduct?.oldPrice, 0),
-          newPrice: newProduct?.newPrice === null ? null : toNum(newProduct?.newPrice, 0),
+          oldPrice:
+            newProduct?.oldPrice === null ? null : toNum(newProduct?.oldPrice, 0),
+          newPrice:
+            newProduct?.newPrice === null ? null : toNum(newProduct?.newPrice, 0),
           stockQuantity: toNum(newProduct?.stockQuantity, 0),
 
           trending: Boolean(newProduct?.trending),
@@ -211,7 +225,9 @@ const productsApi = createApi({
                 : c?.image
                 ? [c.image].filter(Boolean)
                 : [];
+
             return {
+              ...(c?._id ? { _id: c._id } : {}),
               ...c,
               colorName: c.colorName,
               images,
@@ -242,22 +258,30 @@ const productsApi = createApi({
     }),
 
     updateProduct: builder.mutation({
-      query: ({ id, ...rest }) => {
-        const payload = {
-          productId: rest?.productId !== undefined ? String(rest.productId ?? "").trim() : undefined,
+      query: ({ id, productId: currentProductId, ...rest }) => {
+        const routeProductId = String(id ?? currentProductId ?? "").trim();
 
+        const payload = {
+          productId:
+            rest?.productId !== undefined
+              ? String(rest.productId ?? "").trim()
+              : undefined,
+
+          title: rest?.title !== undefined ? String(rest.title ?? "").trim() : undefined,
           description: rest?.description ?? "",
           category: rest?.category ?? "",
-          subCategory: rest?.subCategory ?? "", // ✅ NEW
-
+          subCategory: rest?.subCategory ?? "",
           coverImage: rest?.coverImage ?? "",
 
           oldPrice: rest?.oldPrice !== undefined ? rest.oldPrice : undefined,
           newPrice: rest?.newPrice !== undefined ? rest.newPrice : undefined,
-          stockQuantity: rest?.stockQuantity !== undefined ? toNum(rest.stockQuantity, 0) : undefined,
+          stockQuantity:
+            rest?.stockQuantity !== undefined ? toNum(rest.stockQuantity, 0) : undefined,
 
-          trending: rest?.trending !== undefined ? Boolean(rest.trending) : undefined,
-          rating: rest?.rating !== undefined ? clamp(toNum(rest.rating, 0), 0, 5) : undefined,
+          trending:
+            rest?.trending !== undefined ? Boolean(rest.trending) : undefined,
+          rating:
+            rest?.rating !== undefined ? clamp(toNum(rest.rating, 0), 0, 5) : undefined,
 
           sizes: Array.isArray(rest?.sizes) ? rest.sizes : [],
 
@@ -268,7 +292,9 @@ const productsApi = createApi({
                 : c?.image
                 ? [c.image].filter(Boolean)
                 : [];
+
             return {
+              ...(c?._id ? { _id: c._id } : {}),
               ...c,
               colorName: c.colorName,
               images,
@@ -281,9 +307,11 @@ const productsApi = createApi({
 
           coupe: rest?.coupe !== undefined ? toLangObject(rest.coupe) : undefined,
           matiere: rest?.matiere !== undefined ? toLangObject(rest.matiere) : undefined,
-          composition: rest?.composition !== undefined ? toLangObject(rest.composition) : undefined,
+          composition:
+            rest?.composition !== undefined ? toLangObject(rest.composition) : undefined,
           madeIn: rest?.madeIn !== undefined ? toLangObject(rest.madeIn) : undefined,
-          isHandmade: rest?.isHandmade !== undefined ? Boolean(rest.isHandmade) : undefined,
+          isHandmade:
+            rest?.isHandmade !== undefined ? Boolean(rest.isHandmade) : undefined,
 
           ...(rest?.translations ? { translations: rest.translations } : {}),
         };
@@ -291,35 +319,41 @@ const productsApi = createApi({
         Object.keys(payload).forEach((k) => payload[k] === undefined && delete payload[k]);
 
         return {
-          url: `/edit/${id}`,
+          url: `/edit/${encodeURIComponent(routeProductId)}`,
           method: "PUT",
           body: payload,
           headers: { "Content-Type": "application/json" },
         };
       },
-      invalidatesTags: (result, error, { id }) => [
-        { type: "Products", id },
-        { type: "Products", id: "LIST" },
-      ],
+      invalidatesTags: (result, error, { id, productId }) => {
+        const tagId = String(id ?? productId ?? "").trim();
+        return [
+          { type: "Products", id: tagId },
+          { type: "Products", id: "LIST" },
+        ];
+      },
     }),
 
     deleteProduct: builder.mutation({
-      query: (id) => ({ url: `/${id}`, method: "DELETE" }),
-      invalidatesTags: (result, error, id) => [
-        { type: "Products", id },
+      query: (productId) => ({
+        url: `/${encodeURIComponent(productId)}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (result, error, productId) => [
+        { type: "Products", id: productId },
         { type: "Products", id: "LIST" },
       ],
     }),
 
     updateProductPriceByPercentage: builder.mutation({
-      query: ({ id, percentage }) => ({
-        url: `/update-price/${id}`,
+      query: ({ productId, percentage }) => ({
+        url: `/update-price/${encodeURIComponent(productId)}`,
         method: "PUT",
         body: { percentage },
         headers: { "Content-Type": "application/json" },
       }),
-      invalidatesTags: (result, error, { id }) => [
-        { type: "Products", id },
+      invalidatesTags: (result, error, { productId }) => [
+        { type: "Products", id: productId },
         { type: "Products", id: "LIST" },
       ],
     }),

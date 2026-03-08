@@ -6,7 +6,7 @@ import getBaseUrl from "../../../utils/baseURL";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: `${String(getBaseUrl() || "").replace(/\/$/, "")}/api/orders`,
-  prepareHeaders: (headers, { getState }) => {
+  prepareHeaders: (headers) => {
     headers.set("accept", "application/json");
     return headers;
   },
@@ -25,17 +25,19 @@ export const ordersApi = createApi({
         method: "POST",
         body: payload,
       }),
-      invalidatesTags: ["Orders"],
+      invalidatesTags: [{ type: "Orders", id: "LIST" }],
     }),
 
     trackOrder: builder.query({
       query: (orderId) => `/track/${encodeURIComponent(String(orderId || "").trim())}`,
-      providesTags: (_res, _err, orderId) => [{ type: "Order", id: `track:${orderId}` }],
+      providesTags: (_res, _err, orderId) => [
+        { type: "Order", id: `track:${String(orderId || "").trim()}` },
+      ],
     }),
 
     getOrdersByEmail: builder.query({
       query: (email) => `/email/${encodeURIComponent(String(email || "").trim())}`,
-      providesTags: ["Orders"],
+      providesTags: [{ type: "Orders", id: "LIST" }],
     }),
 
     /* ---------------- ADMIN ---------------- */
@@ -45,7 +47,7 @@ export const ordersApi = createApi({
       providesTags: (result) =>
         Array.isArray(result)
           ? [
-              ...result.map((o) => ({ type: "Order", id: o?._id })),
+              ...result.map((o) => ({ type: "Order", id: String(o?._id || "") })),
               { type: "Orders", id: "LIST" },
             ]
           : [{ type: "Orders", id: "LIST" }],
@@ -54,7 +56,9 @@ export const ordersApi = createApi({
 
     getOrderById: builder.query({
       query: (mongoId) => `/${encodeURIComponent(String(mongoId || "").trim())}`,
-      providesTags: (_res, _err, mongoId) => [{ type: "Order", id: mongoId }],
+      providesTags: (_res, _err, mongoId) => [
+        { type: "Order", id: String(mongoId || "").trim() },
+      ],
     }),
 
     updateOrder: builder.mutation({
@@ -67,7 +71,7 @@ export const ordersApi = createApi({
         };
       },
       invalidatesTags: (_res, _err, arg) => [
-        { type: "Order", id: arg?.orderId },
+        { type: "Order", id: String(arg?.orderId || "").trim() },
         { type: "Orders", id: "LIST" },
       ],
     }),
@@ -77,7 +81,10 @@ export const ordersApi = createApi({
         url: `/${encodeURIComponent(String(orderId || "").trim())}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["Orders"],
+      invalidatesTags: (_res, _err, orderId) => [
+        { type: "Order", id: String(orderId || "").trim() },
+        { type: "Orders", id: "LIST" },
+      ],
     }),
 
     /* ---------------- OPTIONAL ---------------- */
@@ -88,7 +95,7 @@ export const ordersApi = createApi({
         method: "PATCH",
         body: payload,
       }),
-      invalidatesTags: ["Orders"],
+      invalidatesTags: [{ type: "Orders", id: "LIST" }],
     }),
 
     sendOrderNotification: builder.mutation({
@@ -97,7 +104,7 @@ export const ordersApi = createApi({
         method: "POST",
         body: payload,
       }),
-      invalidatesTags: ["Orders"],
+      invalidatesTags: [{ type: "Orders", id: "LIST" }],
     }),
   }),
 });

@@ -43,10 +43,20 @@ const pickText = (v) => {
 };
 
 const UpdateProduct = () => {
-  const { id } = useParams();
+  const params = useParams();
+  const routeProductId = String(params?.productId || params?.id || "").trim();
   const navigate = useNavigate();
 
-  const { data: product, isLoading, isError } = useGetProductByIdQuery(id);
+  const shouldSkipQuery = !routeProductId;
+
+  const {
+    data: product,
+    isLoading,
+    isError,
+  } = useGetProductByIdQuery(routeProductId, {
+    skip: shouldSkipQuery,
+  });
+
   const [updateProduct, { isLoading: saving }] = useUpdateProductMutation();
 
   const { register, handleSubmit, reset, setValue, watch } = useForm({
@@ -126,10 +136,7 @@ const UpdateProduct = () => {
     if (!file) return file;
 
     const sizeMB = file.size / (1024 * 1024);
-
-    if (sizeMB <= AUTO_COMPRESS_THRESHOLD_MB) {
-      return file;
-    }
+    if (sizeMB <= AUTO_COMPRESS_THRESHOLD_MB) return file;
 
     try {
       const compressed = await imageCompression(file, {
@@ -181,6 +188,7 @@ const UpdateProduct = () => {
       : url?.startsWith("http")
       ? url
       : `${getBaseUrl()}${url || ""}`;
+
     if (!final) return;
     window.open(final, "_blank", "noopener,noreferrer");
   };
@@ -338,7 +346,9 @@ const UpdateProduct = () => {
     }).then((res) => {
       if (!res.isConfirmed) return;
       setColorInputs((prev) =>
-        prev.map((c, i) => (i === cIdx ? { ...c, images: c.images.filter((_, j) => j !== imgIdx) } : c))
+        prev.map((c, i) =>
+          i === cIdx ? { ...c, images: c.images.filter((_, j) => j !== imgIdx) } : c
+        )
       );
     });
   };
@@ -443,7 +453,7 @@ const UpdateProduct = () => {
       const newPrice = parseOptionalNumber(data.newPrice);
 
       const payload = {
-        id,
+        id: routeProductId,
         productId: pid,
         description: (data.description || "").trim(),
         category: finalCategory,
@@ -464,7 +474,7 @@ const UpdateProduct = () => {
         sizes: Array.isArray(data.sizes) ? data.sizes : [],
       };
 
-      await updateProduct(payload).unwrap();
+      const updated = await updateProduct(payload).unwrap();
 
       Swal.fire({
         icon: "success",
@@ -472,7 +482,11 @@ const UpdateProduct = () => {
         confirmButtonText: "حسناً",
       });
 
-      navigate("/dashboard/manage-products");
+      const nextProductId = String(updated?.product?.productId || pid).trim();
+      navigate("/dashboard/manage-products", {
+        replace: true,
+        state: { updatedProductId: nextProductId },
+      });
     } catch (error) {
       console.error("❌ Error updating product:", error?.data || error);
       Swal.fire({
@@ -483,6 +497,16 @@ const UpdateProduct = () => {
       });
     }
   };
+
+  if (!routeProductId) {
+    return (
+      <div className="wz-ap" dir="rtl">
+        <div className="wz-ap__card" style={{ color: "#dc2626", fontWeight: 900 }}>
+          معرّف المنتج غير موجود في الرابط.
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -606,7 +630,9 @@ const UpdateProduct = () => {
                 );
               })}
             </div>
+
             <input type="hidden" {...register("sizes")} />
+
             <div className="wz-ap__hint">
               المقاسات المختارة: <span style={{ fontWeight: 900 }}>{sizes.length ? sizes.join(" - ") : "—"}</span>
             </div>

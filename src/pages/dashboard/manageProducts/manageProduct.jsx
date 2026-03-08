@@ -1,6 +1,6 @@
 // src/pages/dashboard/products/ManageProducts.jsx
 
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   useDeleteProductMutation,
   useGetAllProductsQuery,
@@ -62,12 +62,7 @@ const getEmbroideryLabel = (emb) => {
 const getColorName = (color) => {
   if (!color) return "افتراضي";
   if (typeof color.colorName === "object") {
-    return (
-      color.colorName.ar ||
-      color.colorName.en ||
-      color.colorName.fr ||
-      "افتراضي"
-    );
+    return color.colorName.ar || color.colorName.en || color.colorName.fr || "افتراضي";
   }
   return color.colorName || "افتراضي";
 };
@@ -82,6 +77,8 @@ const SUBCATEGORY_AR = {
 };
 
 const ManageProducts = () => {
+  const location = useLocation();
+
   const {
     data: products = [],
     isLoading,
@@ -89,16 +86,12 @@ const ManageProducts = () => {
     refetch,
   } = useGetAllProductsQuery();
 
-  const [deleteProduct, { isLoading: deleting }] =
-    useDeleteProductMutation();
+  const [deleteProduct, { isLoading: deleting }] = useDeleteProductMutation();
 
   const dispatch = useDispatch();
-  const shouldRefetch = useSelector(
-    (state) => state.productEvents.shouldRefetch
-  );
+  const shouldRefetch = useSelector((state) => state.productEvents.shouldRefetch);
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchMongoId, setSearchMongoId] = useState("");
   const [searchProductId, setSearchProductId] = useState("");
 
   // ✅ DB keys are lowercase
@@ -115,7 +108,13 @@ const ManageProducts = () => {
     }
   }, [shouldRefetch, refetch, dispatch]);
 
-  const handleDeleteProduct = async (pid) => {
+  useEffect(() => {
+    if (location?.state?.updatedProductId) {
+      setSearchProductId(String(location.state.updatedProductId));
+    }
+  }, [location]);
+
+  const handleDeleteProduct = async (productId) => {
     const confirmResult = await Swal.fire({
       title: "هل أنت متأكد؟",
       text: "لا يمكنك التراجع بعد الحذف!",
@@ -130,14 +129,13 @@ const ManageProducts = () => {
     if (!confirmResult.isConfirmed) return;
 
     try {
-      await deleteProduct(pid).unwrap();
+      await deleteProduct(productId).unwrap();
       Swal.fire("تم الحذف!", "تم حذف المنتج بنجاح.", "success");
       refetch();
     } catch (error) {
       Swal.fire(
         "خطأ!",
-        error?.data?.message ||
-          "فشل في حذف المنتج. يرجى المحاولة مرة أخرى.",
+        error?.data?.message || "فشل في حذف المنتج. يرجى المحاولة مرة أخرى.",
         "error"
       );
     }
@@ -182,21 +180,14 @@ const ManageProducts = () => {
 
   const filteredProducts = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
-    const mongoTerm = searchMongoId.trim().toLowerCase();
     const pidTerm = searchProductId.trim().toLowerCase();
 
     return (products || []).filter((p) => {
-      const mongoOk =
-        mongoTerm === "" ||
-        (p?._id && String(p._id).toLowerCase().includes(mongoTerm));
-      if (!mongoOk) return false;
-
       const pidOk =
         pidTerm === "" ||
-        (p?.productId &&
-          String(p.productId).toLowerCase().includes(pidTerm));
-      if (!pidOk) return false;
+        (p?.productId && String(p.productId).toLowerCase().includes(pidTerm));
 
+      if (!pidOk) return false;
       if (!term) return true;
 
       const searchFields = [
@@ -205,9 +196,7 @@ const ManageProducts = () => {
         p?.category,
         p?.subCategory,
         SUBCATEGORY_AR[p?.subCategory || ""] || "",
-        ...(Array.isArray(p?.colors)
-          ? p.colors.map((c) => getColorName(c))
-          : []),
+        ...(Array.isArray(p?.colors) ? p.colors.map((c) => getColorName(c)) : []),
       ]
         .map(toSearchString)
         .filter(Boolean)
@@ -216,7 +205,7 @@ const ManageProducts = () => {
 
       return searchFields.includes(term);
     });
-  }, [products, searchTerm, searchMongoId, searchProductId]);
+  }, [products, searchTerm, searchProductId]);
 
   return (
     <section className="mp-page" dir="rtl">
@@ -231,19 +220,9 @@ const ManageProducts = () => {
 
         <input
           type="text"
-          placeholder="🔎 ابحث بـ Product ID (custom)..."
+          placeholder="🔎 ابحث بـ Product ID..."
           value={searchProductId}
           onChange={(e) => setSearchProductId(e.target.value)}
-          className="mp-input"
-          dir="ltr"
-          style={{ unicodeBidi: "plaintext" }}
-        />
-
-        <input
-          type="text"
-          placeholder="🔎 ابحث بـ Mongo _id..."
-          value={searchMongoId}
-          onChange={(e) => setSearchMongoId(e.target.value)}
           className="mp-input"
           dir="ltr"
           style={{ unicodeBidi: "plaintext" }}
@@ -256,7 +235,6 @@ const ManageProducts = () => {
             <tr>
               <th>#</th>
               <th>Product ID</th>
-              <th>Mongo ID</th>
               <th>صورة</th>
               <th>الفئة</th>
               <th>الفئة الفرعية</th>
@@ -271,7 +249,7 @@ const ManageProducts = () => {
           <tbody>
             {isLoading && (
               <tr>
-                <td colSpan="11" className="mp-empty">
+                <td colSpan="10" className="mp-empty">
                   جارٍ تحميل المنتجات...
                 </td>
               </tr>
@@ -279,7 +257,7 @@ const ManageProducts = () => {
 
             {isError && !isLoading && (
               <tr>
-                <td colSpan="11" className="mp-empty mp-empty--error">
+                <td colSpan="10" className="mp-empty mp-empty--error">
                   حدث خطأ أثناء تحميل المنتجات.
                 </td>
               </tr>
@@ -288,22 +266,16 @@ const ManageProducts = () => {
             {!isLoading && !isError && filteredProducts.length > 0 ? (
               filteredProducts.map((p, index) => {
                 const totalStock =
-                  p?.colors?.reduce(
-                    (sum, c) => sum + (c?.stock || 0),
-                    0
-                  ) || 0;
+                  p?.colors?.reduce((sum, c) => sum + (c?.stock || 0), 0) || 0;
 
-                const embroideryLabel = getEmbroideryLabel(
-                  p?.embroideryCategory
-                );
+                const embroideryLabel = getEmbroideryLabel(p?.embroideryCategory);
                 const catAr = categoryMapping[p.category] || "غير مصنّف";
-                const subAr =
-                  SUBCATEGORY_AR[p?.subCategory || ""] || "—";
-
+                const subAr = SUBCATEGORY_AR[p?.subCategory || ""] || "—";
                 const imageUrl = getImgUrl(p.coverImage);
+                const pid = String(p?.productId || "").trim();
 
                 return (
-                  <tr key={p._id}>
+                  <tr key={pid || index}>
                     <td className="mp-td">{index + 1}</td>
 
                     <td className="mp-td">
@@ -311,35 +283,15 @@ const ManageProducts = () => {
                         <span
                           style={ltrTextStyle}
                           className="mp-idtext"
-                          title={String(p.productId || "")}
+                          title={pid}
                         >
-                          {String(p.productId || "—")}
+                          {pid || "—"}
                         </span>
 
                         <button
                           type="button"
                           className="mp-btn mp-btn--ghost"
-                          onClick={() => handleCopyId(p.productId)}
-                        >
-                          نسخ
-                        </button>
-                      </div>
-                    </td>
-
-                    <td className="mp-td">
-                      <div className="mp-idcell">
-                        <span
-                          style={ltrTextStyle}
-                          className="mp-idtext"
-                          title={String(p._id)}
-                        >
-                          {String(p._id)}
-                        </span>
-
-                        <button
-                          type="button"
-                          className="mp-btn mp-btn--ghost"
-                          onClick={() => handleCopyId(p._id)}
+                          onClick={() => handleCopyId(pid)}
                         >
                           نسخ
                         </button>
@@ -358,7 +310,7 @@ const ManageProducts = () => {
                         >
                           <img
                             src={imageUrl}
-                            alt={`product ${p.productId || ""}`}
+                            alt={`product ${pid || ""}`}
                             className="mp-img"
                             loading="lazy"
                           />
@@ -376,9 +328,7 @@ const ManageProducts = () => {
                         {p?.colors?.length ? (
                           p.colors.map((c, idx) => (
                             <div key={idx} className="mp-coloritem">
-                              <span className="mp-colorname">
-                                {getColorName(c)}
-                              </span>
+                              <span className="mp-colorname">{getColorName(c)}</span>
                               <span className="mp-colorstock">
                                 ({Number(c.stock || 0)})
                               </span>
@@ -393,14 +343,10 @@ const ManageProducts = () => {
                     <td className="mp-td">
                       <span
                         className={
-                          totalStock === 0
-                            ? "mp-stock mp-stock--zero"
-                            : "mp-stock"
+                          totalStock === 0 ? "mp-stock mp-stock--zero" : "mp-stock"
                         }
                       >
-                        {totalStock > 0
-                          ? `${totalStock} في المخزون`
-                          : "غير متوفر"}
+                        {totalStock > 0 ? `${totalStock} في المخزون` : "غير متوفر"}
                       </span>
                     </td>
 
@@ -411,14 +357,14 @@ const ManageProducts = () => {
                     <td className="mp-td">
                       <div className="mp-actions">
                         <Link
-                          to={`/dashboard/edit-product/${p._id}`}
+                          to={`/dashboard/edit-product/${encodeURIComponent(pid)}`}
                           className="mp-btn mp-btn--edit"
                         >
                           تعديل
                         </Link>
 
                         <button
-                          onClick={() => handleDeleteProduct(p._id)}
+                          onClick={() => handleDeleteProduct(pid)}
                           disabled={deleting}
                           className="mp-btn mp-btn--delete"
                           type="button"
@@ -434,7 +380,7 @@ const ManageProducts = () => {
               !isLoading &&
               !isError && (
                 <tr>
-                  <td colSpan="11" className="mp-empty">
+                  <td colSpan="10" className="mp-empty">
                     لا توجد منتجات.
                   </td>
                 </tr>
