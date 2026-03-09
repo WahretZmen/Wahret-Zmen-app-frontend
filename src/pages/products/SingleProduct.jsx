@@ -383,9 +383,6 @@ const SingleProduct = () => {
     }
   }, []);
 
-  /* ---------------------------------------------------------------------------
-     Force top immediately on route/path change
-  --------------------------------------------------------------------------- */
   useLayoutEffect(() => {
     scrollPageToTop();
 
@@ -402,9 +399,6 @@ const SingleProduct = () => {
     return () => cancelAnimationFrame(raf1);
   }, [routeId, location.pathname, scrollPageToTop]);
 
-  /* ---------------------------------------------------------------------------
-     Force top again once product data is ready
-  --------------------------------------------------------------------------- */
   useEffect(() => {
     if (!product) return;
 
@@ -413,11 +407,13 @@ const SingleProduct = () => {
     const t1 = setTimeout(() => scrollPageToTop(), 0);
     const t2 = setTimeout(() => scrollPageToTop(), 120);
     const t3 = setTimeout(() => scrollPageToTop(), 300);
+    const t4 = setTimeout(() => scrollPageToTop(), 600);
 
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
       clearTimeout(t3);
+      clearTimeout(t4);
     };
   }, [product, routeId, scrollPageToTop]);
 

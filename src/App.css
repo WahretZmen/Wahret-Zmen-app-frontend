@@ -4,106 +4,148 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&display=swap');
 
 /* ---------------------------------------------------------
+   Global HTML / Body
+--------------------------------------------------------- */
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+html {
+  scroll-behavior: auto !important;
+}
+
+body {
+  font-size: 16px;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* lock while app is correcting scroll on refresh */
+html.app-scroll-lock,
+body.app-scroll-lock {
+  overflow: hidden !important;
+}
+
+/* ---------------------------------------------------------
+   App layout
+--------------------------------------------------------- */
+.app-shell {
+  min-height: 100vh;
+}
+
+.app-main {
+  width: 100%;
+  min-height: 1px;
+}
+
+.app-main--hidden {
+  visibility: hidden;
+}
+
+.app-main--ready {
+  visibility: visible;
+}
+
+/* ---------------------------------------------------------
    Layout / Main Content
 --------------------------------------------------------- */
 .main-content {
-   padding-top: 90px; /* Match the height of your navbar */
-}
-
-.html {
-   scroll-behavior: smooth;
+  padding-top: 90px;
 }
 
 /* ---------------------------------------------------------
    Swiper (Carousel) Styles
 --------------------------------------------------------- */
 .swiper {
-   width: 100%;
-   height: 100%;
+  width: 100%;
+  height: 100%;
 }
 
 .swiper-slide {
-   background: #fff;
-   display: flex;
-   justify-content: center;
-   align-items: center;
+  background: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .swiper-slide img {
-   display: block;
-   width: 100%;
-   height: 100%;
-   object-fit: cover;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .swiper-button-prev {
-   display: none !important; /* Hide left navigation */
+  display: none !important;
 }
 
 .swiper-button-next {
-   @apply bg-white p-5 rounded-full z-50 shadow-md;
+  @apply bg-white p-5 rounded-full z-50 shadow-md;
 }
 
 .swiper-button-prev:after,
 .swiper-button-next:after {
-   font-size: 16px !important;
+  font-size: 16px !important;
 }
 
 /* ---------------------------------------------------------
    Buttons
 --------------------------------------------------------- */
 .btn-primary {
-   @apply bg-primary px-12 py-2 rounded-md text-base font-secondary font-bold 
-          hover:bg-secondary hover:text-white 
-          transition-all duration-200 cursor-pointer;
-}
-
-/* ---------------------------------------------------------
-   Base / Global Styles
---------------------------------------------------------- */
-body {
-   font-size: 16px;
-   margin: 0;
-   padding: 0;
+  @apply bg-primary px-12 py-2 rounded-md text-base font-secondary font-bold 
+         hover:bg-secondary hover:text-white 
+         transition-all duration-200 cursor-pointer;
 }
 
 /* ---------------------------------------------------------
    Responsive: Mobile (≤768px)
 --------------------------------------------------------- */
 @media (max-width: 768px) {
-   body {
-      font-size: 14px;   /* Reduce text size */
-      padding: 10px;
-   }
+  body {
+    font-size: 14px;
+    padding: 10px;
+  }
 
-   .container {
-      width: 100%;       /* Full-width container */
-      padding: 10px;
-   }
+  .container {
+    width: 100%;
+    padding: 10px;
+  }
 
-   .navbar {
-      flex-direction: column; /* Stack navbar items vertically */
-   }
+  .navbar {
+    flex-direction: column;
+  }
 
-   .product-grid {
-      display: flex;
-      flex-direction: column; /* Stack products vertically */
-   }
+  .product-grid {
+    display: flex;
+    flex-direction: column;
+  }
 }
 
 /* ---------------------------------------------------------
    Links, Buttons, and Text Decorations
 --------------------------------------------------------- */
 a {
-   text-decoration: none !important; /* Remove underline from links */
+  text-decoration: none !important;
 }
 
 button {
-   text-decoration: none !important;
-   border: none; /* Remove default borders */
-   outline: none; /* Remove focus outline */
+  text-decoration: none !important;
+  border: none;
+  outline: none;
 }
 
-p, span, h1, h2, h3, h4, h5, h6 {
-   text-decoration: none !important;
+p,
+span,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  text-decoration: none !important;
 }
