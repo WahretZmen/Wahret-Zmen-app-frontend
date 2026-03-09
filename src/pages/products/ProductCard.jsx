@@ -1,7 +1,8 @@
 // src/pages/products/ProductCard.jsx
 
-import React, { useMemo, useState, useCallback } from "react";
+import React, { useMemo, useState } from "react";
 import { Star } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import { getImgUrl } from "../../utils/getImgUrl";
 import "../../Styles/StylesProductCard.css";
@@ -121,7 +122,7 @@ const safeNum = (v, d = 0) => {
 };
 
 const displayProductId = (p) =>
-  String(p?.productId || p?._id || "").trim();
+  String(p?.productId || p?._id || p?.id || p?.slug || "").trim();
 
 /* =============================================================================
    Helpers
@@ -195,14 +196,12 @@ const ProductCard = ({ product, showStockBadge = true }) => {
   const pid = displayProductId(product);
   const productUrl = pid ? `/products/${encodeURIComponent(pid)}` : "/products";
 
-  const goToProductWithReload = useCallback(
-    (e) => {
-      if (e) e.preventDefault();
-      if (!pid) return;
-      window.location.assign(productUrl);
-    },
-    [pid, productUrl]
-  );
+  const handleNavigateTop = () => {
+    if (typeof window === "undefined") return;
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  };
 
   const rawEmbroideryValue = useMemo(() => {
     const ec = product?.embroideryCategory;
@@ -321,9 +320,9 @@ const ProductCard = ({ product, showStockBadge = true }) => {
 
   return (
     <article className="pc-card" dir={isRTL ? "rtl" : "ltr"}>
-      <a
-        href={productUrl}
-        onClick={goToProductWithReload}
+      <Link
+        to={productUrl}
+        onClick={handleNavigateTop}
         className="pc-mediaLink"
         aria-label={displayName}
       >
@@ -359,7 +358,7 @@ const ProductCard = ({ product, showStockBadge = true }) => {
 
           <div className="pc-mediaShade" />
         </div>
-      </a>
+      </Link>
 
       <div className="pc-body">
         <div className="pc-topMeta">
@@ -375,9 +374,9 @@ const ProductCard = ({ product, showStockBadge = true }) => {
           )}
         </div>
 
-        <a href={productUrl} onClick={goToProductWithReload} className="pc-titleLink">
+        <Link to={productUrl} onClick={handleNavigateTop} className="pc-titleLink">
           <h3 className="pc-title">{displayName}</h3>
-        </a>
+        </Link>
 
         <div className="pc-ratingRow">
           <div className="pc-stars">{renderStars(ratingValue)}</div>
@@ -422,9 +421,9 @@ const ProductCard = ({ product, showStockBadge = true }) => {
           </div>
         )}
 
-        <a href={productUrl} onClick={goToProductWithReload} className="pc-action">
+        <Link to={productUrl} onClick={handleNavigateTop} className="pc-action">
           عرض التفاصيل
-        </a>
+        </Link>
       </div>
     </article>
   );

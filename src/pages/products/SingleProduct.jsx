@@ -1,6 +1,13 @@
 // src/pages/products/SingleProduct.jsx
-import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { useParams, Link } from "react-router-dom";
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useCallback,
+} from "react";
+import { useParams, Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
   FiFacebook,
@@ -168,7 +175,7 @@ const SUBCATEGORY_AR_MAP = {
   accessoire: "إكسسوارات",
   accessoires: "إكسسوارات",
   accessory: "إكسسوارات",
-  "إكسسوارات": "إكسسوارات",
+  إكسسوارات: "إكسسوارات",
   اكسسوارات: "إكسسوارات",
 
   costume: "بدلة",
@@ -178,8 +185,6 @@ const SUBCATEGORY_AR_MAP = {
   vest: "صدريّة",
   gilet: "صدريّة",
   "صدريّة": "صدريّة",
-  "صدرية": "صدريّة",
-  صدريّة: "صدريّة",
   صدرية: "صدريّة",
 
   mens_abaya: "عباية رجالي",
@@ -283,8 +288,10 @@ const getCardRating = (p) =>
 ============================================================================= */
 const SingleProduct = () => {
   const params = useParams();
+  const location = useLocation();
   const routeId = params?.productId || params?.id || "";
   const isRTL = true;
+  const pageTopRef = useRef(null);
 
   useSelector((s) => {
     const c = s?.cart;
@@ -353,6 +360,67 @@ const SingleProduct = () => {
     return getProductGallery(product, selectedColor);
   }, [product, selectedColor]);
 
+  const scrollPageToTop = useCallback(() => {
+    if (typeof window === "undefined") return;
+
+    const html = document.documentElement;
+    const body = document.body;
+
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+
+    html.scrollTop = 0;
+    body.scrollTop = 0;
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+
+    if (pageTopRef.current) {
+      pageTopRef.current.scrollIntoView({
+        block: "start",
+        inline: "nearest",
+        behavior: "auto",
+      });
+    }
+  }, []);
+
+  /* ---------------------------------------------------------------------------
+     Force top immediately on route/path change
+  --------------------------------------------------------------------------- */
+  useLayoutEffect(() => {
+    scrollPageToTop();
+
+    const raf1 = requestAnimationFrame(() => {
+      scrollPageToTop();
+
+      const raf2 = requestAnimationFrame(() => {
+        scrollPageToTop();
+      });
+
+      return () => cancelAnimationFrame(raf2);
+    });
+
+    return () => cancelAnimationFrame(raf1);
+  }, [routeId, location.pathname, scrollPageToTop]);
+
+  /* ---------------------------------------------------------------------------
+     Force top again once product data is ready
+  --------------------------------------------------------------------------- */
+  useEffect(() => {
+    if (!product) return;
+
+    scrollPageToTop();
+
+    const t1 = setTimeout(() => scrollPageToTop(), 0);
+    const t2 = setTimeout(() => scrollPageToTop(), 120);
+    const t3 = setTimeout(() => scrollPageToTop(), 300);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [product, routeId, scrollPageToTop]);
+
   useEffect(() => {
     if (!product) return;
 
@@ -374,8 +442,6 @@ const SingleProduct = () => {
     setSelectedImageIndex(0);
     setThumbStart(0);
     setActiveTab("desc");
-
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [routeId, product]);
 
   useEffect(() => {
@@ -443,7 +509,7 @@ const SingleProduct = () => {
     } catch {
       return "";
     }
-  }, [routeId]);
+  }, [routeId, location.pathname]);
 
   const fbShare = useMemo(
     () => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl || "")}`,
@@ -596,15 +662,13 @@ const SingleProduct = () => {
     return list.filter((p) => !sameIds.has(displayId(p))).slice(0, 8);
   }, [product, allProducts, embroideryKey, sameCategoryProducts]);
 
-  const goToProductReload = (e, pid) => {
-    e.preventDefault();
-    if (!pid) return;
-    window.location.href = `/products/${encodeURIComponent(pid)}`;
+  const handleInternalProductNavigation = () => {
+    scrollPageToTop();
   };
 
   if (isLoading) {
     return (
-      <div className="max-w-6xl mx-auto p-8">
+      <div ref={pageTopRef} className="max-w-6xl mx-auto p-8">
         <div className="text-center text-[#111]">جارٍ التحميل...</div>
       </div>
     );
@@ -612,14 +676,14 @@ const SingleProduct = () => {
 
   if (isError || !product) {
     return (
-      <div className="max-w-6xl mx-auto p-8 text-center text-red-600">
+      <div ref={pageTopRef} className="max-w-6xl mx-auto p-8 text-center text-red-600">
         المنتج غير موجود
       </div>
     );
   }
 
   return (
-    <div className="sp2-wrap" dir={isRTL ? "rtl" : "ltr"} lang="ar">
+    <div ref={pageTopRef} className="sp2-wrap" dir={isRTL ? "rtl" : "ltr"} lang="ar">
       <FadeInSection delay={0.02} yOffset={22}>
         <div className="sp2-topSearch sp2-reveal sp2-reveal--hero">
           <div className="sp2-topSearchInner">
@@ -644,7 +708,7 @@ const SingleProduct = () => {
                         >
                           <Link
                             to={`/products/${encodeURIComponent(pid)}`}
-                            onClick={(e) => goToProductReload(e, pid)}
+                            onClick={handleInternalProductNavigation}
                             className="sp2-searchLink"
                           >
                             <img
@@ -680,20 +744,28 @@ const SingleProduct = () => {
       <div className="sp2-container">
         <FadeInSection delay={0.04} yOffset={16}>
           <div className="sp2-breadcrumb sp2-reveal sp2-reveal--soft">
-            <Link to="/" className="sp2-crumbLink">
+            <Link to="/" className="sp2-crumbLink" onClick={handleInternalProductNavigation}>
               الرئيسية
             </Link>
 
             <span className="sp2-crumbSep">/</span>
 
-            <Link to={productsCategoryUrl} className="sp2-crumbLink">
+            <Link
+              to={productsCategoryUrl}
+              className="sp2-crumbLink"
+              onClick={handleInternalProductNavigation}
+            >
               {categoryAr}
             </Link>
 
             {subCategoryText && productsSubCategoryUrl ? (
               <>
                 <span className="sp2-crumbSep">/</span>
-                <Link to={productsSubCategoryUrl} className="sp2-crumbLink">
+                <Link
+                  to={productsSubCategoryUrl}
+                  className="sp2-crumbLink"
+                  onClick={handleInternalProductNavigation}
+                >
                   {subCategoryText}
                 </Link>
               </>
@@ -725,11 +797,14 @@ const SingleProduct = () => {
                   <span className="sp2-imageGlow" aria-hidden="true" />
 
                   <img
-                    src={getImgUrl(activeGallery[selectedImageIndex] || selectedColor?.image || product?.coverImage)}
+                    src={getImgUrl(
+                      activeGallery[selectedImageIndex] || selectedColor?.image || product?.coverImage
+                    )}
                     alt={translatedTitle}
                     className="sp2-mainImg sp2-zoomImg"
                     loading="eager"
                     decoding="async"
+                    onLoad={scrollPageToTop}
                   />
                 </div>
 
@@ -1015,7 +1090,7 @@ const SingleProduct = () => {
                       <Link
                         to={`/products/${encodeURIComponent(pid)}`}
                         className="sp2-likeCard sp2-likeCard--lux sp2-cardReveal"
-                        onClick={(e) => goToProductReload(e, pid)}
+                        onClick={handleInternalProductNavigation}
                       >
                         <div className="sp2-likeBrand">وهرة زمان</div>
 
@@ -1094,7 +1169,7 @@ const SingleProduct = () => {
                       <Link
                         to={`/products/${encodeURIComponent(pid)}`}
                         className="sp2-likeCard sp2-likeCard--lux sp2-cardReveal"
-                        onClick={(e) => goToProductReload(e, pid)}
+                        onClick={handleInternalProductNavigation}
                       >
                         <div className="sp2-likeBrand">وهرة زمان</div>
 
@@ -1144,7 +1219,10 @@ const SingleProduct = () => {
         )}
 
         <FadeInSection delay={0.08} yOffset={28}>
-          <section className="wz-premium-rating mt-12 sp2-reveal sp2-reveal--rating" aria-label="تقييم متجر وهرة زمان">
+          <section
+            className="wz-premium-rating mt-12 sp2-reveal sp2-reveal--rating"
+            aria-label="تقييم متجر وهرة زمان"
+          >
             <h2 className="wz-premium-title">
               ثقة العملاء في متجر <span>وهرة زمان</span>
             </h2>
