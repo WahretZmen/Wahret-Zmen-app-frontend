@@ -42,9 +42,11 @@ const pickText = (v) => {
   return "";
 };
 
+const normalizeId = (v) => String(v || "").trim();
+
 const UpdateProduct = () => {
   const params = useParams();
-  const routeProductId = String(params?.productId || params?.id || "").trim();
+  const routeProductId = normalizeId(params?.productId || params?.id);
   const navigate = useNavigate();
 
   const shouldSkipQuery = !routeProductId;
@@ -194,13 +196,27 @@ const UpdateProduct = () => {
   };
 
   useEffect(() => {
+    return () => {
+      if (coverPreviewURL?.startsWith("blob:")) {
+        URL.revokeObjectURL(coverPreviewURL);
+      }
+
+      colorInputs.forEach((c) => {
+        if (c?.pendingPreview?.startsWith("blob:")) {
+          URL.revokeObjectURL(c.pendingPreview);
+        }
+      });
+    };
+  }, [coverPreviewURL, colorInputs]);
+
+  useEffect(() => {
     if (!product) return;
 
     reset({
-      productId: String(product.productId || "").trim(),
+      productId: normalizeId(product.productId || product._id),
       description: product.description || "",
-      category: product.category || "",
-      subCategory: product.subCategory || "",
+      category: String(product.category || "").trim().toLowerCase(),
+      subCategory: String(product.subCategory || "").trim(),
       embroideryCategory: pickText(product.embroideryCategory),
       oldPrice:
         product.oldPrice === null || product.oldPrice === undefined
@@ -223,13 +239,13 @@ const UpdateProduct = () => {
     setCoverImageFile(null);
     setCoverPreviewURL(product.coverImage ? fullUrl(product.coverImage) : "");
 
-    const normalized = (product.colors || []).map((c) => {
+    const normalizedColors = (product.colors || []).map((c) => {
       const name = pickText(c.colorName) || "";
       const images =
         Array.isArray(c.images) && c.images.length
-          ? c.images
+          ? c.images.filter(Boolean)
           : c.image
-          ? [c.image]
+          ? [c.image].filter(Boolean)
           : [];
 
       return {
@@ -243,7 +259,7 @@ const UpdateProduct = () => {
       };
     });
 
-    setColorInputs(normalized.length ? normalized : []);
+    setColorInputs(normalizedColors.length ? normalizedColors : []);
   }, [product, reset]);
 
   const handleCoverImageChange = (e) => {
@@ -355,7 +371,7 @@ const UpdateProduct = () => {
 
   const onSubmit = async (data) => {
     try {
-      const pid = String(data.productId || "").trim();
+      const pid = normalizeId(data.productId);
       if (!pid) {
         Swal.fire({
           icon: "warning",
@@ -367,7 +383,9 @@ const UpdateProduct = () => {
       }
 
       const allowedCategories = ["men", "women", "children"];
-      const finalCategory = allowedCategories.includes(data.category) ? data.category : "";
+      const finalCategory = allowedCategories.includes(String(data.category || "").trim().toLowerCase())
+        ? String(data.category || "").trim().toLowerCase()
+        : "";
 
       if (!finalCategory) {
         Swal.fire({
@@ -385,7 +403,7 @@ const UpdateProduct = () => {
       const preparedColors = colorInputs
         .map((c) => ({
           ...c,
-          colorName: (c.colorName || "").trim(),
+          colorName: String(c.colorName || "").trim(),
           stock: Number(c.stock) || 0,
           images: Array.isArray(c.images) ? c.images.filter(Boolean) : [],
         }))
@@ -424,7 +442,7 @@ const UpdateProduct = () => {
         return;
       }
 
-      let coverImage = product?.coverImage || "";
+      let coverImage = String(product?.coverImage || "").trim();
       if (coverImageFile) {
         const uploaded = await uploadImage(coverImageFile);
         if (uploaded) coverImage = uploaded;
@@ -445,7 +463,7 @@ const UpdateProduct = () => {
         ...(c._id ? { _id: c._id } : {}),
         colorName: toLangObject(c.colorName),
         images: c.images,
-        image: c.images?.[0],
+        image: c.images?.[0] || "",
         stock: Number(c.stock) || 0,
       }));
 
@@ -455,14 +473,14 @@ const UpdateProduct = () => {
       const payload = {
         id: routeProductId,
         productId: pid,
-        description: (data.description || "").trim(),
+        description: String(data.description || "").trim(),
         category: finalCategory,
         subCategory: finalSubCategory,
-        embroideryCategory: (data.embroideryCategory || "").trim(),
-        coupe: (data.coupe || "").trim(),
-        matiere: (data.matiere || "").trim(),
-        composition: (data.composition || "").trim(),
-        madeIn: (data.madeIn || "").trim(),
+        embroideryCategory: String(data.embroideryCategory || "").trim(),
+        coupe: String(data.coupe || "").trim(),
+        matiere: String(data.matiere || "").trim(),
+        composition: String(data.composition || "").trim(),
+        madeIn: String(data.madeIn || "").trim(),
         isHandmade: !!data.isHandmade,
         coverImage,
         colors: colorsForServer,
@@ -482,7 +500,7 @@ const UpdateProduct = () => {
         confirmButtonText: "حسناً",
       });
 
-      const nextProductId = String(updated?.product?.productId || pid).trim();
+      const nextProductId = normalizeId(updated?.product?.productId || pid);
       navigate("/dashboard/manage-products", {
         replace: true,
         state: { updatedProductId: nextProductId },
@@ -547,22 +565,38 @@ const UpdateProduct = () => {
           <div className="wz-ap__row2">
             <div className="wz-ap__field">
               <label className="wz-ap__label">القَصّة</label>
-              <input {...register("coupe")} className="wz-ap__input" placeholder="مثال: Slim / Classic" />
+              <input
+                {...register("coupe")}
+                className="wz-ap__input"
+                placeholder="مثال: Slim / Classic"
+              />
             </div>
             <div className="wz-ap__field">
               <label className="wz-ap__label">الخامة</label>
-              <input {...register("matiere")} className="wz-ap__input" placeholder="مثال: صوف / قطن" />
+              <input
+                {...register("matiere")}
+                className="wz-ap__input"
+                placeholder="مثال: صوف / قطن"
+              />
             </div>
           </div>
 
           <div className="wz-ap__row2">
             <div className="wz-ap__field">
               <label className="wz-ap__label">التركيبة</label>
-              <input {...register("composition")} className="wz-ap__input" placeholder="مثال: %80 صوف، %20..." />
+              <input
+                {...register("composition")}
+                className="wz-ap__input"
+                placeholder="مثال: %80 صوف، %20..."
+              />
             </div>
             <div className="wz-ap__field">
               <label className="wz-ap__label">بلد الصنع</label>
-              <input {...register("madeIn")} className="wz-ap__input" placeholder="مثال: تونس" />
+              <input
+                {...register("madeIn")}
+                className="wz-ap__input"
+                placeholder="مثال: تونس"
+              />
             </div>
           </div>
 
@@ -614,6 +648,7 @@ const UpdateProduct = () => {
 
           <div className="wz-ap__block">
             <div className="wz-ap__blockTitle">المقاسات (اختياري)</div>
+
             <div className="wz-ap__sizes">
               {ALL_SIZES.map((sz) => {
                 const active = sizeSet.has(sz);
@@ -634,24 +669,49 @@ const UpdateProduct = () => {
             <input type="hidden" {...register("sizes")} />
 
             <div className="wz-ap__hint">
-              المقاسات المختارة: <span style={{ fontWeight: 900 }}>{sizes.length ? sizes.join(" - ") : "—"}</span>
+              المقاسات المختارة:{" "}
+              <span style={{ fontWeight: 900 }}>
+                {sizes.length ? sizes.join(" - ") : "—"}
+              </span>
             </div>
           </div>
 
           <div className="wz-ap__row2">
             <div className="wz-ap__field">
               <label className="wz-ap__label">السعر القديم (اختياري)</label>
-              <input {...register("oldPrice")} type="number" className="wz-ap__input" placeholder="0.00" step="0.01" min="0" />
+              <input
+                {...register("oldPrice")}
+                type="number"
+                className="wz-ap__input"
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+              />
             </div>
             <div className="wz-ap__field">
               <label className="wz-ap__label">السعر الجديد (اختياري)</label>
-              <input {...register("newPrice")} type="number" className="wz-ap__input" placeholder="0.00" step="0.01" min="0" />
+              <input
+                {...register("newPrice")}
+                type="number"
+                className="wz-ap__input"
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+              />
             </div>
           </div>
 
           <div className="wz-ap__field">
             <label className="wz-ap__label">التقييم (0–5)</label>
-            <input {...register("rating")} type="number" min="0" max="5" step="0.5" className="wz-ap__input" placeholder="مثال: 4.5" />
+            <input
+              {...register("rating")}
+              type="number"
+              min="0"
+              max="5"
+              step="0.5"
+              className="wz-ap__input"
+              placeholder="مثال: 4.5"
+            />
           </div>
 
           <div className="wz-ap__checkRow" style={{ justifyContent: "flex-end" }}>
@@ -665,13 +725,20 @@ const UpdateProduct = () => {
             <div className="wz-ap__fileRow" style={{ justifyContent: "flex-end" }}>
               {coverPreviewURL && (
                 <>
-                  <button type="button" onClick={() => openInNewTab(coverPreviewURL)} className="wz-ap__btn wz-ap__btnSoft wz-ap__btnInline">
+                  <button
+                    type="button"
+                    onClick={() => openInNewTab(coverPreviewURL)}
+                    className="wz-ap__btn wz-ap__btnSoft wz-ap__btnInline"
+                  >
                     فتح
                   </button>
 
                   <button
                     type="button"
                     onClick={() => {
+                      if (coverPreviewURL?.startsWith("blob:")) {
+                        URL.revokeObjectURL(coverPreviewURL);
+                      }
                       setCoverImageFile(null);
                       setCoverPreviewURL(product?.coverImage ? fullUrl(product.coverImage) : "");
                     }}
@@ -682,7 +749,13 @@ const UpdateProduct = () => {
                 </>
               )}
 
-              <input id="cover-file" type="file" accept="image/*" className="hidden" onChange={handleCoverImageChange} />
+              <input
+                id="cover-file"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleCoverImageChange}
+              />
               <label htmlFor="cover-file" className="wz-ap__fileLabel">
                 اختيار صورة
               </label>
@@ -694,6 +767,7 @@ const UpdateProduct = () => {
                 alt="cover-preview"
                 className="wz-ap__coverPreview"
                 onClick={() => openInNewTab(coverPreviewURL)}
+                title="انقر لفتح الصورة في تبويب جديد"
               />
             )}
           </div>
@@ -730,7 +804,11 @@ const UpdateProduct = () => {
 
                   <div className="wz-ap__fileRow" style={{ justifyContent: "flex-end" }}>
                     {color.pendingPreview && (
-                      <button type="button" onClick={() => openInNewTab(color.pendingPreview)} className="wz-ap__btn wz-ap__btnSoft wz-ap__btnInline">
+                      <button
+                        type="button"
+                        onClick={() => openInNewTab(color.pendingPreview)}
+                        className="wz-ap__btn wz-ap__btnSoft wz-ap__btnInline"
+                      >
                         فتح المعاينة
                       </button>
                     )}
@@ -773,6 +851,7 @@ const UpdateProduct = () => {
                         alt="pending"
                         className="wz-ap__pendingThumb"
                         onClick={() => openInNewTab(color.pendingPreview)}
+                        title="انقر لفتح الصورة في تبويب جديد"
                       />
                     </div>
                   )}
@@ -788,9 +867,15 @@ const UpdateProduct = () => {
                               alt={`img-${imgIdx}`}
                               className="wz-ap__thumb"
                               onClick={() => openInNewTab(final)}
+                              title="انقر لفتح الصورة في تبويب جديد"
                             />
                             <div className="wz-ap__thumbActions">
-                              <a className="wz-ap__openLink" href={final} target="_blank" rel="noreferrer noopener">
+                              <a
+                                className="wz-ap__openLink"
+                                href={final}
+                                target="_blank"
+                                rel="noreferrer noopener"
+                              >
                                 فتح
                               </a>
                               <button
@@ -808,7 +893,11 @@ const UpdateProduct = () => {
                   )}
 
                   {colorInputs.length > 1 && (
-                    <button type="button" onClick={() => deleteColorInput(index)} className="wz-ap__btn wz-ap__btnDanger">
+                    <button
+                      type="button"
+                      onClick={() => deleteColorInput(index)}
+                      className="wz-ap__btn wz-ap__btnDanger"
+                    >
                       حذف اللون
                     </button>
                   )}
@@ -817,7 +906,11 @@ const UpdateProduct = () => {
             </div>
 
             <div style={{ marginTop: 12 }}>
-              <button type="button" onClick={addColorInput} className="wz-ap__btn wz-ap__btnSoft">
+              <button
+                type="button"
+                onClick={addColorInput}
+                className="wz-ap__btn wz-ap__btnSoft"
+              >
                 إضافة لون
               </button>
             </div>

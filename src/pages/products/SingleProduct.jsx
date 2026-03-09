@@ -31,7 +31,9 @@ const num = (v, d = 0) => (Number.isFinite(Number(v)) ? Number(v) : d);
 const safeStr = (v) => (typeof v === "string" ? v : String(v ?? ""));
 const unique = (arr) => [...new Set((arr || []).filter(Boolean))];
 const normalizeKey = (v) => String(v || "").trim().toLowerCase();
-const displayId = (p) => safeStr(p?.productId || "").trim();
+
+const displayId = (p) =>
+  safeStr(p?.productId || p?._id || p?.id || p?.slug || "").trim();
 
 const pickText = (v) => {
   if (!v) return "";
@@ -56,6 +58,19 @@ const pickEmbroideryText = (p) => {
 
 const getEmbroideryKey = (p) => normalizeKey(pickEmbroideryText(p));
 
+const resolveProductFromList = (list, routeId) => {
+  if (!Array.isArray(list) || !routeId) return null;
+  const wanted = String(routeId).trim();
+
+  return (
+    list.find((p) => String(p?._id || "") === wanted) ||
+    list.find((p) => String(p?.id || "") === wanted) ||
+    list.find((p) => String(p?.productId || "") === wanted) ||
+    list.find((p) => String(p?.slug || "") === wanted) ||
+    null
+  );
+};
+
 function normalizeColor(color) {
   if (!color) return null;
 
@@ -66,10 +81,10 @@ function normalizeColor(color) {
       ? [color.image]
       : [];
 
-  const first = images[0];
+  const first = images[0] || "";
   const colorName =
     typeof color.colorName === "string"
-      ? { en: color.colorName }
+      ? { en: color.colorName, fr: color.colorName, ar: color.colorName }
       : color.colorName || {};
 
   return {
@@ -81,6 +96,27 @@ function normalizeColor(color) {
     stock: num(color.stock),
   };
 }
+
+const getProductGallery = (product, selectedColor) => {
+  if (!product) return [];
+
+  const norm = selectedColor ? normalizeColor(selectedColor) : null;
+  if (norm?.images?.length) return unique(norm.images);
+
+  const colorImages = unique(
+    (product?.colors || []).flatMap((c) => {
+      const n = normalizeColor(c);
+      return n?.images || [];
+    })
+  );
+  if (colorImages.length) return colorImages;
+
+  if (Array.isArray(product?.images) && product.images.length) {
+    return unique(product.images);
+  }
+
+  return product?.coverImage ? [product.coverImage] : [];
+};
 
 /* =============================================================================
    Category maps
@@ -246,7 +282,8 @@ const getCardRating = (p) =>
    Component
 ============================================================================= */
 const SingleProduct = () => {
-  const { productId } = useParams();
+  const params = useParams();
+  const routeId = params?.productId || params?.id || "";
   const isRTL = true;
 
   useSelector((s) => {
@@ -256,8 +293,21 @@ const SingleProduct = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { data: product, isLoading, isError } = useGetProductByIdQuery(productId);
-  const { data: allProducts = [] } = useGetAllProductsQuery();
+  const {
+    data: queriedProduct,
+    isLoading: isLoadingProduct,
+    isError: isQueryError,
+  } = useGetProductByIdQuery(routeId, { skip: !routeId });
+
+  const { data: allProducts = [], isLoading: isLoadingAll } = useGetAllProductsQuery();
+
+  const product = useMemo(() => {
+    if (queriedProduct && typeof queriedProduct === "object") return queriedProduct;
+    return resolveProductFromList(allProducts, routeId);
+  }, [queriedProduct, allProducts, routeId]);
+
+  const isLoading = !product && (isLoadingProduct || isLoadingAll);
+  const isError = !product && !isLoading && isQueryError;
 
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -300,10 +350,7 @@ const SingleProduct = () => {
   }, [categoryEn, subCategoryText, embroideryText]);
 
   const activeGallery = useMemo(() => {
-    if (!product) return [];
-    const norm = selectedColor ? normalizeColor(selectedColor) : null;
-    if (norm?.images?.length) return unique(norm.images);
-    return product.coverImage ? [product.coverImage] : [];
+    return getProductGallery(product, selectedColor);
   }, [product, selectedColor]);
 
   useEffect(() => {
@@ -315,11 +362,11 @@ const SingleProduct = () => {
         : null) ||
       (product.coverImage
         ? {
-            colorName: { en: "Default", ar: "افتراضي" },
-            name: { en: "Default", ar: "افتراضي" },
+            colorName: { en: "Default", ar: "افتراضي", fr: "Default" },
+            name: { en: "Default", ar: "افتراضي", fr: "Default" },
             images: [product.coverImage],
             image: product.coverImage,
-            stock: num(product.stockQuantity),
+            stock: num(product.stockQuantity || product.stock),
           }
         : null);
 
@@ -329,7 +376,7 @@ const SingleProduct = () => {
     setActiveTab("desc");
 
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-  }, [product?.productId]);
+  }, [routeId, product]);
 
   useEffect(() => {
     const n = activeGallery.length;
@@ -396,7 +443,7 @@ const SingleProduct = () => {
     } catch {
       return "";
     }
-  }, []);
+  }, [routeId]);
 
   const fbShare = useMemo(
     () => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl || "")}`,
@@ -601,7 +648,7 @@ const SingleProduct = () => {
                             className="sp2-searchLink"
                           >
                             <img
-                              src={getImgUrl(p.coverImage)}
+                              src={getImgUrl(p?.coverImage)}
                               alt=""
                               className="sp2-searchImg"
                               loading="lazy"
@@ -678,7 +725,7 @@ const SingleProduct = () => {
                   <span className="sp2-imageGlow" aria-hidden="true" />
 
                   <img
-                    src={getImgUrl(activeGallery[selectedImageIndex] || selectedColor?.image)}
+                    src={getImgUrl(activeGallery[selectedImageIndex] || selectedColor?.image || product?.coverImage)}
                     alt={translatedTitle}
                     className="sp2-mainImg sp2-zoomImg"
                     loading="eager"
@@ -979,7 +1026,7 @@ const SingleProduct = () => {
                           )}
 
                           <img
-                            src={getImgUrl(p.coverImage)}
+                            src={getImgUrl(p?.coverImage)}
                             alt={pickTitle(p)}
                             className="sp2-likeImg sp2-likeImg--lux"
                             loading="lazy"
@@ -1058,7 +1105,7 @@ const SingleProduct = () => {
                           )}
 
                           <img
-                            src={getImgUrl(p.coverImage)}
+                            src={getImgUrl(p?.coverImage)}
                             alt={pickTitle(p)}
                             className="sp2-likeImg sp2-likeImg--lux"
                             loading="lazy"

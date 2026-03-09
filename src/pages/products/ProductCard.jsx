@@ -120,7 +120,8 @@ const safeNum = (v, d = 0) => {
   return Number.isFinite(n) ? n : d;
 };
 
-const displayProductId = (p) => String(p?.productId || "").trim();
+const displayProductId = (p) =>
+  String(p?.productId || p?._id || "").trim();
 
 /* =============================================================================
    Helpers
@@ -192,13 +193,13 @@ const ProductCard = ({ product, showStockBadge = true }) => {
   if (!product) return null;
 
   const pid = displayProductId(product);
-  const productUrl = `/products/${encodeURIComponent(pid)}`;
+  const productUrl = pid ? `/products/${encodeURIComponent(pid)}` : "/products";
 
   const goToProductWithReload = useCallback(
     (e) => {
       if (e) e.preventDefault();
       if (!pid) return;
-      window.location.href = productUrl;
+      window.location.assign(productUrl);
     },
     [pid, productUrl]
   );
@@ -374,11 +375,7 @@ const ProductCard = ({ product, showStockBadge = true }) => {
           )}
         </div>
 
-        <a
-          href={productUrl}
-          onClick={goToProductWithReload}
-          className="pc-titleLink"
-        >
+        <a href={productUrl} onClick={goToProductWithReload} className="pc-titleLink">
           <h3 className="pc-title">{displayName}</h3>
         </a>
 
@@ -425,11 +422,7 @@ const ProductCard = ({ product, showStockBadge = true }) => {
           </div>
         )}
 
-        <a
-          href={productUrl}
-          onClick={goToProductWithReload}
-          className="pc-action"
-        >
+        <a href={productUrl} onClick={goToProductWithReload} className="pc-action">
           عرض التفاصيل
         </a>
       </div>

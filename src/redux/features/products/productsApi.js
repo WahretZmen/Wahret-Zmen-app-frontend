@@ -1,15 +1,4 @@
 // src/redux/features/products/productsApi.js
-// -----------------------------------------------------------------------------
-// RTK Query API: Products (Wahret Zmen)
-// -----------------------------------------------------------------------------
-// ✅ Uses productId as the public/business ID
-// ✅ Supports:
-//   • productId (custom chosen by admin)
-//   • category: men / women / children
-//   • subCategory: "" / accessories / costume / vest / mens_abaya / jebba
-//   • coupe / matiere / composition / madeIn (stored as {ar,fr,en})
-//   • isHandmade boolean
-// -----------------------------------------------------------------------------
 
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import getBaseUrl from "../../../utils/baseURL";
@@ -36,18 +25,20 @@ const toLangObject = (v) => {
 };
 
 const normalizeEmbroideryCategory = (v) => {
-  if (!v) return "";
-  if (typeof v === "string") return v.trim();
+  if (!v) return { ar: "", fr: "", en: "" };
+  if (typeof v === "string") {
+    const txt = v.trim();
+    return { ar: txt, fr: txt, en: txt };
+  }
 
   if (typeof v === "object") {
     const ar = String(v.ar || "").trim();
     const fr = String(v.fr || "").trim();
     const en = String(v.en || "").trim();
-    if (!ar && !fr && !en) return "";
     return { ar, fr, en };
   }
 
-  return "";
+  return { ar: "", fr: "", en: "" };
 };
 
 const normalizeSizes = (sizes) => {
@@ -101,11 +92,13 @@ const normalizeLangField = (v) => {
 const normalizeProduct = (p) => {
   if (!p || typeof p !== "object") return p;
 
+  const publicId = String(p.productId || p._id || "").trim();
+
   return {
     ...p,
-    id: p.productId ?? "",
-
-    productId: p.productId ?? "",
+    id: publicId,
+    productId: publicId,
+    _id: p._id ?? "",
     title: p.title ?? "",
     description: p.description ?? "",
     category: p.category ?? "",
@@ -183,10 +176,10 @@ const productsApi = createApi({
     }),
 
     getProductById: builder.query({
-      query: (productId) => `/${encodeURIComponent(productId)}`,
+      query: (productId) => `/${encodeURIComponent(String(productId || "").trim())}`,
       transformResponse: (product) => normalizeProduct(product),
       providesTags: (result, error, productId) => [
-        { type: "Products", id: productId },
+        { type: "Products", id: String(productId || "").trim() },
       ],
     }),
 
@@ -203,7 +196,7 @@ const productsApi = createApi({
           productId: String(newProduct?.productId ?? "").trim(),
           title: String(newProduct?.title ?? "").trim(),
           description: newProduct?.description ?? "",
-          category: newProduct?.category ?? "",
+          category: String(newProduct?.category ?? "").trim().toLowerCase(),
           subCategory: newProduct?.subCategory ?? "",
           coverImage: newProduct?.coverImage ?? "",
 
@@ -269,7 +262,10 @@ const productsApi = createApi({
 
           title: rest?.title !== undefined ? String(rest.title ?? "").trim() : undefined,
           description: rest?.description ?? "",
-          category: rest?.category ?? "",
+          category:
+            rest?.category !== undefined
+              ? String(rest.category ?? "").trim().toLowerCase()
+              : undefined,
           subCategory: rest?.subCategory ?? "",
           coverImage: rest?.coverImage ?? "",
 
@@ -283,27 +279,32 @@ const productsApi = createApi({
           rating:
             rest?.rating !== undefined ? clamp(toNum(rest.rating, 0), 0, 5) : undefined,
 
-          sizes: Array.isArray(rest?.sizes) ? rest.sizes : [],
+          sizes: Array.isArray(rest?.sizes) ? rest.sizes : undefined,
 
-          colors: (rest?.colors || []).map((c) => {
-            const images =
-              Array.isArray(c?.images) && c.images.length
-                ? c.images.filter(Boolean)
-                : c?.image
-                ? [c.image].filter(Boolean)
-                : [];
+          colors: Array.isArray(rest?.colors)
+            ? rest.colors.map((c) => {
+                const images =
+                  Array.isArray(c?.images) && c.images.length
+                    ? c.images.filter(Boolean)
+                    : c?.image
+                    ? [c.image].filter(Boolean)
+                    : [];
 
-            return {
-              ...(c?._id ? { _id: c._id } : {}),
-              ...c,
-              colorName: c.colorName,
-              images,
-              image: images[0] || c?.image || "",
-              stock: Math.max(0, toNum(c?.stock, 0)),
-            };
-          }),
+                return {
+                  ...(c?._id ? { _id: c._id } : {}),
+                  ...c,
+                  colorName: c.colorName,
+                  images,
+                  image: images[0] || c?.image || "",
+                  stock: Math.max(0, toNum(c?.stock, 0)),
+                };
+              })
+            : undefined,
 
-          embroideryCategory: toLangObject(rest?.embroideryCategory),
+          embroideryCategory:
+            rest?.embroideryCategory !== undefined
+              ? toLangObject(rest.embroideryCategory)
+              : undefined,
 
           coupe: rest?.coupe !== undefined ? toLangObject(rest.coupe) : undefined,
           matiere: rest?.matiere !== undefined ? toLangObject(rest.matiere) : undefined,

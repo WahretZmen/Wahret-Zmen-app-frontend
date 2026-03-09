@@ -20,7 +20,6 @@ const ACCEPTED_IMAGE_TYPES = [
   "image/gif",
 ];
 
-/* ✅ NEW sub categories (stored EN, shown AR) */
 const SUBCATEGORY_OPTIONS = [
   { value: "", labelAr: "— بدون —" },
   { value: "accessories", labelAr: "إكسسوارات" },
@@ -74,8 +73,7 @@ const AddProduct = () => {
         if (c?.pendingPreview?.startsWith("blob:")) URL.revokeObjectURL(c.pendingPreview);
       });
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [coverPreviewURL, colorInputs]);
 
   const sizes = watch("sizes") || [];
   const sizeSet = useMemo(() => new Set(sizes), [sizes]);
@@ -364,8 +362,10 @@ const AddProduct = () => {
         stock: Number(c.stock) || 0,
       }));
 
-      const allowedCategories = ["Men", "Women", "Children"];
-      const finalCategory = allowedCategories.includes(data.category) ? data.category : "Men";
+      const allowedCategories = ["men", "women", "children"];
+      const finalCategory = allowedCategories.includes(String(data.category || "").trim())
+        ? String(data.category).trim()
+        : "men";
 
       const allowedSubKeys = SUBCATEGORY_OPTIONS.map((x) => x.value);
       const finalSubCategory = allowedSubKeys.includes(data.subCategory) ? data.subCategory : "";
@@ -506,9 +506,9 @@ const AddProduct = () => {
             <label className="wz-ap__label">الفئة</label>
             <select {...register("category")} className="wz-ap__select" required>
               <option value="">اختر الفئة</option>
-              <option value="Men">رجال</option>
-              <option value="Women">نساء</option>
-              <option value="Children">أطفال</option>
+              <option value="men">رجال</option>
+              <option value="women">نساء</option>
+              <option value="children">أطفال</option>
             </select>
           </div>
 
