@@ -3,8 +3,10 @@
 import React, { useMemo, useState } from "react";
 import { Star, ShoppingCart } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useDispatch } from "react-redux";
 
 import { getImgUrl } from "../../utils/getImgUrl";
+import { addToCart } from "../../redux/features/cart/cartSlice.js";
 import "../../Styles/StylesProductCard.css";
 
 /* =============================================================================
@@ -185,6 +187,8 @@ const translateSubCategory = (value) => {
 };
 
 const ProductCard = ({ product, showStockBadge = true }) => {
+  const dispatch = useDispatch();
+
   const lang = "ar";
   const baseLang = "ar";
   const isRTL = true;
@@ -296,6 +300,16 @@ const ProductCard = ({ product, showStockBadge = true }) => {
 
   const ratingValue = Math.max(0, Math.min(5, safeNum(product?.rating, 0)));
 
+  const unitPrice = useMemo(() => {
+    if (product?.newPrice !== null && product?.newPrice !== undefined) {
+      return Math.max(0, safeNum(product.newPrice, 0));
+    }
+    if (product?.oldPrice !== null && product?.oldPrice !== undefined) {
+      return Math.max(0, safeNum(product.oldPrice, 0));
+    }
+    return 0;
+  }, [product]);
+
   const renderStars = (value) =>
     Array.from({ length: 5 }).map((_, i) => {
       const filled = i < Math.round(value);
@@ -316,6 +330,73 @@ const ProductCard = ({ product, showStockBadge = true }) => {
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
     setZoomPosition({ x, y });
+  };
+
+  const handleAddToCart = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!pid || displayedStock <= 0) return;
+
+    const normalizedColor = firstColor
+      ? {
+          ...firstColor,
+          colorName:
+            typeof firstColor?.colorName === "object" && firstColor.colorName
+              ? firstColor.colorName
+              : {
+                  ar: displayedColor || "افتراضي",
+                  fr: displayedColor || "Default",
+                  en: displayedColor || "Default",
+                },
+          image:
+            firstColor?.image ||
+            (Array.isArray(firstColor?.images) ? firstColor.images[0] : "") ||
+            product?.coverImage ||
+            "",
+          images:
+            Array.isArray(firstColor?.images) && firstColor.images.length
+              ? firstColor.images.filter(Boolean)
+              : firstColor?.image
+              ? [firstColor.image]
+              : product?.coverImage
+              ? [product.coverImage]
+              : [],
+          stock: safeNum(firstColor?.stock, displayedStock),
+        }
+      : {
+          colorName: { ar: "افتراضي", fr: "Default", en: "Default" },
+          image: product?.coverImage || "",
+          images: product?.coverImage ? [product.coverImage] : [],
+          stock: displayedStock,
+        };
+
+    const defaultSize =
+      Array.isArray(product?.sizes) && product.sizes.length
+        ? String(product.sizes[0]).trim()
+        : "";
+
+    dispatch(
+      addToCart({
+        ...product,
+        productId: pid,
+        id: pid,
+        title: displayName,
+        coverImage: product?.coverImage || normalizedColor.image || "",
+        newPrice: unitPrice,
+        oldPrice: product?.oldPrice ?? null,
+        quantity: 1,
+        size: defaultSize,
+        selectedSize: defaultSize,
+        color: normalizedColor,
+        colorKey:
+          normalizedColor?.image ||
+          normalizedColor?.images?.[0] ||
+          JSON.stringify(normalizedColor?.colorName || {}),
+        embroideryCategory: product?.embroideryCategory || "",
+        translations: product?.translations || {},
+      })
+    );
   };
 
   return (
@@ -426,15 +507,17 @@ const ProductCard = ({ product, showStockBadge = true }) => {
             عرض التفاصيل
           </Link>
 
-          <Link
-            to={productUrl}
-            onClick={handleNavigateTop}
+          <button
+            type="button"
+            onClick={handleAddToCart}
             className="pc-action pc-action--cart"
             aria-label={`أضف ${displayName} إلى السلة`}
+            disabled={!pid || displayedStock <= 0}
+            title={displayedStock > 0 ? "أضف إلى السلة" : "المنتج غير متوفر"}
           >
             <ShoppingCart className="pc-actionIcon" aria-hidden="true" />
-            <span>أضف إلى السلة</span>
-          </Link>
+            <span>{displayedStock > 0 ? "أضف إلى السلة" : "غير متوفر"}</span>
+          </button>
         </div>
       </div>
     </article>
