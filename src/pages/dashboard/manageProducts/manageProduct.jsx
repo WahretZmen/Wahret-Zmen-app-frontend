@@ -76,6 +76,21 @@ const SUBCATEGORY_AR = {
   jebba: "جبّة",
 };
 
+const getBestProductImage = (product) => {
+  if (product?.coverImage) return getImgUrl(product.coverImage);
+
+  if (Array.isArray(product?.colors)) {
+    for (const color of product.colors) {
+      if (color?.image) return getImgUrl(color.image);
+      if (Array.isArray(color?.images) && color.images.length > 0 && color.images[0]) {
+        return getImgUrl(color.images[0]);
+      }
+    }
+  }
+
+  return "";
+};
+
 const ManageProducts = () => {
   const location = useLocation();
 
@@ -235,7 +250,7 @@ const ManageProducts = () => {
             <tr>
               <th>#</th>
               <th>Product ID</th>
-              <th>صورة</th>
+              <th className="mp-col-image">صورة</th>
               <th>الفئة</th>
               <th>الفئة الفرعية</th>
               <th>فئة التطريز</th>
@@ -271,7 +286,7 @@ const ManageProducts = () => {
                 const embroideryLabel = getEmbroideryLabel(p?.embroideryCategory);
                 const catAr = categoryMapping[p.category] || "غير مصنّف";
                 const subAr = SUBCATEGORY_AR[p?.subCategory || ""] || "—";
-                const imageUrl = getImgUrl(p.coverImage);
+                const imageUrl = getBestProductImage(p);
                 const pid = String(p?.productId || "").trim();
 
                 return (
@@ -298,23 +313,27 @@ const ManageProducts = () => {
                       </div>
                     </td>
 
-                    <td className="mp-td">
+                    <td className="mp-td mp-td--image">
                       <div className="mp-imgwrap">
-                        <a
-                          href={imageUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          title="عرض الصورة كاملة في تبويب جديد"
-                          aria-label="عرض الصورة كاملة في تبويب جديد"
-                          className="mp-imglink"
-                        >
-                          <img
-                            src={imageUrl}
-                            alt={`product ${pid || ""}`}
-                            className="mp-img"
-                            loading="lazy"
-                          />
-                        </a>
+                        {imageUrl ? (
+                          <a
+                            href={imageUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="عرض الصورة كاملة في تبويب جديد"
+                            aria-label="عرض الصورة كاملة في تبويب جديد"
+                            className="mp-imglink"
+                          >
+                            <img
+                              src={imageUrl}
+                              alt={`product ${pid || ""}`}
+                              className="mp-img"
+                              loading="lazy"
+                            />
+                          </a>
+                        ) : (
+                          <div className="mp-imgplaceholder">لا توجد صورة</div>
+                        )}
                       </div>
                     </td>
 
