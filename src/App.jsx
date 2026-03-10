@@ -21,7 +21,6 @@ function App() {
   const pathname = location?.pathname || "";
   const isSingleProductPage = /^\/products\/[^/]+$/.test(pathname);
 
-  // Arabic + RTL
   useEffect(() => {
     document.documentElement.lang = "ar";
     document.documentElement.dir = "rtl";
@@ -30,13 +29,11 @@ function App() {
     document.body.classList.remove("ltr");
   }, []);
 
-  // Splash loader
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 2000);
     return () => clearTimeout(timer);
   }, []);
 
-  // Global browser scroll restoration off
   useEffect(() => {
     if (typeof window === "undefined") return;
     if ("scrollRestoration" in window.history) {
@@ -44,7 +41,6 @@ function App() {
     }
   }, []);
 
-  // Prevent wrong restored scroll position on first paint and route changes
   useLayoutEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -63,23 +59,28 @@ function App() {
 
     let raf1 = 0;
     let raf2 = 0;
+    let raf3 = 0;
 
     raf1 = requestAnimationFrame(() => {
       forceTop();
 
       raf2 = requestAnimationFrame(() => {
         forceTop();
-        setLayoutReady(true);
+
+        raf3 = requestAnimationFrame(() => {
+          forceTop();
+          setLayoutReady(true);
+        });
       });
     });
 
     return () => {
       cancelAnimationFrame(raf1);
       cancelAnimationFrame(raf2);
+      cancelAnimationFrame(raf3);
     };
   }, [pathname]);
 
-  // Lock scrolling while splash or layout reset is happening
   useEffect(() => {
     const shouldLock = loading || !layoutReady;
 
