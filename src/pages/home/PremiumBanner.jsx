@@ -1,228 +1,421 @@
+// src/pages/home/Banner.jsx
+// -----------------------------------------------------------------------------
+// Secondary banner carousel with autoplay, swipe, and progress bar (Arabic only).
+// Premium version with opposite-direction fade animations:
+// - Left visual content: fade left -> right
+// - Right text content: fade right -> left
+// -----------------------------------------------------------------------------
+
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+
+import AnimatedText from "../../Animations/AnimatedText.jsx";
+
+import "../../Styles/StylesPremiumBanner.css";
+import "../../Styles/StylesAnimatedText.css";
 
 import banner1 from "../../assets/Home/Banner/Banner1.avif";
 import banner2 from "../../assets/Home/Banner/Banner2.avif";
 import banner3 from "../../assets/Home/Banner/Banner3.avif";
 
-import "../../Styles/StylesPremiumBanner.css";
+const AUTOPLAY_MS = 3500;
+const TRANSITION_MS = 700;
+const DRAG_THRESHOLD = 40;
+const PAUSE_ON_HOVER = false;
 
-const AUTOPLAY_MS = 5000;
+const Banner = () => {
+  const isRtl = true;
 
-const PremiumBanner = () => {
+  const reduceMotion =
+    typeof window !== "undefined" &&
+    window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
   const slides = useMemo(
     () => [
       {
-        id: 1,
-        image: banner1,
-        title: "أصالة تونسية بتفاصيل راقية",
-        description:
-          "اكتشفوا تشكيلة وهرة زمان من الأزياء التقليدية الراقية، المصممة بعناية لتجسد سحر التراث التونسي وأناقة الحاضر.",
-        ctaLabel: "اكتشف الآن",
-        ctaTo: "/products",
+        id: "wz-1",
+        img: banner1,
+        title: "وهرة زمان بإدارة صبري – الحفاظ على التراث التونسي بأناقة",
+        desc: "وهرة زمان، الصَّنعة وأسرارها بإدارة صبري — بوتيك تونسي فاخر يجسّد روح الأصالة في أبهى صورها. من قلب سوق الصوف بتونس، نقدّم تشكيلة منتقاة بعناية من الأزياء التقليدية الراقية.",
+        cta: "اكتشف الآن",
+        alt: "ملابس تقليدية تونسية من وهرة زمان",
+        href: "/products",
       },
       {
-        id: 2,
-        image: banner2,
-        title: "قطع مختارة بروحٍ خالدة",
-        description:
-          "من الجبب التونسية إلى الأزياء التراثية الفاخرة، نقدّم لكم قطعًا تعبّر عن الذوق الرفيع والأصالة.",
-        ctaLabel: "اكتشف الآن",
-        ctaTo: "/products",
+        id: "wz-2",
+        img: banner2,
+        title: "جبب تقليدية بخياطة دقيقة وتفاصيل من التراث",
+        desc: "كل جبّة تُحاك بخيوط من التراث والجمال، حيث تتلاقى الأقمشة الفاخرة مع التطريز اليدوي والتشطيبات الراقية.",
+        cta: "اكتشف الآن",
+        alt: "جبّة تقليدية تونسية فاخرة",
+        href: "/products",
       },
       {
-        id: 3,
-        image: banner3,
-        title: "أناقة الموروث في كل إطلالة",
-        description:
-          "تصاميم تقليدية بلمسة فاخرة، تمنحكم حضورًا استثنائيًا وتُبرز جمال الحرفة التونسية الأصيلة.",
-        ctaLabel: "اكتشف الآن",
-        ctaTo: "/products",
+        id: "wz-3",
+        img: banner3,
+        title: "أناقة خالدة لمناسباتكم الخاصة",
+        desc: "تصاميم تجمع بين الأصالة واللمسة العصرية، لترافقكم في الأعراس والمناسبات واللقاءات المميّزة.",
+        cta: "اكتشف الآن",
+        alt: "أزياء مناسبة للأعراس والمناسبات",
+        href: "/products",
       },
     ],
     []
   );
 
-  const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const [hasEntered, setHasEntered] = useState(false);
+  const [aspectRatio, setAspectRatio] = useState(1);
 
-  const bannerRef = useRef(null);
+  useEffect(() => {
+    const first = slides?.[0]?.img;
+    if (!first) return;
+
+    const probe = new Image();
+    probe.src = first;
+
+    const apply = () => {
+      if (probe.naturalWidth && probe.naturalHeight) {
+        setAspectRatio(probe.naturalWidth / probe.naturalHeight);
+      }
+    };
+
+    if (probe.complete) apply();
+    else {
+      probe.onload = apply;
+      probe.onerror = () => {};
+    }
+  }, [slides]);
+
+  const [index, setIndex] = useState(0);
+  const [isPaused, setPaused] = useState(false);
+  const [isTransitioning, setTransitioning] = useState(false);
+
   const progressRef = useRef(null);
   const timerRef = useRef(null);
-
-  const total = slides.length;
-
-  const goTo = (nextIndex) => {
-    setIndex((nextIndex + total) % total);
-  };
-
-  const next = () => goTo(index + 1);
-  const prev = () => goTo(index - 1);
+  const watchdogRef = useRef(null);
+  const indexRef = useRef(0);
+  const runningRef = useRef(false);
 
   useEffect(() => {
-    const node = bannerRef.current;
-    if (!node) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setHasEntered(true);
-          observer.unobserve(node);
-        }
-      },
-      {
-        threshold: 0.28,
-        rootMargin: "0px 0px -10% 0px",
-      }
-    );
-
-    observer.observe(node);
-
-    return () => observer.disconnect();
-  }, []);
+    indexRef.current = index;
+  }, [index]);
 
   useEffect(() => {
-    if (!hasEntered || paused || total <= 1) return;
+    const canRun = !reduceMotion && !isPaused && slides.length > 1;
+    runningRef.current = canRun;
 
-    timerRef.current = setTimeout(() => {
-      next();
-    }, AUTOPLAY_MS);
-
-    if (progressRef.current) {
-      progressRef.current.style.transition = "none";
-      progressRef.current.style.width = "0%";
-
-      requestAnimationFrame(() => {
-        if (!progressRef.current) return;
-        progressRef.current.style.transition = `width ${AUTOPLAY_MS}ms linear`;
-        progressRef.current.style.width = "100%";
-      });
+    if (canRun) {
+      restartLoop();
+      startWatchdog();
+    } else {
+      stopLoop();
+      stopWatchdog();
     }
 
     return () => {
+      stopLoop();
+      stopWatchdog();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reduceMotion, isPaused, slides.length]);
+
+  const restartLoop = () => {
+    stopLoop();
+    animateProgressBar(AUTOPLAY_MS);
+
+    timerRef.current = setTimeout(() => {
+      goTo(indexRef.current + 1);
+      restartLoop();
+    }, AUTOPLAY_MS);
+  };
+
+  const stopLoop = () => {
+    if (timerRef.current) {
       clearTimeout(timerRef.current);
-      if (progressRef.current) {
-        progressRef.current.style.transition = "none";
-        progressRef.current.style.width = "0%";
+      timerRef.current = null;
+    }
+    resetProgressBar();
+  };
+
+  const resetProgressBar = () => {
+    if (!progressRef.current) return;
+    const bar = progressRef.current;
+    bar.style.transition = "none";
+    bar.style.width = "0%";
+  };
+
+  const animateProgressBar = (durationMs) => {
+    if (!progressRef.current) return;
+    const bar = progressRef.current;
+    bar.style.transition = "none";
+    bar.style.width = "0%";
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        bar.style.transition = `width ${durationMs}ms linear`;
+        bar.style.width = "100%";
+      });
+    });
+  };
+
+  const startWatchdog = () => {
+    if (watchdogRef.current) return;
+
+    watchdogRef.current = setInterval(() => {
+      if (runningRef.current && !timerRef.current && !document.hidden) {
+        restartLoop();
+      }
+    }, 2000);
+  };
+
+  const stopWatchdog = () => {
+    if (watchdogRef.current) {
+      clearInterval(watchdogRef.current);
+      watchdogRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    const onVis = () => {
+      if (document.hidden) {
+        stopLoop();
+      } else if (runningRef.current) {
+        restartLoop();
       }
     };
-  }, [index, paused, total, hasEntered]);
+
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const clampIndex = (n) => (n + slides.length) % slides.length;
+
+  const goTo = (n) => {
+    if (isTransitioning) return;
+    setTransitioning(true);
+    setIndex(clampIndex(n));
+    setTimeout(() => setTransitioning(false), TRANSITION_MS + 40);
+  };
+
+  const prev = () => {
+    goTo(isRtl ? indexRef.current + 1 : indexRef.current - 1);
+    if (runningRef.current) restartLoop();
+  };
+
+  const next = () => {
+    goTo(isRtl ? indexRef.current - 1 : indexRef.current + 1);
+    if (runningRef.current) restartLoop();
+  };
+
+  const handleMouseEnter = () => {
+    if (PAUSE_ON_HOVER) setPaused(true);
+  };
+
+  const handleMouseLeave = () => {
+    if (PAUSE_ON_HOVER) setPaused(false);
+  };
+
+  const handleFocusIn = () => {
+    if (PAUSE_ON_HOVER) setPaused(true);
+  };
+
+  const handleFocusOut = () => {
+    if (PAUSE_ON_HOVER) setPaused(false);
+  };
+
+  const onKeyDown = (e) => {
+    const { key } = e;
+
+    if (key === "ArrowLeft") {
+      e.preventDefault();
+      prev();
+    } else if (key === "ArrowRight") {
+      e.preventDefault();
+      next();
+    } else if (key === "Home") {
+      e.preventDefault();
+      goTo(0);
+      if (runningRef.current) restartLoop();
+    } else if (key === "End") {
+      e.preventDefault();
+      goTo(slides.length - 1);
+      if (runningRef.current) restartLoop();
+    }
+  };
+
+  const drag = useRef({ active: false, x: 0, dx: 0 });
+
+  const onPointerDown = (e) => {
+    drag.current = {
+      active: true,
+      x: e.clientX ?? e.touches?.[0]?.clientX ?? 0,
+      dx: 0,
+    };
+  };
+
+  const onPointerMove = (e) => {
+    if (!drag.current.active) return;
+    const x = e.clientX ?? e.touches?.[0]?.clientX ?? 0;
+    drag.current.dx = x - drag.current.x;
+  };
+
+  const endDrag = () => {
+    if (!drag.current.active) return;
+
+    const { dx } = drag.current;
+    drag.current.active = false;
+
+    if (Math.abs(dx) > DRAG_THRESHOLD) {
+      const left = dx < 0;
+      const right = dx > 0;
+
+      if ((left && !isRtl) || (right && isRtl)) next();
+      else prev();
+    }
+  };
 
   return (
     <section
-      ref={bannerRef}
-      className={`banner-container-enhanced wz-carousel ${
-        hasEntered ? "is-inview" : "is-hidden-before-view"
-      }`}
+      className="wz-carousel"
+      role="region"
+      aria-roledescription="carousel"
+      aria-label="لافتات ترويجية"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onFocus={handleFocusIn}
+      onBlur={handleFocusOut}
+      onKeyDown={onKeyDown}
+      tabIndex={0}
+      aria-live="off"
       dir="rtl"
-      aria-label="وهرة زمان بانر"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocus={() => setPaused(true)}
-      onBlur={() => setPaused(false)}
     >
       <div className="wz-progress" aria-hidden="true">
         <span ref={progressRef} className="wz-progress__bar" />
       </div>
 
-      <div className="wz-track">
-        {slides.map((slide, i) => {
-          const isActive = i === index;
-          const shouldAnimate = hasEntered && isActive;
+      <div
+        className="wz-track"
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        onTouchStart={onPointerDown}
+        onTouchMove={onPointerMove}
+        onTouchEnd={endDrag}
+        style={{ touchAction: "pan-y" }}
+      >
+        {slides.map((s, i) => {
+          const active = i === index;
+          const eager = i === 0;
+          const kenburns = active && !reduceMotion ? "wz-kenburns" : "";
 
           return (
             <article
-              key={slide.id}
-              className={`wz-slide ${isActive ? "is-active" : ""}`}
-              aria-hidden={!isActive}
+              key={s.id}
+              className={`wz-slide ${active ? "is-active" : ""}`}
+              aria-roledescription="slide"
+              aria-label={`${i + 1} / ${slides.length}`}
+              aria-hidden={!active}
+              id={`slide-${i}`}
             >
-              <div className="wz-slide__inner">
-                <div
-                  className={`banner-image-wrapper ${
-                    shouldAnimate ? "is-active" : ""
-                  }`}
-                >
-                  <div className="wz-media">
+              <Link
+                to={s.href || "/products"}
+                onClick={() => window.scrollTo(0, 0)}
+                className="banner-container-enhanced link-wrapper wz-slide__inner"
+                tabIndex={active ? 0 : -1}
+                aria-label={s.title}
+              >
+                {/* Left side visual content */}
+                <div className={`banner-image-wrapper ${active ? "is-active" : ""}`}>
+                  <div
+                    className="wz-media"
+                    style={{ aspectRatio: aspectRatio || 1 }}
+                  >
+                    <div className={`wz-media__glow ${active ? "is-active" : ""}`} />
                     <img
-                      src={slide.image}
-                      alt={slide.title}
-                      className={`banner-img ${
-                        shouldAnimate ? "banner-img-enter" : ""
-                      }`}
-                      loading={i === 0 ? "eager" : "lazy"}
+                      src={s.img}
+                      alt={s.alt}
+                      className={`banner-img ${kenburns} ${active ? "banner-img-enter" : ""}`}
+                      loading={eager ? "eager" : "lazy"}
+                      decoding={eager ? "sync" : "async"}
+                      fetchPriority={eager ? "high" : "auto"}
+                      onDragStart={(e) => e.preventDefault()}
                     />
                   </div>
                 </div>
 
-                <div
-                  className={`banner-text-wrapper ${
-                    shouldAnimate ? "is-active" : ""
-                  }`}
-                >
-                  <h2 className="banner-title wz-royal-title">{slide.title}</h2>
+                {/* Right side textual content */}
+                <div className={`banner-text-wrapper ${active ? "is-active" : ""}`}>
+                  <h1 className={`banner-title wz-royal-title ${active ? "is-active" : ""}`}>
+                    {s.title}
+                  </h1>
 
-                  <p className="banner-description">{slide.description}</p>
-
-                  <Link
-                    to={slide.ctaTo}
-                    reloadDocument
-                    className="link-wrapper"
+                  <div
+                    className={`banner-description wz-desc-reveal ${
+                      active ? "is-active" : ""
+                    }`}
                   >
+                    <AnimatedText text={s.desc} />
+                  </div>
+
+                  <div className={`wz-btn-wrap ${active ? "is-active" : ""}`}>
                     <button type="button" className="btn-premium">
-                      <span className="btn-premium__text">
-                        {slide.ctaLabel}
-                      </span>
+                      <span className="btn-premium__text">{s.cta}</span>
                     </button>
-                  </Link>
+                  </div>
                 </div>
-              </div>
+              </Link>
             </article>
           );
         })}
       </div>
 
-      {total > 1 && (
-        <>
-          <div className="wz-controls" aria-hidden="false">
-            <button
-              type="button"
-              className="wz-arrow wz-arrow--prev"
-              onClick={prev}
-              aria-label="السابق"
-            >
-              <span />
-            </button>
+      <div className="wz-controls">
+        <button type="button" className="wz-arrow wz-arrow--prev" onClick={prev}>
+          <span aria-hidden />
+        </button>
 
-            <button
-              type="button"
-              className="wz-arrow wz-arrow--next"
-              onClick={next}
-              aria-label="التالي"
-            >
-              <span />
-            </button>
-          </div>
+        <button type="button" className="wz-arrow wz-arrow--next" onClick={next}>
+          <span aria-hidden />
+        </button>
 
-          <div className="wz-dots" role="tablist" aria-label="شرائح البانر">
-            {slides.map((slide, i) => (
-              <button
-                key={slide.id}
-                type="button"
-                className={`wz-dot ${i === index ? "is-active" : ""}`}
-                onClick={() => goTo(i)}
-                aria-label={`الانتقال إلى الشريحة ${i + 1}`}
-                aria-selected={i === index}
-                role="tab"
-              >
-                <span className="wz-dot__ring" />
-              </button>
-            ))}
-          </div>
-        </>
-      )}
+        <button
+          type="button"
+          className="wz-pause"
+          aria-pressed={isPaused}
+          aria-label={isPaused ? "تشغيل" : "إيقاف مؤقت"}
+          onClick={() => setPaused((p) => !p)}
+          title={isPaused ? "تشغيل" : "إيقاف مؤقت"}
+        >
+          <span className={`wz-pause__icon ${isPaused ? "is-play" : "is-pause"}`} />
+        </button>
+      </div>
+
+      <div className="wz-dots" role="tablist" aria-label="الشرائح">
+        {slides.map((_, i) => {
+          const active = i === index;
+
+          return (
+            <button
+              key={`dot-${i}`}
+              role="tab"
+              aria-selected={active}
+              aria-controls={`slide-${i}`}
+              className={`wz-dot ${active ? "is-active" : ""}`}
+              onClick={() => {
+                goTo(i);
+                if (runningRef.current) restartLoop();
+              }}
+              title={`الانتقال إلى الشريحة ${i + 1}`}
+            >
+              <span className="wz-dot__ring" />
+            </button>
+          );
+        })}
+      </div>
     </section>
   );
 };
 
-export default PremiumBanner;
+export default Banner;
