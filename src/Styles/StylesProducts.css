@@ -47,6 +47,9 @@ html { -webkit-text-size-adjust: 100%; }
 /* ---------------------------
    First full page loader
 --------------------------- */
+
+.main-content { margin-top: -10%;}
+
 .wz-products-firstLoad{
   min-height:70vh;
   display:flex;

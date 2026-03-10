@@ -1,10 +1,4 @@
 // src/pages/products/CartPage.jsx
-// ============================================================================
-// CartPage (Arabic / RTL)
-// - Shows cart items with quantity controls and totals
-// - Uses productId instead of product Mongo _id
-// - Works with stable cartItem.colorKey for remove/updateQuantity
-// ============================================================================
 
 import React, { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";

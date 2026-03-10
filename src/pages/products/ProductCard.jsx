@@ -1,7 +1,7 @@
 // src/pages/products/ProductCard.jsx
 
 import React, { useMemo, useState } from "react";
-import { Star } from "lucide-react";
+import { Star, ShoppingCart } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { getImgUrl } from "../../utils/getImgUrl";
@@ -421,9 +421,21 @@ const ProductCard = ({ product, showStockBadge = true }) => {
           </div>
         )}
 
-        <Link to={productUrl} onClick={handleNavigateTop} className="pc-action">
-          عرض التفاصيل
-        </Link>
+        <div className="pc-actions">
+          <Link to={productUrl} onClick={handleNavigateTop} className="pc-action pc-action--ghost">
+            عرض التفاصيل
+          </Link>
+
+          <Link
+            to={productUrl}
+            onClick={handleNavigateTop}
+            className="pc-action pc-action--cart"
+            aria-label={`أضف ${displayName} إلى السلة`}
+          >
+            <ShoppingCart className="pc-actionIcon" aria-hidden="true" />
+            <span>أضف إلى السلة</span>
+          </Link>
+        </div>
       </div>
     </article>
   );
