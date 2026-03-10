@@ -1,5 +1,5 @@
 // src/pages/OrderSuccess.jsx
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { Sparkles, ArrowLeft, Search, Copy } from "lucide-react";
 
@@ -26,6 +26,22 @@ const readStoredOrder = (orderId) => {
   }
 };
 
+const persistOrderSnapshot = (orderId, order) => {
+  const id = safeText(orderId);
+  if (!id || !order) return;
+
+  try {
+    sessionStorage.setItem(
+      "wz_last_order",
+      JSON.stringify({ orderId: id, order, savedAt: Date.now() })
+    );
+  } catch (_) {}
+
+  try {
+    sessionStorage.setItem(`wz_order_${id}`, JSON.stringify(order));
+  } catch (_) {}
+};
+
 export default function OrderSuccess() {
   const { orderId } = useParams();
   const location = useLocation();
@@ -35,7 +51,18 @@ export default function OrderSuccess() {
     return location.state?.order || readStoredOrder(orderId) || null;
   }, [location.state, orderId]);
 
-  const ref = order?.orderId || order?._id || orderId;
+  const ref = safeText(order?.orderId || order?._id || orderId || "WZ-2026-ORDER");
+
+  useEffect(() => {
+    document.documentElement.dir = "rtl";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  useEffect(() => {
+    if (ref && order) {
+      persistOrderSnapshot(ref, order);
+    }
+  }, [ref, order]);
 
   const copyId = async () => {
     try {
@@ -67,19 +94,28 @@ export default function OrderSuccess() {
               <div className="wz-os__row">
                 <div>
                   <div className="wz-os__muted">رقم الطلب</div>
-                  <div className="wz-os__ref" style={{ direction: "ltr", unicodeBidi: "plaintext" }}>
+                  <div
+                    className="wz-os__ref"
+                    style={{ direction: "ltr", unicodeBidi: "plaintext" }}
+                  >
                     {ref}
                   </div>
                 </div>
 
-                <Link to={`/order-track/${ref}`} state={{ order }} className="wz-os__linkBtn">
+                <Link
+                  to={`/order-track/${encodeURIComponent(ref)}`}
+                  state={{ order }}
+                  className="wz-os__linkBtn"
+                >
                   <button className="wz-os__btn wz-os__btn--primary" type="button">
                     تتبّع الطلب الآن <ArrowLeft size={16} />
                   </button>
                 </Link>
               </div>
 
-              <div className="wz-os__note">يرجى الاحتفاظ برقم الطلب لتتبّع حالة الشحن في أي وقت.</div>
+              <div className="wz-os__note">
+                يرجى الاحتفاظ برقم الطلب لتتبّع حالة الشحن في أي وقت.
+              </div>
 
               <div className="wz-os__actions">
                 <Link to="/" className="wz-os__actionLink">
@@ -88,7 +124,11 @@ export default function OrderSuccess() {
                   </button>
                 </Link>
 
-                <Link to={`/order-confirm/${ref}`} state={{ order }} className="wz-os__actionLink">
+                <Link
+                  to={`/order-confirm/${encodeURIComponent(ref)}`}
+                  state={{ order }}
+                  className="wz-os__actionLink"
+                >
                   <button className="wz-os__btn wz-os__btn--soft" type="button">
                     عرض تفاصيل الطلب
                   </button>
@@ -110,8 +150,8 @@ export default function OrderSuccess() {
                     كيف تتابع طلبك باستخدام رقم الطلب؟
                   </h2>
                   <p className="wz-os__guideSub">
-                    إذا كنت تطلب كضيف (بدون حساب)، يمكنك دائمًا تتبّع طلبك: انسخ رقم الطلب، ثم الصقه في صفحة التتبّع واضغط
-                    “تتبّع”.
+                    إذا كنت تطلب كضيف (بدون حساب)، يمكنك دائمًا تتبّع طلبك: انسخ رقم الطلب، ثم
+                    الصقه في صفحة التتبّع واضغط “تتبّع”.
                   </p>
                 </div>
               </div>
@@ -121,7 +161,9 @@ export default function OrderSuccess() {
                   <div className="wz-os__gNum">1</div>
                   <div className="wz-os__gStepBody">
                     <div className="wz-os__gStepTitle">انسخ رقم الطلب</div>
-                    <div className="wz-os__gStepDesc">اضغط “نسخ رقم الطلب” لتجنّب أي خطأ أثناء الكتابة.</div>
+                    <div className="wz-os__gStepDesc">
+                      اضغط “نسخ رقم الطلب” لتجنّب أي خطأ أثناء الكتابة.
+                    </div>
                   </div>
                 </div>
 
@@ -129,7 +171,9 @@ export default function OrderSuccess() {
                   <div className="wz-os__gNum">2</div>
                   <div className="wz-os__gStepBody">
                     <div className="wz-os__gStepTitle">افتح صفحة التتبّع</div>
-                    <div className="wz-os__gStepDesc">اضغط “تتبّع الطلب الآن” للانتقال مباشرةً إلى صفحة التتبّع.</div>
+                    <div className="wz-os__gStepDesc">
+                      اضغط “تتبّع الطلب الآن” للانتقال مباشرةً إلى صفحة التتبّع.
+                    </div>
                   </div>
                 </div>
 
@@ -145,7 +189,11 @@ export default function OrderSuccess() {
               </div>
 
               <div className="wz-os__guideCtas">
-                <Link to={`/order-track/${ref}`} state={{ order }} className="wz-os__actionLink wz-os__actionLink--wide">
+                <Link
+                  to={`/order-track/${encodeURIComponent(ref)}`}
+                  state={{ order }}
+                  className="wz-os__actionLink wz-os__actionLink--wide"
+                >
                   <button className="wz-os__btn wz-os__btn--primary" type="button">
                     تتبّع الطلب الآن <ArrowLeft size={16} />
                   </button>
@@ -159,8 +207,8 @@ export default function OrderSuccess() {
               {copied ? <div className="wz-os__toast">تم النسخ!</div> : null}
 
               <div className="wz-os__guideHint">
-                <span className="wz-os__guideHintStrong">ملاحظة:</span> يُفضّل أخذ لقطة شاشة لرقم الطلب أو حفظه في
-                الملاحظات للرجوع إليه لاحقًا.
+                <span className="wz-os__guideHintStrong">ملاحظة:</span> يُفضّل أخذ لقطة شاشة
+                لرقم الطلب أو حفظه في الملاحظات للرجوع إليه لاحقًا.
               </div>
             </div>
           </section>

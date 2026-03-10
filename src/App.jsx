@@ -44,7 +44,7 @@ function App() {
     }
   }, []);
 
-  // Prevent footer flash / wrong restored scroll position on first paint and route changes
+  // Prevent wrong restored scroll position on first paint and route changes
   useLayoutEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -61,18 +61,22 @@ function App() {
 
     forceTop();
 
-    const raf1 = requestAnimationFrame(() => {
+    let raf1 = 0;
+    let raf2 = 0;
+
+    raf1 = requestAnimationFrame(() => {
       forceTop();
 
-      const raf2 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => {
         forceTop();
         setLayoutReady(true);
       });
-
-      return () => cancelAnimationFrame(raf2);
     });
 
-    return () => cancelAnimationFrame(raf1);
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+    };
   }, [pathname]);
 
   // Lock scrolling while splash or layout reset is happening
@@ -102,15 +106,16 @@ function App() {
           <Navbar />
 
           <main
-            className={`flex-1 app-main ${layoutReady ? "app-main--ready" : "app-main--hidden"}`}
+            className={`flex-1 app-main ${
+              layoutReady ? "app-main--ready" : "app-main--hidden"
+            }`}
           >
             <Outlet />
           </main>
 
-          {/* Important:
-             Do not show footer until layout is ready.
-             This prevents the footer from flashing first on refresh. */}
-          {layoutReady ? <Footer key={isSingleProductPage ? "footer-sp" : "footer-default"} /> : null}
+          {layoutReady ? (
+            <Footer key={isSingleProductPage ? "footer-sp" : "footer-default"} />
+          ) : null}
         </div>
       )}
     </AuthProvider>
