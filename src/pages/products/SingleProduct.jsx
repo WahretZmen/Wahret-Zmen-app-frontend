@@ -426,38 +426,6 @@ const SingleProduct = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showCheckout, setShowCheckout] = useState(false);
 
-  // Force top immediately on first paint / product route refresh
-  useLayoutEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const html = document.documentElement;
-    const body = document.body;
-
-    html.scrollTop = 0;
-    body.scrollTop = 0;
-    window.scrollTo(0, 0);
-
-    let raf1 = 0;
-    let raf2 = 0;
-
-    raf1 = requestAnimationFrame(() => {
-      html.scrollTop = 0;
-      body.scrollTop = 0;
-      window.scrollTo(0, 0);
-
-      raf2 = requestAnimationFrame(() => {
-        html.scrollTop = 0;
-        body.scrollTop = 0;
-        window.scrollTo(0, 0);
-      });
-    });
-
-    return () => {
-      cancelAnimationFrame(raf1);
-      cancelAnimationFrame(raf2);
-    };
-  }, [routeId]);
-
   const {
     data: queriedProduct,
     isLoading: isLoadingProduct,
@@ -546,6 +514,39 @@ const SingleProduct = () => {
   const activeGallery = useMemo(() => {
     return getProductGallery(product, selectedColor);
   }, [product, selectedColor]);
+
+  // Important fix:
+  // force top immediately on hard refresh / direct product access
+  useLayoutEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const html = document.documentElement;
+    const body = document.body;
+
+    const forceTop = () => {
+      html.scrollTop = 0;
+      body.scrollTop = 0;
+      window.scrollTo(0, 0);
+    };
+
+    forceTop();
+
+    let raf1 = 0;
+    let raf2 = 0;
+
+    raf1 = requestAnimationFrame(() => {
+      forceTop();
+
+      raf2 = requestAnimationFrame(() => {
+        forceTop();
+      });
+    });
+
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+    };
+  }, [routeId]);
 
   useEffect(() => {
     if (!product) return;
@@ -812,10 +813,7 @@ const SingleProduct = () => {
     setQuantity((prev) => Math.max(1, prev - 1));
   };
 
-  const handleInternalProductNavigation = () => {
-    if (typeof window === "undefined") return;
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-  };
+  const handleInternalProductNavigation = () => {};
 
   const validateSelectionBeforeAction = () => {
     if (sizes.length > 0 && !selectedSize) {
@@ -873,10 +871,7 @@ const SingleProduct = () => {
       : {
           colorName: { ar: "افتراضي", fr: "Default", en: "Default" },
           image: activeGallery[0] || product?.coverImage || "",
-          images:
-            activeGallery[0] || product?.coverImage
-              ? [activeGallery[0] || product?.coverImage]
-              : [],
+          images: activeGallery[0] || product?.coverImage ? [activeGallery[0] || product?.coverImage] : [],
           stock: num(product?.stockQuantity || 0),
         };
 
@@ -1083,32 +1078,14 @@ const SingleProduct = () => {
 
   if (isLoading) {
     return (
-      <div className="sp2-wrap" dir="rtl" lang="ar">
-        <div
-          className="sp2-container"
-          style={{
-            minHeight: "calc(100vh - 180px)",
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "center",
-            paddingTop: "40px",
-          }}
-        >
-          <div
-            style={{
-              width: "100%",
-              maxWidth: "1100px",
-              background: "#fff",
-              border: "1px solid rgba(15,23,42,.08)",
-              boxShadow: "0 10px 30px rgba(2,6,23,.06)",
-              padding: "24px",
-              textAlign: "center",
-              fontWeight: 900,
-              color: "#111",
-            }}
-          >
-            جارٍ تحميل صفحة المنتج...
-          </div>
+      <div
+        className="sp2-wrap"
+        dir={isRTL ? "rtl" : "ltr"}
+        lang="ar"
+        style={{ minHeight: "calc(100vh - 140px)" }}
+      >
+        <div className="sp2-container">
+          <div className="text-center text-[#111]">جارٍ التحميل...</div>
         </div>
       </div>
     );
@@ -1116,32 +1093,14 @@ const SingleProduct = () => {
 
   if (isError || !product) {
     return (
-      <div className="sp2-wrap" dir="rtl" lang="ar">
-        <div
-          className="sp2-container"
-          style={{
-            minHeight: "calc(100vh - 180px)",
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "center",
-            paddingTop: "40px",
-          }}
-        >
-          <div
-            style={{
-              width: "100%",
-              maxWidth: "1100px",
-              background: "#fff",
-              border: "1px solid rgba(239,68,68,.18)",
-              boxShadow: "0 10px 30px rgba(2,6,23,.06)",
-              padding: "24px",
-              textAlign: "center",
-              fontWeight: 900,
-              color: "#dc2626",
-            }}
-          >
-            المنتج غير موجود
-          </div>
+      <div
+        className="sp2-wrap"
+        dir={isRTL ? "rtl" : "ltr"}
+        lang="ar"
+        style={{ minHeight: "calc(100vh - 140px)" }}
+      >
+        <div className="sp2-container">
+          <div className="text-center text-red-600">المنتج غير موجود</div>
         </div>
       </div>
     );
@@ -2026,11 +1985,7 @@ const SingleProduct = () => {
                           </div>
                         </div>
 
-                        <button
-                          type="button"
-                          className="cz-back"
-                          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                        >
+                        <button type="button" className="cz-back">
                           الرجوع إلى أعلى الصفحة
                         </button>
                       </div>
