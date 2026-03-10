@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, PhoneCall } from "lucide-react";
 
 // Layout
 import Header from "../../components/ui/Header.jsx";
@@ -26,6 +26,8 @@ import "../../Styles/StylesCartPage.css";
 /* =============================================================================
    Helpers
 ============================================================================= */
+
+const VENDOR_PHONE = "+216 55 495 816";
 
 const isArabicText = (s) =>
   typeof s === "string" && /[\u0600-\u06FF]/.test(s);
@@ -231,16 +233,8 @@ const CartPage = () => {
   const handleClearCart = () => cartItems.length && dispatch(clearCart());
 
   const totals = useMemo(() => {
-    const subtotal = cartItems.reduce(
-      (acc, item) =>
-        acc + Number(item?.newPrice || 0) * Number(item?.quantity || 0),
-      0
-    );
-
-    const shipping = subtotal > 500 ? 0 : cartItems.length ? 25 : 0;
-    const total = subtotal + shipping;
-
-    return { subtotal, shipping, total };
+    const shipping = cartItems.length ? 0 : 0;
+    return { shipping };
   }, [cartItems]);
 
   return (
@@ -273,14 +267,6 @@ const CartPage = () => {
                       product?.color?.image ||
                       product?.coverImage
                   );
-
-                  const linePrice =
-                    Number(product?.newPrice || 0) *
-                    Number(product?.quantity || 0);
-
-                  const hasOriginal =
-                    product?.price &&
-                    Number(product.price) > Number(product.newPrice || 0);
 
                   const maxStock =
                     typeof product?.color?.stock === "number"
@@ -334,6 +320,13 @@ const CartPage = () => {
 
                             <div className="text-sm text-muted-foreground mb-4 space-y-1 text-center md:text-start">
                               <p>
+                                <span className="font-semibold text-foreground">ID:</span>{" "}
+                                <span dir="ltr" className="text-foreground">
+                                  #{productId}
+                                </span>
+                              </p>
+
+                              <p>
                                 الفئة:{" "}
                                 <span className="text-foreground">
                                   {categoryFor(product)}
@@ -348,22 +341,20 @@ const CartPage = () => {
                               </p>
 
                               <p className="capitalize">اللون: {colorLabel}</p>
-
-                              {typeof maxStock === "number" && (
-                                <p className="text-xs">المخزون: {maxStock}</p>
-                              )}
                             </div>
 
                             <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-4">
-                              <div className="flex items-center gap-2">
-                                <span className="text-2xl font-bold text-foreground">
-                                  ${Number(product?.newPrice || 0).toFixed(2)}
-                                </span>
-                                {hasOriginal && (
-                                  <span className="text-lg text-muted-foreground line-through">
-                                    ${Number(product.price).toFixed(2)}
+                              <div className="cart-price-contactHint">
+                                <div className="cart-price-contactHint__head">
+                                  <span className="cart-price-contactHint__label">
+                                    سعر القطعة
                                   </span>
-                                )}
+                                </div>
+
+                                <p className="cart-price-contactHint__text">
+                                  لمعرفة السعر، يُرجى التواصل مع البائع على الرقم{" "}
+                                  <strong dir="ltr">{VENDOR_PHONE}</strong>
+                                </p>
                               </div>
 
                               <div
@@ -406,12 +397,7 @@ const CartPage = () => {
                               </div>
                             </div>
 
-                            <div className="mt-3 text-center md:text-right text-sm text-muted-foreground">
-                              المجموع الفرعي:{" "}
-                              <span className="text-foreground font-semibold">
-                                ${linePrice.toFixed(2)}
-                              </span>
-                            </div>
+                            
                           </div>
                         </div>
                       </CardContent>
@@ -439,40 +425,24 @@ const CartPage = () => {
                     </h3>
 
                     <div className="space-y-4 mb-6">
+                      <div className="cart-summaryHint">
+                        <div className="cart-summaryHint__label">سعر المنتجات</div>
+                        <p className="cart-summaryHint__text">
+                          لمعرفة السعر النهائي، يرجى التواصل مع البائع على الرقم{" "}
+                          <strong dir="ltr">{VENDOR_PHONE}</strong>
+                        </p>
+                      </div>
+
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">
-                          المجموع الفرعي
-                        </span>
+                        <span className="text-muted-foreground">التوصيل</span>
                         <span className="font-medium">
-                          ${totals.subtotal.toFixed(2)}
+                          {totals.shipping === 0 ? "مجاني" : "مجاني"}
                         </span>
                       </div>
 
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">الشحن</span>
-                        <span className="font-medium">
-                          {totals.shipping === 0
-                            ? "مجاني"
-                            : `$${totals.shipping.toFixed(2)}`}
-                        </span>
-                      </div>
-
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">
-                          طريقة الدفع
-                        </span>
-                        <span className="font-semibold">
-                          الدفع عند الاستلام
-                        </span>
-                      </div>
-
-                      <hr className="border-border" />
-
-                      <div className="flex justify-between text-lg">
-                        <span className="font-semibold">الإجمالي</span>
-                        <span className="font-bold text-foreground">
-                          ${totals.total.toFixed(2)}
-                        </span>
+                        <span className="text-muted-foreground">طريقة الدفع</span>
+                        <span className="font-semibold">الدفع عند الاستلام</span>
                       </div>
                     </div>
 

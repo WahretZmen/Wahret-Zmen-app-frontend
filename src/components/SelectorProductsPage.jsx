@@ -307,77 +307,7 @@ const SelectorPageProducts = ({
         )}
 
         {/* Price Range */}
-        <div className="filter-group">
-          <label className="filter-label">نطاق السعر</label>
-
-          <div className="price-row" role="group" aria-label="نطاق السعر">
-            <div className="price-field">
-              <span className="currency">د.ت</span>
-              <input
-                aria-label="أقل سعر"
-                type="number"
-                min={minPrice}
-                max={clampMax}
-                value={Math.round(clampMin)}
-                onChange={(e) =>
-                  setPriceRange([Number(e.target.value) || minPrice, clampMax])
-                }
-                inputMode="decimal"
-              />
-            </div>
-
-            <span className="dash" aria-hidden="true">
-              —
-            </span>
-
-            <div className="price-field">
-              <span className="currency">د.ت</span>
-              <input
-                aria-label="أعلى سعر"
-                type="number"
-                min={clampMin}
-                max={maxPrice}
-                value={Math.round(clampMax)}
-                onChange={(e) =>
-                  setPriceRange([clampMin, Number(e.target.value) || maxPrice])
-                }
-                inputMode="decimal"
-              />
-            </div>
-          </div>
-
-          <div className="range-wrap double" aria-hidden="false">
-            <input
-              className="range line first"
-              type="range"
-              min={minPrice}
-              max={maxPrice}
-              step="1"
-              value={clampMin}
-              onChange={(e) => {
-                const nextMin = Math.min(Number(e.target.value), clampMax);
-                setPriceRange([nextMin, clampMax]);
-              }}
-            />
-            <input
-              className="range line second"
-              type="range"
-              min={minPrice}
-              max={maxPrice}
-              step="1"
-              value={clampMax}
-              onChange={(e) => {
-                const nextMax = Math.max(Number(e.target.value), clampMin);
-                setPriceRange([clampMin, nextMax]);
-              }}
-            />
-          </div>
-
-          <div className="range-ends">
-            <span>د.ت {Math.round(minPrice)}</span>
-            <span>د.ت {Math.round(maxPrice)}</span>
-          </div>
-        </div>
+        
 
         <button
           type="button"

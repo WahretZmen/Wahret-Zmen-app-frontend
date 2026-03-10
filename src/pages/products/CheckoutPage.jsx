@@ -26,6 +26,8 @@ import { useCreateOrderMutation } from "../../redux/features/orders/ordersApi.js
 import { getImgUrl } from "../../utils/getImgUrl";
 import "../../Styles/StylesCheckoutPage.css";
 
+const VENDOR_PHONE = "+216 55 495 816";
+
 const money = (n) => {
   const x = Number(n);
   return Number.isFinite(x) ? x.toFixed(2) : "0.00";
@@ -636,7 +638,6 @@ export default function CheckoutPage() {
 
                           const qty = Number(it?.quantity || 1);
                           const size = safeText(it?.size || it?.selectedSize || "");
-                          const line = Number(it?.newPrice || 0) * qty;
 
                           const rawImg = pickItemImage(it);
                           const src = rawImg ? getImgUrl(rawImg) : "";
@@ -669,17 +670,25 @@ export default function CheckoutPage() {
                               </div>
 
                               <div className="cz-item__main">
-                                <div className="cz-item__top">
+                                <div className="cz-item__top cz-item__top--single">
                                   <p className="cz-item__name">{title}</p>
-                                  <span className="cz-item__price">
-                                    {money(line)} د.ت
-                                  </span>
                                 </div>
 
                                 <p className="cz-item__meta">
-                                  {size ? `المقاس: ${size} · ` : ""}
-                                  الكمية: {qty}
+                                  <span dir="ltr">#{pid}</span>
+                                  {size ? ` · المقاس: ${size}` : ""}
+                                  {" · "}الكمية: {qty}
                                 </p>
+
+                                <div className="cz-priceHintCard">
+                                  <div className="cz-priceHintCard__label">
+                                    سعر القطعة
+                                  </div>
+                                  <p className="cz-priceHintCard__text">
+                                    لمعرفة السعر، يُرجى التواصل مع البائع على الرقم{" "}
+                                    <strong dir="ltr">{VENDOR_PHONE}</strong>
+                                  </p>
+                                </div>
                               </div>
                             </div>
                           );
@@ -692,22 +701,18 @@ export default function CheckoutPage() {
                     <div className="cz-sep" />
 
                     <div className="cz-breakdown">
-                      <div className="cz-line">
-                        <span className="cz-muted">المجموع</span>
-                        <span>{money(subtotal)} د.ت</span>
+                      <div className="cz-priceHintCard cz-priceHintCard--summary">
+                        <div className="cz-priceHintCard__label">سعر الطلب</div>
+                        <p className="cz-priceHintCard__text">
+                          السعر النهائي يتم تأكيده مباشرة مع البائع عبر الرقم{" "}
+                          <strong dir="ltr">{VENDOR_PHONE}</strong>
+                        </p>
                       </div>
 
                       <div className="cz-line">
                         <span className="cz-muted">التوصيل</span>
                         <span className="cz-green">مجاني</span>
                       </div>
-                    </div>
-
-                    <div className="cz-sep" />
-
-                    <div className="cz-total">
-                      <span>الإجمالي</span>
-                      <span className="cz-total__price">{money(total)} د.ت</span>
                     </div>
 
                     <button
@@ -722,8 +727,8 @@ export default function CheckoutPage() {
                     </button>
 
                     <p className="cz-terms">
-                      بإتمام الطلب، أنت توافق على الشروط والأحكام وسياسة الخصوصية. ستدفع{" "}
-                      <strong>{money(total)} د.ت</strong> عند الاستلام.{" "}
+                      بإتمام الطلب، أنت توافق على الشروط والأحكام وسياسة الخصوصية.
+                      سيتم تحديد السعر النهائي مباشرة مع البائع.{" "}
                       <span className="cz-freeShipInline">التوصيل مجاني.</span>
                     </p>
 

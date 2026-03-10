@@ -1,13 +1,6 @@
 // src/pages/products/SingleProduct.jsx
-import React, {
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-  useCallback,
-} from "react";
-import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   FiFacebook,
@@ -26,7 +19,6 @@ import {
   User,
   Phone,
   Mail,
-  ChevronLeft,
   Package,
   Image as ImageIcon,
   X,
@@ -57,6 +49,7 @@ const num = (v, d = 0) => (Number.isFinite(Number(v)) ? Number(v) : d);
 const safeStr = (v) => (typeof v === "string" ? v : String(v ?? ""));
 const unique = (arr) => [...new Set((arr || []).filter(Boolean))];
 const normalizeKey = (v) => String(v || "").trim().toLowerCase();
+const VENDOR_PHONE = "+216 55 495 816";
 
 const displayId = (p) =>
   safeStr(p?.productId || p?._id || p?.id || p?.slug || "").trim();
@@ -410,14 +403,13 @@ const TermsModal = ({ open, onClose, title, children, isRTL = true }) => {
 ============================================================================= */
 const SingleProduct = () => {
   const params = useParams();
-  const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const routeId = params?.productId || params?.id || "";
   const isRTL = true;
-  const pageTopRef = useRef(null);
-  const checkoutRef = useRef(null);
+
+  const checkoutSectionRef = useRef(null);
 
   useSelector((s) => {
     const c = s?.cart;
@@ -425,6 +417,7 @@ const SingleProduct = () => {
   });
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [showCheckout, setShowCheckout] = useState(false);
 
   const {
     data: queriedProduct,
@@ -515,71 +508,6 @@ const SingleProduct = () => {
     return getProductGallery(product, selectedColor);
   }, [product, selectedColor]);
 
-  const scrollPageToTop = useCallback(() => {
-    if (typeof window === "undefined") return;
-
-    const html = document.documentElement;
-    const body = document.body;
-
-    if ("scrollRestoration" in window.history) {
-      window.history.scrollRestoration = "manual";
-    }
-
-    html.scrollTop = 0;
-    body.scrollTop = 0;
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-
-    if (pageTopRef.current) {
-      pageTopRef.current.scrollIntoView({
-        block: "start",
-        inline: "nearest",
-        behavior: "auto",
-      });
-    }
-  }, []);
-
-  const scrollToCheckout = useCallback(() => {
-    if (!checkoutRef.current) return;
-    checkoutRef.current.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }, []);
-
-  useLayoutEffect(() => {
-    scrollPageToTop();
-
-    const raf1 = requestAnimationFrame(() => {
-      scrollPageToTop();
-
-      const raf2 = requestAnimationFrame(() => {
-        scrollPageToTop();
-      });
-
-      return () => cancelAnimationFrame(raf2);
-    });
-
-    return () => cancelAnimationFrame(raf1);
-  }, [routeId, location.pathname, scrollPageToTop]);
-
-  useEffect(() => {
-    if (!product) return;
-
-    scrollPageToTop();
-
-    const t1 = setTimeout(() => scrollPageToTop(), 0);
-    const t2 = setTimeout(() => scrollPageToTop(), 120);
-    const t3 = setTimeout(() => scrollPageToTop(), 300);
-    const t4 = setTimeout(() => scrollPageToTop(), 600);
-
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-      clearTimeout(t3);
-      clearTimeout(t4);
-    };
-  }, [product, routeId, scrollPageToTop]);
-
   useEffect(() => {
     if (!product) return;
 
@@ -605,6 +533,7 @@ const SingleProduct = () => {
     setQuantity(1);
     setErrors({});
     setAgree(false);
+    setShowCheckout(false);
   }, [routeId, product]);
 
   useEffect(() => {
@@ -672,7 +601,7 @@ const SingleProduct = () => {
     } catch {
       return "";
     }
-  }, [routeId, location.pathname]);
+  }, [routeId]);
 
   const fbShare = useMemo(
     () => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl || "")}`,
@@ -844,9 +773,7 @@ const SingleProduct = () => {
     setQuantity((prev) => Math.max(1, prev - 1));
   };
 
-  const handleInternalProductNavigation = () => {
-    scrollPageToTop();
-  };
+  const handleInternalProductNavigation = () => {};
 
   const validateSelectionBeforeAction = () => {
     if (sizes.length > 0 && !selectedSize) {
@@ -933,15 +860,7 @@ const SingleProduct = () => {
     if (!validateSelectionBeforeAction()) return;
 
     dispatch(addToCart(buildCartPayload()));
-
-    setTimeout(() => {
-      scrollToCheckout();
-    }, 120);
-  };
-
-  const handleOnlyScrollToCheckout = () => {
-    if (!validateSelectionBeforeAction()) return;
-    scrollToCheckout();
+    setShowCheckout(true);
   };
 
   const handleChange = (field, value) => {
@@ -1119,7 +1038,7 @@ const SingleProduct = () => {
 
   if (isLoading) {
     return (
-      <div ref={pageTopRef} className="max-w-6xl mx-auto p-8">
+      <div className="max-w-6xl mx-auto p-8">
         <div className="text-center text-[#111]">جارٍ التحميل...</div>
       </div>
     );
@@ -1127,14 +1046,14 @@ const SingleProduct = () => {
 
   if (isError || !product) {
     return (
-      <div ref={pageTopRef} className="max-w-6xl mx-auto p-8 text-center text-red-600">
+      <div className="max-w-6xl mx-auto p-8 text-center text-red-600">
         المنتج غير موجود
       </div>
     );
   }
 
   return (
-    <div ref={pageTopRef} className="sp2-wrap" dir={isRTL ? "rtl" : "ltr"} lang="ar">
+    <div className="sp2-wrap" dir={isRTL ? "rtl" : "ltr"} lang="ar">
       <FadeInSection delay={0.02} yOffset={22}>
         <div className="sp2-topSearch sp2-reveal sp2-reveal--hero">
           <div className="sp2-topSearchInner">
@@ -1255,7 +1174,6 @@ const SingleProduct = () => {
                     className="sp2-mainImg sp2-zoomImg"
                     loading="eager"
                     decoding="async"
-                    onLoad={scrollPageToTop}
                   />
                 </div>
 
@@ -1332,19 +1250,19 @@ const SingleProduct = () => {
                 <a
                   className="sp2-vendorBtn"
                   href="/contact"
-                  aria-label="اتصل بالبائع +216 55 495 816"
+                  aria-label={`اتصل بالبائع ${VENDOR_PHONE}`}
                   title="اتصل بالبائع"
                 >
                   <FiPhoneCall />
                   <span>اتصل بالبائع</span>
-                  <strong dir="ltr">+216 55 495 816</strong>
+                  <strong dir="ltr">{VENDOR_PHONE}</strong>
                 </a>
               </div>
 
-              <div className="sp2-priceHint">
-                {unitPrice > 0
-                  ? `السعر الحالي ${money(unitPrice)} د.ت · التوصيل مجاني داخل تونس.`
-                  : "لمعرفة السعر، الرجاء الاتصال بالبائع."}
+              <div className="sp2-priceHint sp2-priceHint--premium">
+                لمعرفة سعر هذه القطعة بدقة، يرجى التواصل مباشرةً مع البائع على
+                <strong dir="ltr"> {VENDOR_PHONE} </strong>
+                وستحصل على التأكيد النهائي بسرعة ووضوح.
               </div>
 
               <div className="sp2-ratingRow sp2-ratingRowBig">
@@ -1419,7 +1337,7 @@ const SingleProduct = () => {
                   <div>
                     <h3 className="sp2-purchaseTitle">إعداد الطلب</h3>
                     <p className="sp2-purchaseSub">
-                      اختر المقاس والكمية ثم أضف المنتج للعربة أو أكمل الطلب مباشرة.
+                      اختر المقاس والكمية، ثم اضغط على زر الإضافة للعربة ليظهر لك نموذج الطلب مباشرةً.
                     </p>
                   </div>
                   <div className="sp2-purchaseMeta">
@@ -1487,7 +1405,7 @@ const SingleProduct = () => {
                       ))}
                     </div>
                     <div className="sp2-selectedHint">
-                      المقاسات المختارة:
+                      المقاس المختار:
                       <strong>{selectedSize ? ` ${selectedSize}` : " لم يتم الاختيار بعد"}</strong>
                     </div>
                   </div>
@@ -1527,11 +1445,16 @@ const SingleProduct = () => {
                 </div>
 
                 <div className="sp2-inlineSummary">
-                  <div className="sp2-inlineSummaryRow">
-                    <span>سعر القطعة</span>
-                    <strong>{money(unitPrice)} د.ت</strong>
+                  <div className="sp2-inlineSummaryRow sp2-inlineSummaryRow--stack">
+                    <span className="sp2-inlineSummaryLabel">سعر القطعة</span>
+                    <div className="sp2-inlinePriceHint">
+                      <span className="sp2-inlinePriceHintBadge">معلومة مهمة</span>
+                      <p>
+                        لمعرفة السعر، يرجى الاتصال بالبائع مباشرةً على الرقم
+                        <strong dir="ltr"> {VENDOR_PHONE} </strong>
+                      </p>
+                    </div>
                   </div>
-                 
                 </div>
 
                 <div className="sp2-actionsGrid">
@@ -1541,10 +1464,8 @@ const SingleProduct = () => {
                     onClick={handleAddToCartAndCheckout}
                   >
                     <ShoppingBag className="sp2-mainActionIcon" />
-                    أضف إلى العربة وانتقل إلى الطلب
+                    أضف إلى العربة
                   </button>
-
-                  
                 </div>
               </div>
             </div>
@@ -1656,382 +1577,371 @@ const SingleProduct = () => {
           </section>
         </FadeInSection>
 
-        <FadeInSection delay={0.06} yOffset={26}>
-          <section
-            ref={checkoutRef}
-            className="sp2-inlineCheckout sp2-reveal sp2-reveal--section"
-            aria-label="إتمام الطلب من صفحة المنتج"
-          >
-            <div className="sp2-inlineCheckoutHead">
-              <span className="sp2-likeEyebrow">Premium Checkout</span>
-              <h2 className="sp2-likeTitle">إتمام الطلب مباشرة من هذه الصفحة</h2>
-              <p className="sp2-likeIntro">
-                نفس تجربة الدفع الأنيقة والسريعة، مع المنتج الذي اخترته، المقاس المحدد، والكمية التي
-                تريدها.
-              </p>
-            </div>
+        {showCheckout && (
+          <FadeInSection delay={0.06} yOffset={26}>
+            <section
+              ref={checkoutSectionRef}
+              className="sp2-inlineCheckout sp2-reveal sp2-reveal--section"
+              aria-label="إتمام الطلب من صفحة المنتج"
+            >
+              <div className="sp2-inlineCheckoutHead">
+                <span className="sp2-likeEyebrow">Premium Checkout</span>
+                <h2 className="sp2-likeTitle">إتمام الطلب مباشرة من هذه الصفحة</h2>
+                <p className="sp2-likeIntro">
+                  تمّت إضافة المنتج بنجاح. أكمل الآن معلوماتك ليتم تأكيد الطلب بسرعة وبأناقة.
+                </p>
+              </div>
 
-            <div className="cz-grid sp2-inlineCheckoutGrid">
-              <div className="cz-left">
-                <form id="sp2-checkout-form" className="cz-formWrap" onSubmit={submitSingleOrder}>
-                  <section className="cz-card animate-fade-in-delay-100">
-                    <header className="cz-card__header">
-                      <h2 className="cz-card__title">
-                        <span className="cz-bubble" aria-hidden="true">
-                          <User className="cz-bubble__icon" />
-                        </span>
-                        معلومات الاتصال
-                      </h2>
-                    </header>
+              <div className="cz-grid sp2-inlineCheckoutGrid">
+                <div className="cz-left">
+                  <form id="sp2-checkout-form" className="cz-formWrap" onSubmit={submitSingleOrder}>
+                    <section className="cz-card animate-fade-in-delay-100">
+                      <header className="cz-card__header">
+                        <h2 className="cz-card__title">
+                          <span className="cz-bubble" aria-hidden="true">
+                            <User className="cz-bubble__icon" />
+                          </span>
+                          معلومات الاتصال
+                        </h2>
+                      </header>
 
-                    <div className="cz-card__content cz-space-4">
-                      <div className="cz-row2">
-                        <div className="cz-field">
-                          <label className="cz-label" htmlFor="sp2-firstName">
-                            الاسم <span className="cz-required">*</span>
-                          </label>
-                          <input
-                            id="sp2-firstName"
-                            className={`cz-input ${errors.firstName ? "cz-input--error" : ""}`}
-                            placeholder="أحمد"
-                            value={formData.firstName}
-                            onChange={(e) => handleChange("firstName", e.target.value)}
-                            autoComplete="given-name"
-                          />
-                        </div>
+                      <div className="cz-card__content cz-space-4">
+                        <div className="cz-row2">
+                          <div className="cz-field">
+                            <label className="cz-label" htmlFor="sp2-firstName">
+                              الاسم <span className="cz-required">*</span>
+                            </label>
+                            <input
+                              id="sp2-firstName"
+                              className={`cz-input ${errors.firstName ? "cz-input--error" : ""}`}
+                              placeholder="أحمد"
+                              value={formData.firstName}
+                              onChange={(e) => handleChange("firstName", e.target.value)}
+                              autoComplete="given-name"
+                            />
+                          </div>
 
-                        <div className="cz-field">
-                          <label className="cz-label" htmlFor="sp2-lastName">
-                            اللقب <span className="cz-required">*</span>
-                          </label>
-                          <input
-                            id="sp2-lastName"
-                            className={`cz-input ${errors.lastName ? "cz-input--error" : ""}`}
-                            placeholder="بن علي"
-                            value={formData.lastName}
-                            onChange={(e) => handleChange("lastName", e.target.value)}
-                            autoComplete="family-name"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="cz-row2">
-                        <div className="cz-field">
-                          <label className="cz-label cz-label--icon" htmlFor="sp2-email">
-                            <Mail className="cz-miniIcon" /> البريد الإلكتروني{" "}
-                            <span className="cz-required">*</span>
-                          </label>
-                          <input
-                            id="sp2-email"
-                            className={`cz-input ${errors.email ? "cz-input--error" : ""}`}
-                            type="email"
-                            placeholder="ahmed@example.com"
-                            value={formData.email}
-                            onChange={(e) => handleChange("email", e.target.value)}
-                            autoComplete="email"
-                          />
-                        </div>
-
-                        <div className="cz-field">
-                          <label className="cz-label cz-label--icon" htmlFor="sp2-phone">
-                            <Phone className="cz-miniIcon" /> رقم الهاتف{" "}
-                            <span className="cz-required">*</span>
-                          </label>
-                          <input
-                            id="sp2-phone"
-                            className={`cz-input ${errors.phone ? "cz-input--error" : ""}`}
-                            type="tel"
-                            placeholder="+216 XX XXX XXX"
-                            value={formData.phone}
-                            onChange={(e) => handleChange("phone", e.target.value)}
-                            autoComplete="tel"
-                            inputMode="tel"
-                            dir="ltr"
-                            style={{ unicodeBidi: "plaintext" }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </section>
-
-                  <section className="cz-card animate-fade-in-delay-200">
-                    <header className="cz-card__header">
-                      <h2 className="cz-card__title">
-                        <span className="cz-bubble" aria-hidden="true">
-                          <MapPin className="cz-bubble__icon" />
-                        </span>
-                        عنوان الشحن
-                      </h2>
-                    </header>
-
-                    <div className="cz-card__content cz-space-4">
-                      <div className="cz-field">
-                        <label className="cz-label" htmlFor="sp2-address">
-                          العنوان <span className="cz-required">*</span>
-                        </label>
-                        <input
-                          id="sp2-address"
-                          className={`cz-input ${errors.address ? "cz-input--error" : ""}`}
-                          placeholder="123 شارع محمد الخامس"
-                          value={formData.address}
-                          onChange={(e) => handleChange("address", e.target.value)}
-                          autoComplete="street-address"
-                        />
-                      </div>
-
-                      <div className="cz-row3">
-                        <div className="cz-field">
-                          <label className="cz-label" htmlFor="sp2-city">
-                            المدينة <span className="cz-required">*</span>
-                          </label>
-                          <input
-                            id="sp2-city"
-                            className={`cz-input ${errors.city ? "cz-input--error" : ""}`}
-                            placeholder="تونس"
-                            value={formData.city}
-                            onChange={(e) => handleChange("city", e.target.value)}
-                            autoComplete="address-level2"
-                          />
-                        </div>
-
-                        <div className="cz-field">
-                          <label className="cz-label" htmlFor="sp2-state">
-                            الولاية <span className="cz-required">*</span>
-                          </label>
-
-                          <div className="cz-selectWrap">
-                            <select
-                              id="sp2-state"
-                              className={`cz-select ${errors.state ? "cz-input--error" : ""}`}
-                              value={formData.state}
-                              onChange={(e) => handleChange("state", e.target.value)}
-                              aria-label="الولاية"
-                            >
-                              <option value="" disabled>
-                                اختر...
-                              </option>
-                              <option value="Tunis">تونس</option>
-                              <option value="Ariana">أريانة</option>
-                              <option value="Ben Arous">بن عروس</option>
-                              <option value="Manouba">منوبة</option>
-                              <option value="Sousse">سوسة</option>
-                              <option value="Sfax">صفاقس</option>
-                              <option value="Nabeul">نابل</option>
-                            </select>
-                            <span className="cz-selectChevron" aria-hidden="true" />
+                          <div className="cz-field">
+                            <label className="cz-label" htmlFor="sp2-lastName">
+                              اللقب <span className="cz-required">*</span>
+                            </label>
+                            <input
+                              id="sp2-lastName"
+                              className={`cz-input ${errors.lastName ? "cz-input--error" : ""}`}
+                              placeholder="بن علي"
+                              value={formData.lastName}
+                              onChange={(e) => handleChange("lastName", e.target.value)}
+                              autoComplete="family-name"
+                            />
                           </div>
                         </div>
 
-                        <div className="cz-field">
-                          <label className="cz-label" htmlFor="sp2-postal">
-                            الرمز البريدي <span className="cz-required">*</span>
-                          </label>
-                          <input
-                            id="sp2-postal"
-                            className={`cz-input ${errors.postal ? "cz-input--error" : ""}`}
-                            placeholder="2000"
-                            value={formData.postal}
-                            onChange={(e) => handleChange("postal", e.target.value)}
-                            autoComplete="postal-code"
-                            inputMode="numeric"
-                            dir="ltr"
-                            style={{ unicodeBidi: "plaintext" }}
-                          />
+                        <div className="cz-row2">
+                          <div className="cz-field">
+                            <label className="cz-label cz-label--icon" htmlFor="sp2-email">
+                              <Mail className="cz-miniIcon" /> البريد الإلكتروني{" "}
+                              <span className="cz-required">*</span>
+                            </label>
+                            <input
+                              id="sp2-email"
+                              className={`cz-input ${errors.email ? "cz-input--error" : ""}`}
+                              type="email"
+                              placeholder="ahmed@example.com"
+                              value={formData.email}
+                              onChange={(e) => handleChange("email", e.target.value)}
+                              autoComplete="email"
+                            />
+                          </div>
+
+                          <div className="cz-field">
+                            <label className="cz-label cz-label--icon" htmlFor="sp2-phone">
+                              <Phone className="cz-miniIcon" /> رقم الهاتف{" "}
+                              <span className="cz-required">*</span>
+                            </label>
+                            <input
+                              id="sp2-phone"
+                              className={`cz-input ${errors.phone ? "cz-input--error" : ""}`}
+                              type="tel"
+                              placeholder="+216 XX XXX XXX"
+                              value={formData.phone}
+                              onChange={(e) => handleChange("phone", e.target.value)}
+                              autoComplete="tel"
+                              inputMode="tel"
+                              dir="ltr"
+                              style={{ unicodeBidi: "plaintext" }}
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </section>
+                    </section>
 
-                  <section className="cz-card cz-card--pay animate-fade-in-delay-300">
+                    <section className="cz-card animate-fade-in-delay-200">
+                      <header className="cz-card__header">
+                        <h2 className="cz-card__title">
+                          <span className="cz-bubble" aria-hidden="true">
+                            <MapPin className="cz-bubble__icon" />
+                          </span>
+                          عنوان الشحن
+                        </h2>
+                      </header>
+
+                      <div className="cz-card__content cz-space-4">
+                        <div className="cz-field">
+                          <label className="cz-label" htmlFor="sp2-address">
+                            العنوان <span className="cz-required">*</span>
+                          </label>
+                          <input
+                            id="sp2-address"
+                            className={`cz-input ${errors.address ? "cz-input--error" : ""}`}
+                            placeholder="123 شارع محمد الخامس"
+                            value={formData.address}
+                            onChange={(e) => handleChange("address", e.target.value)}
+                            autoComplete="street-address"
+                          />
+                        </div>
+
+                        <div className="cz-row3">
+                          <div className="cz-field">
+                            <label className="cz-label" htmlFor="sp2-city">
+                              المدينة <span className="cz-required">*</span>
+                            </label>
+                            <input
+                              id="sp2-city"
+                              className={`cz-input ${errors.city ? "cz-input--error" : ""}`}
+                              placeholder="تونس"
+                              value={formData.city}
+                              onChange={(e) => handleChange("city", e.target.value)}
+                              autoComplete="address-level2"
+                            />
+                          </div>
+
+                          <div className="cz-field">
+                            <label className="cz-label" htmlFor="sp2-state">
+                              الولاية <span className="cz-required">*</span>
+                            </label>
+
+                            <div className="cz-selectWrap">
+                              <select
+                                id="sp2-state"
+                                className={`cz-select ${errors.state ? "cz-input--error" : ""}`}
+                                value={formData.state}
+                                onChange={(e) => handleChange("state", e.target.value)}
+                                aria-label="الولاية"
+                              >
+                                <option value="" disabled>
+                                  اختر...
+                                </option>
+                                <option value="Tunis">تونس</option>
+                                <option value="Ariana">أريانة</option>
+                                <option value="Ben Arous">بن عروس</option>
+                                <option value="Manouba">منوبة</option>
+                                <option value="Sousse">سوسة</option>
+                                <option value="Sfax">صفاقس</option>
+                                <option value="Nabeul">نابل</option>
+                              </select>
+                              <span className="cz-selectChevron" aria-hidden="true" />
+                            </div>
+                          </div>
+
+                          <div className="cz-field">
+                            <label className="cz-label" htmlFor="sp2-postal">
+                              الرمز البريدي <span className="cz-required">*</span>
+                            </label>
+                            <input
+                              id="sp2-postal"
+                              className={`cz-input ${errors.postal ? "cz-input--error" : ""}`}
+                              placeholder="2000"
+                              value={formData.postal}
+                              onChange={(e) => handleChange("postal", e.target.value)}
+                              autoComplete="postal-code"
+                              inputMode="numeric"
+                              dir="ltr"
+                              style={{ unicodeBidi: "plaintext" }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </section>
+
+                    <section className="cz-card cz-card--pay animate-fade-in-delay-300">
+                      <header className="cz-card__header">
+                        <h2 className="cz-card__title">
+                          <span className="cz-bubble" aria-hidden="true">
+                            <Banknote className="cz-bubble__icon" />
+                          </span>
+                          طريقة الدفع
+                        </h2>
+                      </header>
+
+                      <div className="cz-card__content">
+                        <div className="cz-codChoice" role="group" aria-label="طريقة الدفع">
+                          <div className="cz-codChoice__left">
+                            <span className="cz-codChoice__bigBubble" aria-hidden="true">
+                              <Banknote className="cz-codChoice__bigIcon" />
+                            </span>
+                          </div>
+
+                          <div className="cz-codChoice__mid">
+                            <p className="cz-codChoice__title">الدفع عند الاستلام</p>
+                            <p className="cz-codChoice__sub">ادفع عند وصول الطلب إلى باب منزلك</p>
+                          </div>
+
+                          <div className="cz-codChoice__right" aria-hidden="true">
+                            <span className="cz-radio">
+                              <span className="cz-radio__dot" />
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="cz-trustLine">
+                          <ShieldCheck className="cz-trustLine__icon" />
+                          <span>لا يوجد دفع الآن — ادفع فقط عند استلام طلبك</span>
+                        </div>
+                      </div>
+                    </section>
+
+                    <section className="cz-card cz-card--consent animate-fade-in-delay-300">
+                      <div className="cz-card__content cz-consent">
+                        <p className="cz-consent__line">
+                          عند إتمام الطلب فأنت توافق على{" "}
+                          <button
+                            type="button"
+                            className="cz-inlineLink"
+                            onClick={() => setOpenWhich("terms")}
+                          >
+                            الشروط والأحكام
+                          </button>{" "}
+                          و{" "}
+                          <button
+                            type="button"
+                            className="cz-inlineLink"
+                            onClick={() => setOpenWhich("privacy")}
+                          >
+                            سياسة الخصوصية
+                          </button>
+                          .
+                        </p>
+
+                        <label className="cz-agreeRow">
+                          <input
+                            type="checkbox"
+                            className="cz-checkbox"
+                            checked={agree}
+                            onChange={(e) => setAgree(e.target.checked)}
+                          />
+                          <span className="cz-agreeText">أوافق</span>
+                        </label>
+
+                        <p className="cz-consent__hint">
+                          لن يتم تأكيد الطلب إلا بعد الموافقة على الشروط والسياسة.
+                        </p>
+                      </div>
+                    </section>
+                  </form>
+                </div>
+
+                <div className="cz-right animate-fade-in-delay-300">
+                  <section className="cz-card cz-sticky">
                     <header className="cz-card__header">
                       <h2 className="cz-card__title">
-                        <span className="cz-bubble" aria-hidden="true">
-                          <Banknote className="cz-bubble__icon" />
-                        </span>
-                        طريقة الدفع
+                        <Package className="cz-packIcon" />
+                        ملخص الطلب
                       </h2>
                     </header>
 
                     <div className="cz-card__content">
-                      <div className="cz-codChoice" role="group" aria-label="طريقة الدفع">
-                        <div className="cz-codChoice__left">
-                          <span className="cz-codChoice__bigBubble" aria-hidden="true">
-                            <Banknote className="cz-codChoice__bigIcon" />
-                          </span>
-                        </div>
-
-                        <div className="cz-codChoice__mid">
-                          <p className="cz-codChoice__title">الدفع عند الاستلام</p>
-                          <p className="cz-codChoice__sub">ادفع عند وصول الطلب إلى باب منزلك</p>
-                        </div>
-
-                        <div className="cz-codChoice__right" aria-hidden="true">
-                          <span className="cz-radio">
-                            <span className="cz-radio__dot" />
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="cz-trustLine">
-                        <ShieldCheck className="cz-trustLine__icon" />
-                        <span>لا يوجد دفع الآن — ادفع فقط عند استلام طلبك</span>
-                      </div>
-                    </div>
-                  </section>
-
-                  <section className="cz-card cz-card--consent animate-fade-in-delay-300">
-                    <div className="cz-card__content cz-consent">
-                      <p className="cz-consent__line">
-                        عند إتمام الطلب فأنت توافق على{" "}
-                        <button
-                          type="button"
-                          className="cz-inlineLink"
-                          onClick={() => setOpenWhich("terms")}
-                        >
-                          الشروط والأحكام
-                        </button>{" "}
-                        و{" "}
-                        <button
-                          type="button"
-                          className="cz-inlineLink"
-                          onClick={() => setOpenWhich("privacy")}
-                        >
-                          سياسة الخصوصية
-                        </button>
-                        .
-                      </p>
-
-                      <label className="cz-agreeRow">
-                        <input
-                          type="checkbox"
-                          className="cz-checkbox"
-                          checked={agree}
-                          onChange={(e) => setAgree(e.target.checked)}
-                        />
-                        <span className="cz-agreeText">أوافق</span>
-                      </label>
-
-                      <p className="cz-consent__hint">
-                        لن يتم تأكيد الطلب إلا بعد الموافقة على الشروط والسياسة.
-                      </p>
-                    </div>
-                  </section>
-                </form>
-              </div>
-
-              <div className="cz-right animate-fade-in-delay-300">
-                <section className="cz-card cz-sticky">
-                  <header className="cz-card__header">
-                    <h2 className="cz-card__title">
-                      <Package className="cz-packIcon" />
-                      ملخص الطلب
-                    </h2>
-                  </header>
-
-                  <div className="cz-card__content">
-                    <div className="cz-summary">
-                      <div className="cz-items cz-items--withImg">
-                        <div className="cz-item cz-item--img">
-                          <div className="cz-item__thumb cz-item__thumb--lg" aria-hidden="true">
-                            {summaryItem.image ? (
-                              <img
-                                src={getImgUrl(summaryItem.image)}
-                                alt={summaryItem.title}
-                                loading="lazy"
-                                decoding="async"
-                                className="cz-item__img"
-                              />
-                            ) : (
-                              <div className="cz-item__imgFallback" title="لا توجد صورة">
-                                <ImageIcon size={18} />
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="cz-item__main">
-                            <div className="cz-item__top">
-                              <p className="cz-item__name">{summaryItem.title}</p>
-                              <span className="cz-item__price">{money(summaryItem.total)} د.ت</span>
+                      <div className="cz-summary">
+                        <div className="cz-items cz-items--withImg">
+                          <div className="cz-item cz-item--img">
+                            <div className="cz-item__thumb cz-item__thumb--lg" aria-hidden="true">
+                              {summaryItem.image ? (
+                                <img
+                                  src={getImgUrl(summaryItem.image)}
+                                  alt={summaryItem.title}
+                                  loading="lazy"
+                                  decoding="async"
+                                  className="cz-item__img"
+                                />
+                              ) : (
+                                <div className="cz-item__imgFallback" title="لا توجد صورة">
+                                  <ImageIcon size={18} />
+                                </div>
+                              )}
                             </div>
 
-                            <p className="cz-item__meta">
-                              اللون: {summaryItem.colorLabel}
-                              {summaryItem.size ? ` · المقاس: ${summaryItem.size}` : ""}
-                              {" · "}الكمية: {summaryItem.quantity}
-                            </p>
+                            <div className="cz-item__main">
+                              <div className="cz-item__top cz-item__top--single">
+                                <p className="cz-item__name">{summaryItem.title}</p>
+                              </div>
+
+                              <p className="cz-item__meta">
+                                اللون: {summaryItem.colorLabel}
+                                {summaryItem.size ? ` · المقاس: ${summaryItem.size}` : ""}
+                                {" · "}الكمية: {summaryItem.quantity}
+                              </p>
+
+                              <div className="sp2-checkoutPriceNote">
+                                <span className="sp2-checkoutPriceNoteLabel">سعر القطعة</span>
+                                <p>
+                                  يرجى الاتصال بالبائع على الرقم
+                                  <strong dir="ltr"> {VENDOR_PHONE} </strong>
+                                  لمعرفة السعر وتأكيد تفاصيل الطلب.
+                                </p>
+                              </div>
+                            </div>
                           </div>
                         </div>
+
+                        <div className="cz-sep" />
+
+                        <button
+                          className="cz-btnLuxury"
+                          form="sp2-checkout-form"
+                          type="submit"
+                          disabled={isCreatingOrder || !agree}
+                          title={!agree ? "يرجى الموافقة على الشروط أولًا" : ""}
+                        >
+                          <Truck className="cz-btnIcon" />
+                          {isCreatingOrder ? "جارٍ التأكيد..." : "تأكيد الطلب — الدفع عند الاستلام"}
+                        </button>
+
+                        <p className="cz-terms">
+                          بإتمام الطلب، أنت توافق على الشروط والأحكام وسياسة الخصوصية.
+                          سيتم تحديد السعر النهائي مباشرةً مع البائع.
+                        </p>
+
+                        <div className="cz-sep" />
+
+                        <div className="cz-badges">
+                          <div className="cz-badge">
+                            <ShieldCheck className="cz-badge__icon" />
+                            <span>طلب آمن</span>
+                          </div>
+                          <div className="cz-badge">
+                            <Truck className="cz-badge__icon" />
+                            <span>توصيل مجاني</span>
+                          </div>
+                          <div className="cz-badge">
+                            <Banknote className="cz-badge__icon" />
+                            <span>الدفع عند الاستلام</span>
+                          </div>
+                          <div className="cz-badge">
+                            <Package className="cz-badge__icon" />
+                            <span>جودة مضمونة</span>
+                          </div>
+                        </div>
+
+                        <button type="button" className="cz-back">
+                          الرجوع إلى أعلى الصفحة
+                        </button>
                       </div>
-
-                      <div className="cz-sep" />
-
-                      <div className="cz-breakdown">
-                        <div className="cz-line">
-                          <span className="cz-muted">المجموع</span>
-                          <span>{money(subtotal)} د.ت</span>
-                        </div>
-
-                        <div className="cz-line">
-                          <span className="cz-muted">التوصيل</span>
-                          <span className="cz-green">مجاني</span>
-                        </div>
-                      </div>
-
-                      <div className="cz-sep" />
-
-                      <div className="cz-total">
-                        <span>الإجمالي</span>
-                        <span className="cz-total__price">{money(total)} د.ت</span>
-                      </div>
-
-                      <button
-                        className="cz-btnLuxury"
-                        form="sp2-checkout-form"
-                        type="submit"
-                        disabled={isCreatingOrder || !agree}
-                        title={!agree ? "يرجى الموافقة على الشروط أولًا" : ""}
-                      >
-                        <Truck className="cz-btnIcon" />
-                        {isCreatingOrder ? "جارٍ التأكيد..." : "تأكيد الطلب — الدفع عند الاستلام"}
-                      </button>
-
-                      <p className="cz-terms">
-                        بإتمام الطلب، أنت توافق على الشروط والأحكام وسياسة الخصوصية. ستدفع{" "}
-                        <strong>{money(total)} د.ت</strong> عند الاستلام.{" "}
-                        <span className="cz-freeShipInline">التوصيل مجاني.</span>
-                      </p>
-
-                      <div className="cz-sep" />
-
-                      <div className="cz-badges">
-                        <div className="cz-badge">
-                          <ShieldCheck className="cz-badge__icon" />
-                          <span>طلب آمن</span>
-                        </div>
-                        <div className="cz-badge">
-                          <Truck className="cz-badge__icon" />
-                          <span>توصيل مجاني</span>
-                        </div>
-                        <div className="cz-badge">
-                          <Banknote className="cz-badge__icon" />
-                          <span>الدفع عند الاستلام</span>
-                        </div>
-                        <div className="cz-badge">
-                          <Package className="cz-badge__icon" />
-                          <span>جودة مضمونة</span>
-                        </div>
-                      </div>
-
-                      <button type="button" className="cz-back" onClick={scrollPageToTop}>
-                        الرجوع إلى أعلى الصفحة
-                      </button>
                     </div>
-                  </div>
-                </section>
+                  </section>
+                </div>
               </div>
-            </div>
-          </section>
-        </FadeInSection>
+            </section>
+          </FadeInSection>
+        )}
 
         {sameCategoryProducts.length > 0 && (
           <FadeInSection delay={0.05} yOffset={26}>

@@ -157,6 +157,12 @@
   color: #991b1b;
 }
 
+/* Map */ 
+
+.wz-map 
+
+{border-radius: 0 !important;}
+
 /* Responsive */
 @media (max-width: 720px){
   .wz-form__grid{
