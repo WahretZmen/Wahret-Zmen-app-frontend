@@ -68,11 +68,6 @@ const pickText = (v) => {
   return "";
 };
 
-const money = (n) => {
-  const x = Number(n);
-  return Number.isFinite(x) ? x.toFixed(2) : "0.00";
-};
-
 const pickTitle = (p) =>
   p?.translations?.ar?.title ||
   p?.title ||
@@ -417,9 +412,8 @@ const SingleProduct = () => {
   const isRTL = true;
 
   const checkoutSectionRef = useRef(null);
-  const pendingCheckoutScrollRef = useRef(false);
-  const checkoutScrollRafRef = useRef(0);
-  const checkoutScrollTimeoutRef = useRef(null);
+  const pendingScrollToCheckoutRef = useRef(false);
+  const checkoutScrollRetryRef = useRef(0);
 
   useSelector((s) => {
     const c = s?.cart;
@@ -575,15 +569,11 @@ const SingleProduct = () => {
     setErrors({});
     setAgree(false);
     setShowCheckout(false);
-    pendingCheckoutScrollRef.current = false;
+    pendingScrollToCheckoutRef.current = false;
 
-    if (checkoutScrollRafRef.current) {
-      cancelAnimationFrame(checkoutScrollRafRef.current);
-      checkoutScrollRafRef.current = 0;
-    }
-    if (checkoutScrollTimeoutRef.current) {
-      clearTimeout(checkoutScrollTimeoutRef.current);
-      checkoutScrollTimeoutRef.current = null;
+    if (checkoutScrollRetryRef.current) {
+      window.clearTimeout(checkoutScrollRetryRef.current);
+      checkoutScrollRetryRef.current = 0;
     }
   }, [routeId, product]);
 
@@ -882,7 +872,10 @@ const SingleProduct = () => {
       : {
           colorName: { ar: "افتراضي", fr: "Default", en: "Default" },
           image: activeGallery[0] || product?.coverImage || "",
-          images: activeGallery[0] || product?.coverImage ? [activeGallery[0] || product?.coverImage] : [],
+          images:
+            activeGallery[0] || product?.coverImage
+              ? [activeGallery[0] || product?.coverImage]
+              : [],
           stock: num(product?.stockQuantity || 0),
         };
 
@@ -907,54 +900,46 @@ const SingleProduct = () => {
     };
   };
 
-  const scrollToCheckout = useCallback((behavior = "smooth") => {
-    if (typeof window === "undefined") return false;
-    const node = checkoutSectionRef.current;
-    if (!node) return false;
+  const scrollToCheckoutWhenReady = useCallback(() => {
+    if (typeof window === "undefined") return;
 
-    if (checkoutScrollRafRef.current) {
-      cancelAnimationFrame(checkoutScrollRafRef.current);
-      checkoutScrollRafRef.current = 0;
-    }
-    if (checkoutScrollTimeoutRef.current) {
-      clearTimeout(checkoutScrollTimeoutRef.current);
-      checkoutScrollTimeoutRef.current = null;
+    if (checkoutScrollRetryRef.current) {
+      window.clearTimeout(checkoutScrollRetryRef.current);
+      checkoutScrollRetryRef.current = 0;
     }
 
-    checkoutScrollTimeoutRef.current = setTimeout(() => {
-      checkoutScrollRafRef.current = requestAnimationFrame(() => {
-        checkoutScrollRafRef.current = requestAnimationFrame(() => {
-          node.scrollIntoView({
-            behavior,
-            block: "start",
-            inline: "nearest",
-          });
+    let tries = 0;
+    const maxTries = 40;
 
-          pendingCheckoutScrollRef.current = false;
-          checkoutScrollRafRef.current = 0;
+    const run = () => {
+      const el = checkoutSectionRef.current;
+
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        const absoluteTop = window.pageYOffset + rect.top;
+        const offset = window.innerWidth <= 520 ? 88 : window.innerWidth <= 760 ? 96 : 120;
+
+        window.scrollTo({
+          top: Math.max(0, absoluteTop - offset),
+          behavior: "smooth",
         });
-      });
-    }, 80);
 
-    return true;
-  }, []);
-
-  useEffect(() => {
-    if (!showCheckout) return;
-    if (!pendingCheckoutScrollRef.current) return;
-
-    scrollToCheckout("smooth");
-  }, [showCheckout, scrollToCheckout]);
-
-  useEffect(() => {
-    return () => {
-      if (checkoutScrollRafRef.current) {
-        cancelAnimationFrame(checkoutScrollRafRef.current);
+        pendingScrollToCheckoutRef.current = false;
+        checkoutScrollRetryRef.current = 0;
+        return;
       }
-      if (checkoutScrollTimeoutRef.current) {
-        clearTimeout(checkoutScrollTimeoutRef.current);
+
+      tries += 1;
+
+      if (tries < maxTries) {
+        checkoutScrollRetryRef.current = window.setTimeout(run, 60);
+      } else {
+        pendingScrollToCheckoutRef.current = false;
+        checkoutScrollRetryRef.current = 0;
       }
     };
+
+    run();
   }, []);
 
   const handleAddToCartAndCheckout = async () => {
@@ -962,26 +947,39 @@ const SingleProduct = () => {
 
     dispatch(addToCart(buildCartPayload()));
 
-    if (!showCheckout) {
-      setShowCheckout(true);
-    }
+    pendingScrollToCheckoutRef.current = true;
+    setShowCheckout(true);
 
     await Swal.fire({
       icon: "success",
       title: "تمت إضافة المنتج بنجاح إلى العربة.",
+      text: " الرجاء الهبوط الى الأسفل لتأكييد الطلب.",
       confirmButtonColor: "#111",
       confirmButtonText: "OK",
-      timer: 1200,
       timerProgressBar: true,
     });
 
-    pendingCheckoutScrollRef.current = true;
-
-    const scrolled = scrollToCheckout("smooth");
-    if (!scrolled) {
-      setShowCheckout(true);
-    }
+    scrollToCheckoutWhenReady();
   };
+
+  useEffect(() => {
+    if (!showCheckout) return;
+    if (!pendingScrollToCheckoutRef.current) return;
+
+    const t = window.setTimeout(() => {
+      scrollToCheckoutWhenReady();
+    }, 120);
+
+    return () => window.clearTimeout(t);
+  }, [showCheckout, scrollToCheckoutWhenReady]);
+
+  useEffect(() => {
+    return () => {
+      if (checkoutScrollRetryRef.current) {
+        window.clearTimeout(checkoutScrollRetryRef.current);
+      }
+    };
+  }, []);
 
   const handleBackToTop = () => {
     if (typeof window === "undefined") return;
@@ -1068,7 +1066,9 @@ const SingleProduct = () => {
 
     const mainImg = selectedColor?.image || images[0] || product?.coverImage || "";
 
-    const fullName = `${safeStr(formData.firstName).trim()} ${safeStr(formData.lastName).trim()}`.trim();
+    const fullName = `${safeStr(formData.firstName).trim()} ${safeStr(
+      formData.lastName
+    ).trim()}`.trim();
 
     return {
       name: fullName,
@@ -1134,8 +1134,7 @@ const SingleProduct = () => {
       const res = await createOrder(payload).unwrap();
 
       const order = res?.order || res?.data?.order || res || null;
-      const orderId =
-        order?.orderId || order?._id || res?.orderId || res?._id || "";
+      const orderId = order?.orderId || order?._id || res?.orderId || res?._id || "";
 
       if (!orderId) {
         throw new Error("لم يتم استلام مرجع الطلب من السيرفر.");
@@ -1205,7 +1204,10 @@ const SingleProduct = () => {
                 ) : (
                   <ul className="sp2-searchList">
                     {filteredProducts.map((p, idx) => {
-                      const rating = Math.max(0, Math.min(5, Math.round(Number(p?.rating ?? 0))));
+                      const rating = Math.max(
+                        0,
+                        Math.min(5, Math.round(Number(p?.rating ?? 0)))
+                      );
                       const title = pickTitle(p);
                       const pid = displayId(p);
 
@@ -1717,7 +1719,7 @@ const SingleProduct = () => {
         </FadeInSection>
 
         {showCheckout && (
-          <FadeInSection delay={0.06} yOffset={26}>
+          <div className="sp2-checkoutMount">
             <section
               ref={checkoutSectionRef}
               className="sp2-inlineCheckout sp2-reveal sp2-reveal--section"
@@ -2079,7 +2081,7 @@ const SingleProduct = () => {
                 </div>
               </div>
             </section>
-          </FadeInSection>
+          </div>
         )}
 
         {sameCategoryProducts.length > 0 && (
