@@ -417,6 +417,9 @@ const SingleProduct = () => {
   const isRTL = true;
 
   const checkoutSectionRef = useRef(null);
+  const pendingCheckoutScrollRef = useRef(false);
+  const checkoutScrollRafRef = useRef(0);
+  const checkoutScrollTimeoutRef = useRef(null);
 
   useSelector((s) => {
     const c = s?.cart;
@@ -515,8 +518,6 @@ const SingleProduct = () => {
     return getProductGallery(product, selectedColor);
   }, [product, selectedColor]);
 
-  // Important fix:
-  // force top immediately on hard refresh / direct product access
   useLayoutEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -574,6 +575,16 @@ const SingleProduct = () => {
     setErrors({});
     setAgree(false);
     setShowCheckout(false);
+    pendingCheckoutScrollRef.current = false;
+
+    if (checkoutScrollRafRef.current) {
+      cancelAnimationFrame(checkoutScrollRafRef.current);
+      checkoutScrollRafRef.current = 0;
+    }
+    if (checkoutScrollTimeoutRef.current) {
+      clearTimeout(checkoutScrollTimeoutRef.current);
+      checkoutScrollTimeoutRef.current = null;
+    }
   }, [routeId, product]);
 
   useEffect(() => {
@@ -896,11 +907,85 @@ const SingleProduct = () => {
     };
   };
 
-  const handleAddToCartAndCheckout = () => {
+  const scrollToCheckout = useCallback((behavior = "smooth") => {
+    if (typeof window === "undefined") return false;
+    const node = checkoutSectionRef.current;
+    if (!node) return false;
+
+    if (checkoutScrollRafRef.current) {
+      cancelAnimationFrame(checkoutScrollRafRef.current);
+      checkoutScrollRafRef.current = 0;
+    }
+    if (checkoutScrollTimeoutRef.current) {
+      clearTimeout(checkoutScrollTimeoutRef.current);
+      checkoutScrollTimeoutRef.current = null;
+    }
+
+    checkoutScrollTimeoutRef.current = setTimeout(() => {
+      checkoutScrollRafRef.current = requestAnimationFrame(() => {
+        checkoutScrollRafRef.current = requestAnimationFrame(() => {
+          node.scrollIntoView({
+            behavior,
+            block: "start",
+            inline: "nearest",
+          });
+
+          pendingCheckoutScrollRef.current = false;
+          checkoutScrollRafRef.current = 0;
+        });
+      });
+    }, 80);
+
+    return true;
+  }, []);
+
+  useEffect(() => {
+    if (!showCheckout) return;
+    if (!pendingCheckoutScrollRef.current) return;
+
+    scrollToCheckout("smooth");
+  }, [showCheckout, scrollToCheckout]);
+
+  useEffect(() => {
+    return () => {
+      if (checkoutScrollRafRef.current) {
+        cancelAnimationFrame(checkoutScrollRafRef.current);
+      }
+      if (checkoutScrollTimeoutRef.current) {
+        clearTimeout(checkoutScrollTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleAddToCartAndCheckout = async () => {
     if (!validateSelectionBeforeAction()) return;
 
     dispatch(addToCart(buildCartPayload()));
-    setShowCheckout(true);
+
+    if (!showCheckout) {
+      setShowCheckout(true);
+    }
+
+    await Swal.fire({
+      icon: "success",
+      title: "تمت إضافة المنتج بنجاح إلى العربة.",
+      confirmButtonColor: "#111",
+      confirmButtonText: "OK",
+      timer: 1200,
+      timerProgressBar: true,
+    });
+
+    pendingCheckoutScrollRef.current = true;
+
+    const scrolled = scrollToCheckout("smooth");
+    if (!scrolled) {
+      setShowCheckout(true);
+    }
+  };
+
+  const handleBackToTop = () => {
+    if (typeof window === "undefined") return;
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleChange = (field, value) => {
@@ -1985,7 +2070,7 @@ const SingleProduct = () => {
                           </div>
                         </div>
 
-                        <button type="button" className="cz-back">
+                        <button type="button" className="cz-back" onClick={handleBackToTop}>
                           الرجوع إلى أعلى الصفحة
                         </button>
                       </div>
