@@ -1,4 +1,3 @@
-// src/pages/OrderConfirm.jsx
 import React, { useMemo, useState, useEffect } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import {
@@ -17,6 +16,7 @@ import {
   Search,
   Loader2,
   RefreshCw,
+  ExternalLink,
 } from "lucide-react";
 
 import Header from "../components/ui/Header.jsx";
@@ -387,7 +387,6 @@ export default function OrderConfirm() {
             </p>
           </header>
 
-          {/* ID card */}
           <section className="wz-oc__card wz-oc__card--soft wz-anim wz-anim--d1">
             <div className="wz-oc__cardBody wz-oc__idRow">
               <div>
@@ -443,7 +442,6 @@ export default function OrderConfirm() {
             )}
           </section>
 
-          {/* Progress summary */}
           <section className="wz-oc__card wz-anim wz-anim--d1">
             <div className="wz-oc__cardBody wz-oc__cardBody--lg">
               <div
@@ -504,7 +502,6 @@ export default function OrderConfirm() {
             </div>
           </section>
 
-          {/* Guide */}
           <section className="wz-oc__card wz-oc__card--guide wz-anim wz-anim--d1">
             <div className="wz-oc__cardBody wz-oc__cardBody--lg">
               <div className="wz-oc__guideHead">
@@ -566,7 +563,6 @@ export default function OrderConfirm() {
             </div>
           </section>
 
-          {/* Guest Details */}
           <section className="wz-oc__card wz-anim wz-anim--d1">
             <div className="wz-oc__cardBody wz-oc__cardBody--lg">
               <h2 className="wz-oc__sectionTitle">معلومات الزبون</h2>
@@ -617,7 +613,6 @@ export default function OrderConfirm() {
             </div>
           </section>
 
-          {/* Ordered Products */}
           <section className="wz-oc__card wz-anim wz-anim--d3">
             <div className="wz-oc__cardBody wz-oc__cardBody--lg">
               <h2 className="wz-oc__sectionTitle">المنتجات المطلوبة</h2>
@@ -636,12 +631,36 @@ export default function OrderConfirm() {
 
                     return (
                       <div className="wz-oc__pitem" key={line?._id || `${ref}-${idx}`}>
-                        <div className="wz-oc__pThumb" aria-hidden="true">
+                        <div className="wz-oc__pThumbWrap">
                           {src ? (
-                            <img className="wz-oc__pImg" src={src} alt={title} loading="lazy" decoding="async" />
+                            <a
+                              href={src}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="wz-oc__pThumbLink"
+                              title="فتح الصورة في تبويب جديد"
+                              aria-label={`فتح صورة ${title} في تبويب جديد`}
+                            >
+                              <div className="wz-oc__pThumb">
+                                <img
+                                  className="wz-oc__pImg"
+                                  src={src}
+                                  alt={title}
+                                  loading="lazy"
+                                  decoding="async"
+                                />
+                              </div>
+
+                              <span className="wz-oc__pZoomBadge">
+                                <ExternalLink size={15} />
+                                فتح الصورة
+                              </span>
+                            </a>
                           ) : (
-                            <div className="wz-oc__pFallback" title="لا توجد صورة">
-                              <ImageIcon size={18} />
+                            <div className="wz-oc__pThumb" aria-hidden="true">
+                              <div className="wz-oc__pFallback" title="لا توجد صورة">
+                                <ImageIcon size={22} />
+                              </div>
                             </div>
                           )}
                         </div>
@@ -653,7 +672,7 @@ export default function OrderConfirm() {
                             </div>
                           </div>
 
-                          <div className="wz-oc__pMeta" style={{ display: "grid", gap: 4 }}>
+                          <div className="wz-oc__pMeta wz-oc__pMeta--stack">
                             {pid ? <span>Product ID: {pid}</span> : null}
                             {category ? <span>Category: {category}</span> : null}
                             {subCategory ? <span>Sub category: {subCategory}</span> : null}
@@ -672,7 +691,6 @@ export default function OrderConfirm() {
             </div>
           </section>
 
-          {/* Note */}
           <section className="wz-oc__card wz-oc__card--note wz-anim wz-anim--d1">
             <div className="wz-oc__cardBody wz-oc__noteRow">
               <div className="wz-oc__noteIcon">
@@ -681,14 +699,11 @@ export default function OrderConfirm() {
 
               <div className="wz-oc__noteText">
                 <div className="wz-oc__noteTitle">لا يوجد دفع الآن</div>
-                <div className="wz-oc__noteDesc">
-                  ستدفع  نقدًا عند توصيل الطلب.
-                </div>
+                <div className="wz-oc__noteDesc">ستدفع نقدًا عند توصيل الطلب.</div>
               </div>
             </div>
           </section>
 
-          {/* Timeline */}
           <section className="wz-oc__card wz-anim wz-anim--d2">
             <div className="wz-oc__cardBody wz-oc__cardBody--lg">
               <h2 className="wz-oc__sectionTitle">ماذا سيحدث بعد ذلك؟</h2>
@@ -724,14 +739,11 @@ export default function OrderConfirm() {
             </div>
           </section>
 
-          {/* Totals */}
           <section className="wz-oc__card wz-anim wz-anim--d3">
             <div className="wz-oc__cardBody wz-oc__cardBody--lg">
               <h2 className="wz-oc__sectionTitle">ملخص المبلغ</h2>
 
               <div className="wz-oc__summary">
-                
-
                 <div className="wz-oc__sumRow wz-oc__sumRow--sm">
                   <span className="wz-oc__muted2">التوصيل</span>
                   <span className={Number(totals.shipping) === 0 ? "wz-oc__green" : ""}>
@@ -747,13 +759,10 @@ export default function OrderConfirm() {
                 </div>
 
                 <div className="wz-oc__sep" />
-
-                
               </div>
             </div>
           </section>
 
-          {/* Actions */}
           <section className="wz-oc__actions wz-anim wz-anim--d3">
             <Link to={`/order-track/${ref}`} state={{ order }} className="wz-oc__actionLink">
               <button className="wz-oc__btn wz-oc__btn--primary" type="button">

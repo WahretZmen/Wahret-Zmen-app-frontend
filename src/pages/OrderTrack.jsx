@@ -1,4 +1,3 @@
-// src/pages/OrderTrack.jsx
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useParams, useLocation, Link } from "react-router-dom";
 import {
@@ -15,6 +14,7 @@ import {
   Image as ImageIcon,
   Copy,
   ArrowLeft,
+  ExternalLink,
 } from "lucide-react";
 
 import Header from "../components/ui/Header.jsx";
@@ -323,21 +323,18 @@ export default function OrderTrack() {
     setError("");
     setHasSearched(true);
 
-    // 1) state
     if (!silent) {
       const passed = location.state?.order || null;
       const passedId = safeText(passed?.orderId || passed?._id);
       if (passed && passedId === v) setOrder(passed);
     }
 
-    // 2) storage
     if (!silent) {
       const stored = readAnyStoredOrder(v);
       const storedId = safeText(stored?.orderId || stored?._id);
       if (stored && storedId === v) setOrder(stored);
     }
 
-    // 3) server
     if (!silent) setLoading(true);
     else setSilentRefreshing(true);
 
@@ -514,7 +511,6 @@ export default function OrderTrack() {
             <p className="wz-ot__sub">أدخل مرجع الطلب لعرض الحالة والتفاصيل</p>
           </header>
 
-          {/* Search */}
           <section className="wz-ot__card wz-ot-anim wz-ot-anim--d1">
             <div className="wz-ot__cardBody wz-ot__cardBody--search">
               <form className="wz-ot__search" onSubmit={onTrack}>
@@ -553,7 +549,6 @@ export default function OrderTrack() {
 
           {hasSearched && (
             <>
-              {/* Progress */}
               <section className="wz-ot__progress wz-ot-anim wz-ot-anim--d2">
                 <div className="wz-ot__progTop">
                   <div className="wz-ot__progLeft">
@@ -623,7 +618,6 @@ export default function OrderTrack() {
                 </div>
               </section>
 
-              {/* COD Note */}
               <section className="wz-ot__card wz-ot__card--note wz-ot-anim wz-ot-anim--d2">
                 <div className="wz-ot__cardBody wz-ot__payRow">
                   <Banknote size={20} className="wz-ot__payIcon" />
@@ -637,7 +631,6 @@ export default function OrderTrack() {
                 </div>
               </section>
 
-              {/* Timeline */}
               <section className="wz-ot__card wz-ot-anim wz-ot-anim--d2">
                 <div className="wz-ot__cardBody wz-ot__cardBody--lg">
                   <h2 className="wz-ot__sectionTitle">مخطط التوصيل</h2>
@@ -671,64 +664,54 @@ export default function OrderTrack() {
                 </div>
               </section>
 
-              {/* Products */}
               <section className="wz-ot__card wz-ot-anim wz-ot-anim--d3">
                 <div className="wz-ot__cardBody wz-ot__cardBody--lg">
                   <h2 className="wz-ot__sectionTitle">المنتجات المطلوبة</h2>
 
                   {orderedLinesSimple.length ? (
-                    <div style={{ display: "grid", gap: 10 }}>
+                    <div className="wz-ot__itemsBig">
                       {orderedLinesSimple.map((it) => (
-                        <div
-                          key={it.key}
-                          style={{
-                            display: "flex",
-                            gap: 12,
-                            alignItems: "center",
-                            border: "1px solid rgba(0,0,0,.08)",
-                            background: "rgba(255,255,255,.8)",
-                            padding: 12,
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: 64,
-                              height: 64,
-                              border: "1px solid rgba(0,0,0,.10)",
-                              overflow: "hidden",
-                              flex: "0 0 64px",
-                              display: "grid",
-                              placeItems: "center",
-                              background: "#fff",
-                            }}
-                          >
+                        <div key={it.key} className="wz-ot__itemBig">
+                          <div className="wz-ot__itemBigMedia">
                             {it.img ? (
-                              <img
-                                src={it.img}
-                                alt={it.title}
-                                loading="lazy"
-                                decoding="async"
-                                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                              />
+                              <a
+                                href={it.img}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="wz-ot__imgLink"
+                                title="فتح الصورة في تبويب جديد"
+                                aria-label={`فتح صورة ${it.title} في تبويب جديد`}
+                              >
+                                <div className="wz-ot__imgFrameLarge">
+                                  <img
+                                    src={it.img}
+                                    alt={it.title}
+                                    loading="lazy"
+                                    decoding="async"
+                                    className="wz-ot__imgLarge"
+                                  />
+                                </div>
+
+                                <span className="wz-ot__openImgBadge">
+                                  <ExternalLink size={15} />
+                                  فتح الصورة
+                                </span>
+                              </a>
                             ) : (
-                              <ImageIcon size={18} />
+                              <div className="wz-ot__imgFrameLarge">
+                                <div className="wz-ot__imgFallbackLarge">
+                                  <ImageIcon size={22} />
+                                </div>
+                              </div>
                             )}
                           </div>
 
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontWeight: 900 }} title={it.title}>
+                          <div className="wz-ot__itemBigMain">
+                            <div className="wz-ot__itemBigTitle" title={it.title}>
                               {it.title}
                             </div>
 
-                            <div
-                              style={{
-                                fontSize: 13,
-                                opacity: 0.9,
-                                marginTop: 6,
-                                display: "grid",
-                                gap: 3,
-                              }}
-                            >
+                            <div className="wz-ot__itemBigMeta">
                               {it.pid ? <span>Product ID: {it.pid}</span> : null}
                               {it.category ? <span>Category: {it.category}</span> : null}
                               {it.subCategory ? <span>Sub category: {it.subCategory}</span> : null}
@@ -738,14 +721,7 @@ export default function OrderTrack() {
                             </div>
 
                             {it.colorKey ? (
-                              <div
-                                style={{
-                                  fontSize: 12,
-                                  opacity: 0.7,
-                                  marginTop: 4,
-                                  direction: "ltr",
-                                }}
-                              >
+                              <div className="wz-ot__itemBigKey">
                                 colorKey: {it.colorKey}
                               </div>
                             ) : null}
@@ -754,7 +730,6 @@ export default function OrderTrack() {
                       ))}
 
                       <div style={{ marginTop: 10, fontSize: 14, opacity: 0.9 }}>
-                        
                         <div>
                           التوصيل:{" "}
                           <strong>
@@ -763,7 +738,6 @@ export default function OrderTrack() {
                               : `${money(totals.shipping)} د.ت`}
                           </strong>
                         </div>
-                        
                       </div>
                     </div>
                   ) : (
@@ -772,7 +746,6 @@ export default function OrderTrack() {
                 </div>
               </section>
 
-              {/* Guest details */}
               <section className="wz-ot__card wz-ot-anim wz-ot-anim--d3">
                 <div className="wz-ot__cardBody wz-ot__cardBody--lg">
                   <h2 className="wz-ot__sectionTitle">بيانات الحريف</h2>
@@ -808,7 +781,6 @@ export default function OrderTrack() {
                 </div>
               </section>
 
-              {/* Support */}
               <section className="wz-ot__card wz-ot__card--support wz-ot-anim wz-ot-anim--d3">
                 <div className="wz-ot__cardBody wz-ot__cardBody--lg wz-ot__support">
                   <h2 className="wz-ot__supportTitle">هل تحتاج مساعدة؟</h2>
