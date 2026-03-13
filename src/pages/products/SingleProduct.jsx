@@ -412,6 +412,7 @@ const SingleProduct = () => {
   const isRTL = true;
 
   const checkoutSectionRef = useRef(null);
+  const addToCartBtnRef = useRef(null);
   const pendingScrollToCheckoutRef = useRef(false);
   const checkoutScrollRetryRef = useRef(0);
 
@@ -531,7 +532,6 @@ const SingleProduct = () => {
 
     raf1 = requestAnimationFrame(() => {
       forceTop();
-
       raf2 = requestAnimationFrame(() => {
         forceTop();
       });
@@ -675,6 +675,9 @@ const SingleProduct = () => {
           confirmButtonText: "حسنًا",
           timer: 1200,
           showConfirmButton: false,
+          returnFocus: false,
+          heightAuto: false,
+          scrollbarPadding: false,
         });
       }
       return true;
@@ -686,6 +689,9 @@ const SingleProduct = () => {
           text,
           confirmButtonColor: "#111",
           confirmButtonText: "حسنًا",
+          returnFocus: false,
+          heightAuto: false,
+          scrollbarPadding: false,
         });
       }
       return false;
@@ -824,6 +830,9 @@ const SingleProduct = () => {
         text: "الرجاء اختيار المقاس المناسب قبل المتابعة.",
         confirmButtonText: "حسنًا",
         confirmButtonColor: "#111",
+        returnFocus: false,
+        heightAuto: false,
+        scrollbarPadding: false,
       });
       return false;
     }
@@ -835,6 +844,9 @@ const SingleProduct = () => {
         text: "هذا اللون غير متوفر في المخزون الآن.",
         confirmButtonText: "حسنًا",
         confirmButtonColor: "#111",
+        returnFocus: false,
+        heightAuto: false,
+        scrollbarPadding: false,
       });
       return false;
     }
@@ -945,6 +957,11 @@ const SingleProduct = () => {
   const handleAddToCartAndCheckout = async () => {
     if (!validateSelectionBeforeAction()) return;
 
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+    addToCartBtnRef.current?.blur?.();
+
     dispatch(addToCart(buildCartPayload()));
 
     pendingScrollToCheckoutRef.current = true;
@@ -953,13 +970,28 @@ const SingleProduct = () => {
     await Swal.fire({
       icon: "success",
       title: "تمت إضافة المنتج بنجاح إلى العربة.",
-      text: " الرجاء الهبوط الى الأسفل لتأكييد الطلب.",
+      text: "الرجاء الهبوط إلى الأسفل لتأكيد الطلب.",
       confirmButtonColor: "#111",
       confirmButtonText: "OK",
-      timerProgressBar: true,
+      allowOutsideClick: false,
+      allowEscapeKey: true,
+      returnFocus: false,
+      focusConfirm: true,
+      heightAuto: false,
+      scrollbarPadding: false,
+      didOpen: () => {
+        document.body.classList.add("sp2-swal-lock");
+      },
+      willClose: () => {
+        document.body.classList.remove("sp2-swal-lock");
+      },
     });
 
-    scrollToCheckoutWhenReady();
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        scrollToCheckoutWhenReady();
+      });
+    });
   };
 
   useEffect(() => {
@@ -978,6 +1010,7 @@ const SingleProduct = () => {
       if (checkoutScrollRetryRef.current) {
         window.clearTimeout(checkoutScrollRetryRef.current);
       }
+      document.body.classList.remove("sp2-swal-lock");
     };
   }, []);
 
@@ -1119,6 +1152,9 @@ const SingleProduct = () => {
         title: "تنبيه",
         text: v.msg,
         confirmButtonText: "حسنًا",
+        returnFocus: false,
+        heightAuto: false,
+        scrollbarPadding: false,
       });
       return;
     }
@@ -1156,6 +1192,9 @@ const SingleProduct = () => {
         title: "فشل إنشاء الطلب",
         text: err?.data?.message || err?.message || "حدث خطأ غير متوقع.",
         confirmButtonText: "حسنًا",
+        returnFocus: false,
+        heightAuto: false,
+        scrollbarPadding: false,
       });
     }
   };
@@ -1600,6 +1639,7 @@ const SingleProduct = () => {
 
                 <div className="sp2-actionsGrid">
                   <button
+                    ref={addToCartBtnRef}
                     type="button"
                     className="sp2-mainAction sp2-mainAction--dark"
                     onClick={handleAddToCartAndCheckout}
