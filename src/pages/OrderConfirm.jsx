@@ -682,7 +682,7 @@ export default function OrderConfirm() {
               <div className="wz-oc__noteText">
                 <div className="wz-oc__noteTitle">لا يوجد دفع الآن</div>
                 <div className="wz-oc__noteDesc">
-                  ستدفع <span className="wz-oc__noteStrong">{safeMoney(totals.total)} د.ت</span> نقدًا عند توصيل الطلب.
+                  ستدفع  نقدًا عند توصيل الطلب.
                 </div>
               </div>
             </div>
