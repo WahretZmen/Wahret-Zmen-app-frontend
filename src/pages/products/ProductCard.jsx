@@ -507,17 +507,7 @@ const ProductCard = ({ product, showStockBadge = true }) => {
             عرض التفاصيل
           </Link>
 
-          <button
-            type="button"
-            onClick={handleAddToCart}
-            className="pc-action pc-action--cart"
-            aria-label={`أضف ${displayName} إلى السلة`}
-            disabled={!pid || displayedStock <= 0}
-            title={displayedStock > 0 ? "أضف إلى السلة" : "المنتج غير متوفر"}
-          >
-            <ShoppingCart className="pc-actionIcon" aria-hidden="true" />
-            <span>{displayedStock > 0 ? "أضف إلى السلة" : "غير متوفر"}</span>
-          </button>
+          
         </div>
       </div>
     </article>

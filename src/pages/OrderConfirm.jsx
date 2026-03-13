@@ -99,7 +99,7 @@ const persistOrderSnapshot = (id, order) => {
 
 const pickLineImageRaw = (line) => {
   const colorImgs = Array.isArray(line?.color?.images) ? line.color.images.filter(Boolean) : [];
-  const prod = line?.productId || line?.product || {};
+  const prod = line?.productData || line?.productId || line?.product || {};
   return (
     line?.color?.image ||
     colorImgs[0] ||
@@ -107,6 +107,7 @@ const pickLineImageRaw = (line) => {
     prod?.image ||
     prod?.thumbnail ||
     line?.image ||
+    line?.coverImage ||
     ""
   );
 };
@@ -117,7 +118,7 @@ const pickLineImage = (line) => {
 };
 
 const pickTitle = (line) => {
-  const prod = line?.productId || line?.product || {};
+  const prod = line?.productData || line?.productId || line?.product || {};
   return (
     prod?.translations?.ar?.title ||
     prod?.translations?.fr?.title ||
@@ -138,14 +139,23 @@ const pickColorName = (line) => {
 
 const pickSize = (line) => safeText(line?.size || line?.selectedSize || "");
 
-const getPid = (line) =>
-  typeof line?.productId === "string"
-    ? line.productId
-    : line?.productId?._id || line?.product?._id || "";
+const getPid = (line) => {
+  if (typeof line?.productId === "string") return safeText(line.productId);
+  if (typeof line?.productData?.productId === "string") return safeText(line.productData.productId);
+  if (typeof line?.product?.productId === "string") return safeText(line.product.productId);
+  return "";
+};
+
+const pickCategory = (line) =>
+  safeText(line?.productData?.category || line?.productId?.category || line?.product?.category || "");
+
+const pickSubCategory = (line) =>
+  safeText(
+    line?.productData?.subCategory || line?.productId?.subCategory || line?.product?.subCategory || ""
+  );
 
 /* -----------------------
    ✅ Stable progress key
-   MUST match OrderTrack/AdminProgress
 ------------------------ */
 const normalizeKeyPart = (s) =>
   safeText(s)
@@ -179,16 +189,13 @@ export default function OrderConfirm() {
 
   const [copied, setCopied] = useState(false);
 
-  // server refresh states
   const [serverLoading, setServerLoading] = useState(false);
   const [serverError, setServerError] = useState("");
   const [lastUpdatedAt, setLastUpdatedAt] = useState(0);
 
-  // initial snapshot (fast)
   const initialOrder = location.state?.order || readStoredOrder(orderIdParam) || null;
   const [order, setOrder] = useState(initialOrder);
 
-  // reference id (human orderId OR mongo _id)
   const ref =
     location.state?.orderId ||
     orderIdParam ||
@@ -229,7 +236,6 @@ export default function OrderConfirm() {
     return await res.json();
   };
 
-  // ✅ Revalidate + keep UI always fresh
   const revalidate = async () => {
     const v = safeText(ref);
     if (!v) return;
@@ -248,7 +254,6 @@ export default function OrderConfirm() {
     }
   };
 
-  // First run + polling (no refresh needed for guest)
   useEffect(() => {
     let alive = true;
 
@@ -259,7 +264,6 @@ export default function OrderConfirm() {
 
     run();
 
-    // ✅ polling كل 5 ثواني (خفيف)
     const t = setInterval(() => {
       if (!alive) return;
       revalidate();
@@ -274,7 +278,6 @@ export default function OrderConfirm() {
 
   const lines = useMemo(() => (Array.isArray(order?.products) ? order.products : []), [order]);
 
-  // ✅ Totals (fix 0 issue) — now backend returns totals always
   const totals = useMemo(() => {
     const subtotal = order?.totals?.subtotal ?? order?.subtotal ?? 0;
     const shipping = order?.totals?.shipping ?? order?.shipping ?? 0;
@@ -309,11 +312,6 @@ export default function OrderConfirm() {
     }
   };
 
-  /* -----------------------
-     ✅ Progress (OrderConfirm)
-     - If productProgress exists => average by pieces
-     - Else use order.status
-  ------------------------ */
   const progressMap = useMemo(() => getProgressObj(order), [order]);
 
   const hasAnyPieceProgress = useMemo(
@@ -385,7 +383,7 @@ export default function OrderConfirm() {
 
             <h1 className="wz-oc__title">تم تأكيد الطلب!</h1>
             <p className="wz-oc__sub">
-              شكرًا لطلبك. احتفظ بمرجع الطلب لأنك ستستخدمه لتتبّع الشحنة في أي وقت.
+              شكرًا لطلبك. احتفظ بمرجع الطلب لأنك ستستخدمه لتتبّع الطلب في أي وقت.
             </p>
           </header>
 
@@ -438,13 +436,7 @@ export default function OrderConfirm() {
                 ) : (
                   <span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
                     {serverLoading ? <Loader2 size={14} className="wz-oc__spin" /> : null}
-                   
-                    {lastUpdatedAt ? (
-                      <span style={{ opacity: 0.75 }}>
-                        {" "}
-                        
-                      </span>
-                    ) : null}
+                    {lastUpdatedAt ? <span style={{ opacity: 0.75 }}></span> : null}
                   </span>
                 )}
               </div>
@@ -454,10 +446,6 @@ export default function OrderConfirm() {
           {/* Progress summary */}
           <section className="wz-oc__card wz-anim wz-anim--d1">
             <div className="wz-oc__cardBody wz-oc__cardBody--lg">
-             
-
-             
-
               <div
                 className="wz-oc__bar"
                 role="progressbar"
@@ -528,7 +516,7 @@ export default function OrderConfirm() {
                     كيف تتبّع طلبك بسهولة؟
                   </h2>
                   <p className="wz-oc__guideSub">
-                    اتّبع هذه الخطوات البسيطة — وسترى حالة الطلب والمنتجات ومعلومات الشحن.
+                    اتّبع هذه الخطوات البسيطة — وسترى حالة الطلب والمنتجات ومعلومات التوصيل.
                   </p>
                 </div>
               </div>
@@ -641,19 +629,9 @@ export default function OrderConfirm() {
                     const qty = Math.max(1, Number(line?.quantity || 1));
                     const size = pickSize(line);
                     const colorName = pickColorName(line);
-
-                    const unit =
-                      Number(
-                        line?.price ??
-                          line?.unitPrice ??
-                          line?.newPrice ??
-                          line?.productId?.newPrice ??
-                          line?.product?.newPrice ??
-                          0
-                      ) || 0;
-
-                    const lineTotal = unit * qty;
-
+                    const pid = getPid(line);
+                    const category = pickCategory(line);
+                    const subCategory = pickSubCategory(line);
                     const src = pickLineImage(line);
 
                     return (
@@ -673,17 +651,15 @@ export default function OrderConfirm() {
                             <div className="wz-oc__pTitle" title={title}>
                               {title}
                             </div>
-
-                            <div className="wz-oc__pTotal">
-                              {safeMoney(lineTotal)} <span className="wz-oc__cur">د.ت</span>
-                            </div>
                           </div>
 
-                          <div className="wz-oc__pMeta">
+                          <div className="wz-oc__pMeta" style={{ display: "grid", gap: 4 }}>
+                            {pid ? <span>Product ID: {pid}</span> : null}
+                            {category ? <span>Category: {category}</span> : null}
+                            {subCategory ? <span>Sub category: {subCategory}</span> : null}
                             {colorName ? <span>اللون: {colorName}</span> : null}
                             {size ? <span>المقاس: {size}</span> : null}
                             <span>الكمية: {qty}</span>
-                            {unit ? <span className="wz-oc__pUnit">سعر القطعة: {safeMoney(unit)} د.ت</span> : null}
                           </div>
                         </div>
                       </div>
@@ -754,13 +730,10 @@ export default function OrderConfirm() {
               <h2 className="wz-oc__sectionTitle">ملخص المبلغ</h2>
 
               <div className="wz-oc__summary">
-                <div className="wz-oc__sumRow wz-oc__sumRow--sm">
-                  <span className="wz-oc__muted2">المجموع الفرعي</span>
-                  <span className="wz-oc__price">{safeMoney(totals.subtotal || 0)} د.ت</span>
-                </div>
+                
 
                 <div className="wz-oc__sumRow wz-oc__sumRow--sm">
-                  <span className="wz-oc__muted2">الشحن</span>
+                  <span className="wz-oc__muted2">التوصيل</span>
                   <span className={Number(totals.shipping) === 0 ? "wz-oc__green" : ""}>
                     {Number(totals.shipping) === 0 ? "مجاني" : `${safeMoney(totals.shipping)} د.ت`}
                   </span>
@@ -775,10 +748,7 @@ export default function OrderConfirm() {
 
                 <div className="wz-oc__sep" />
 
-                <div className="wz-oc__sumRow wz-oc__sumRow--total">
-                  <span>المبلغ المستحق عند الاستلام</span>
-                  <span className="wz-oc__gold">{safeMoney(totals.total)} د.ت</span>
-                </div>
+                
               </div>
             </div>
           </section>

@@ -24,7 +24,6 @@ import getBaseUrl from "../utils/baseURL";
 import { getImgUrl } from "../utils/getImgUrl";
 import "../Styles/StylesOrderTrack.css";
 
-
 const STATUSES = [
   "تم تأكيد الطلب",
   "قيد التحضير",
@@ -68,7 +67,7 @@ const getProgressObj = (order) => {
 ------------------------ */
 const pickLineImageRaw = (line) => {
   const colorImgs = Array.isArray(line?.color?.images) ? line.color.images.filter(Boolean) : [];
-  const prod = line?.productId || line?.product || {};
+  const prod = line?.productData || line?.productId || line?.product || {};
   return (
     line?.color?.image ||
     colorImgs[0] ||
@@ -76,6 +75,7 @@ const pickLineImageRaw = (line) => {
     prod?.image ||
     prod?.thumbnail ||
     line?.image ||
+    line?.coverImage ||
     ""
   );
 };
@@ -86,7 +86,7 @@ const pickLineImage = (line) => {
 };
 
 const pickTitle = (line) => {
-  const prod = line?.productId || line?.product || {};
+  const prod = line?.productData || line?.productId || line?.product || {};
   return (
     prod?.translations?.ar?.title ||
     prod?.translations?.fr?.title ||
@@ -108,8 +108,23 @@ const pickColorName = (line) => {
 
 const pickSize = (line) => safeText(line?.size || line?.selectedSize || "");
 
-const getPid = (line) =>
-  typeof line?.productId === "string" ? line.productId : line?.productId?._id || line?.product?._id || "";
+const getPid = (line) => {
+  if (typeof line?.productId === "string") return safeText(line.productId);
+  if (typeof line?.productData?.productId === "string") return safeText(line.productData.productId);
+  if (typeof line?.product?.productId === "string") return safeText(line.product.productId);
+  return "";
+};
+
+const pickCategory = (line) =>
+  safeText(line?.productData?.category || line?.productId?.category || line?.product?.category || "");
+
+const pickSubCategory = (line) =>
+  safeText(
+    line?.productData?.subCategory ||
+      line?.productId?.subCategory ||
+      line?.product?.subCategory ||
+      ""
+  );
 
 /* -----------------------
    ✅ Stable progress key
@@ -141,10 +156,34 @@ const buildProgressKey = (line, lineIndex, itemIndex) => {
 
 // Timeline seed (UI)
 const trackingStepsSeed = [
-  { icon: CheckCircle, label: "تم تأكيد الطلب", date: "—", desc: "تم استلام طلبك وتأكيده بنجاح", done: false },
-  { icon: Package, label: "قيد التحضير", date: "—", desc: "حرفيّونا يقومون بتجهيز الطلب بعناية", done: false },
-  { icon: Truck, label: "خارج للتسليم", date: "—", desc: "طلبك في الطريق إليك", done: false },
-  { icon: Banknote, label: "تم التسليم والدفع", date: "—", desc: "الدفع نقدًا عند الاستلام", done: false },
+  {
+    icon: CheckCircle,
+    label: "تم تأكيد الطلب",
+    date: "—",
+    desc: "تم استلام طلبك وتأكيده بنجاح",
+    done: false,
+  },
+  {
+    icon: Package,
+    label: "قيد التحضير",
+    date: "—",
+    desc: "حرفيّونا يقومون بتجهيز الطلب بعناية",
+    done: false,
+  },
+  {
+    icon: Truck,
+    label: "خارج للتسليم",
+    date: "—",
+    desc: "طلبك في الطريق إليك",
+    done: false,
+  },
+  {
+    icon: Banknote,
+    label: "تم التسليم والدفع",
+    date: "—",
+    desc: "الدفع نقدًا عند الاستلام",
+    done: false,
+  },
 ];
 
 /* -----------------------
@@ -175,7 +214,10 @@ const persistOrderSnapshot = (id, order) => {
   const v = safeText(id);
   if (!v || !order) return;
   try {
-    sessionStorage.setItem("wz_last_order", JSON.stringify({ orderId: v, order, savedAt: Date.now() }));
+    sessionStorage.setItem(
+      "wz_last_order",
+      JSON.stringify({ orderId: v, order, savedAt: Date.now() })
+    );
   } catch (_) {}
   try {
     sessionStorage.setItem(`wz_order_${v}`, JSON.stringify(order));
@@ -194,7 +236,6 @@ export default function OrderTrack() {
 
   const [copied, setCopied] = useState(false);
 
-  // ✅ silent refresh indicator (doesn't block UI)
   const [silentRefreshing, setSilentRefreshing] = useState(false);
   const pollRef = useRef(null);
 
@@ -205,7 +246,11 @@ export default function OrderTrack() {
   }, []);
 
   const LTR = ({ children, className = "" }) => (
-    <span dir="ltr" className={className} style={{ unicodeBidi: "plaintext", direction: "ltr" }}>
+    <span
+      dir="ltr"
+      className={className}
+      style={{ unicodeBidi: "plaintext", direction: "ltr" }}
+    >
       {children}
     </span>
   );
@@ -240,7 +285,6 @@ export default function OrderTrack() {
   const applyOrderIfChanged = (next, trackId) => {
     if (!next) return;
 
-    // compare only important stuff to avoid re-render spam
     const prev = order;
     const prevSig = JSON.stringify({
       status: prev?.status,
@@ -262,7 +306,6 @@ export default function OrderTrack() {
       setOrder(next);
       persistOrderSnapshot(trackId, next);
     } else {
-      // still persist (optional) to keep last snapshot fresh
       persistOrderSnapshot(trackId, next);
     }
   };
@@ -280,21 +323,21 @@ export default function OrderTrack() {
     setError("");
     setHasSearched(true);
 
-    // 1) state (fast)
+    // 1) state
     if (!silent) {
       const passed = location.state?.order || null;
       const passedId = safeText(passed?.orderId || passed?._id);
       if (passed && passedId === v) setOrder(passed);
     }
 
-    // 2) storage (fast)
+    // 2) storage
     if (!silent) {
       const stored = readAnyStoredOrder(v);
       const storedId = safeText(stored?.orderId || stored?._id);
       if (stored && storedId === v) setOrder(stored);
     }
 
-    // 3) server revalidate
+    // 3) server
     if (!silent) setLoading(true);
     else setSilentRefreshing(true);
 
@@ -317,22 +360,18 @@ export default function OrderTrack() {
     runSearch(trackingId, { silent: false });
   };
 
-  // Auto-run if orderId exists in URL
   useEffect(() => {
     if (orderId) runSearch(orderId, { silent: false });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId]);
 
-  // ✅ AUTO REFRESH: Poll every 8s when we have an order on screen
   useEffect(() => {
     const id = safeText(effectiveId);
     if (!hasSearched || !id) return;
 
-    // clear old
     if (pollRef.current) clearInterval(pollRef.current);
 
     pollRef.current = setInterval(() => {
-      // only poll when tab is visible (avoids useless calls)
       if (document.visibilityState === "visible") {
         runSearch(id, { silent: true });
       }
@@ -345,7 +384,10 @@ export default function OrderTrack() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasSearched, effectiveId]);
 
-  const products = useMemo(() => (Array.isArray(order?.products) ? order.products : []), [order]);
+  const products = useMemo(
+    () => (Array.isArray(order?.products) ? order.products : []),
+    [order]
+  );
 
   const totals = useMemo(() => {
     const subtotal = order?.totals?.subtotal ?? order?.subtotal ?? 0;
@@ -356,7 +398,23 @@ export default function OrderTrack() {
 
   const amountDue = useMemo(() => Number(totals?.total || 0) || 0, [totals]);
 
-  // Order-level status
+  const guest = useMemo(() => {
+    const addr = order?.address || {};
+    const fullName =
+      safeText(order?.name || `${order?.firstName || ""} ${order?.lastName || ""}`) || "—";
+    const email = safeText(order?.email) || "—";
+    const phone = safeText(order?.phone) || "—";
+
+    const street = safeText(addr?.street) || safeText(addr?.address) || "";
+    const city = safeText(addr?.city) || "";
+    const state = safeText(addr?.state) || "";
+    const zipcode = safeText(addr?.zipcode || addr?.postal || addr?.postalCode) || "";
+    const country = safeText(addr?.country) || "Tunisia";
+
+    const addressLine = [street, city, state, zipcode, country].filter(Boolean).join("، ");
+    return { fullName, email, phone, addressLine: addressLine || "—" };
+  }, [order]);
+
   const orderStatus = useMemo(() => {
     const s = safeText(order?.status);
     return STATUSES.includes(s) ? s : "تم تأكيد الطلب";
@@ -364,7 +422,6 @@ export default function OrderTrack() {
 
   const orderPct = useMemo(() => percentOfStatus(orderStatus), [orderStatus]);
 
-  // Per-piece progress
   const progressMap = useMemo(() => getProgressObj(order), [order]);
 
   const orderedPieces = useMemo(() => {
@@ -388,7 +445,10 @@ export default function OrderTrack() {
     return Math.round(sum / orderedPieces.length);
   }, [orderedPieces]);
 
-  const hasAnyPieceProgress = useMemo(() => Object.keys(progressMap || {}).length > 0, [progressMap]);
+  const hasAnyPieceProgress = useMemo(
+    () => Object.keys(progressMap || {}).length > 0,
+    [progressMap]
+  );
 
   const globalPct = hasAnyPieceProgress ? globalPctPieces : orderPct;
 
@@ -401,11 +461,10 @@ export default function OrderTrack() {
 
   const completedSteps = useMemo(() => steps.filter((s) => s.done).length, [steps]);
 
-  const progress = useMemo(() => (steps.length ? (completedSteps / steps.length) * 100 : 0), [
-    completedSteps,
-    steps.length,
-    steps,
-  ]);
+  const progress = useMemo(
+    () => (steps.length ? (completedSteps / steps.length) * 100 : 0),
+    [completedSteps, steps.length, steps]
+  );
 
   const orderedLinesSimple = useMemo(() => {
     return products.map((line, idx) => {
@@ -413,17 +472,10 @@ export default function OrderTrack() {
       const img = pickLineImage(line);
       const color = pickColorName(line);
       const size = pickSize(line);
-
+      const pid = getPid(line);
+      const category = pickCategory(line);
+      const subCategory = pickSubCategory(line);
       const qty = Math.max(1, Number(line?.quantity || 1));
-      const unit =
-        Number(
-          line?.price ??
-            line?.unitPrice ??
-            line?.newPrice ??
-            line?.productId?.newPrice ??
-            line?.product?.newPrice ??
-            0
-        ) || 0;
 
       return {
         key: line?._id || `${getPid(line) || "line"}-${idx}`,
@@ -432,8 +484,9 @@ export default function OrderTrack() {
         color,
         size,
         qty,
-        unit,
-        total: unit * qty,
+        pid,
+        category,
+        subCategory,
         colorKey: safeText(line?.colorKey || ""),
       };
     });
@@ -514,7 +567,6 @@ export default function OrderTrack() {
                       {hasAnyPieceProgress ? "حسب القطع" : "حسب حالة الطلب"}
                     </span>
 
-                    {/* ✅ silent refresh badge */}
                     {silentRefreshing ? (
                       <span className="wz-ot__chip" title="تحديث تلقائي">
                         <Loader2 size={14} className="wz-ot__spin" /> تحديث…
@@ -535,11 +587,13 @@ export default function OrderTrack() {
                   <div className="wz-ot__barFill" style={{ width: `${progress}%` }} />
                 </div>
 
-                {/* Reference row */}
                 <div className="wz-ot__trackRef" style={{ marginTop: 10 }}>
                   <span className="wz-ot__muted">مرجع الطلب</span>
 
-                  <span className="wz-ot__mono" style={{ direction: "ltr", unicodeBidi: "plaintext" }}>
+                  <span
+                    className="wz-ot__mono"
+                    style={{ direction: "ltr", unicodeBidi: "plaintext" }}
+                  >
                     {effectiveId}
                   </span>
 
@@ -556,9 +610,12 @@ export default function OrderTrack() {
                   {copied ? <span className="wz-ot__copied">تم النسخ!</span> : null}
                 </div>
 
-                {/* Quick actions */}
                 <div style={{ display: "flex", gap: 10, marginTop: 12, flexWrap: "wrap" }}>
-                  <Link to={`/order-confirm/${effectiveId}`} state={{ order }} className="wz-ot__actionLink">
+                  <Link
+                    to={`/order-confirm/${effectiveId}`}
+                    state={{ order }}
+                    className="wz-ot__actionLink"
+                  >
                     <button className="wz-ot__btn wz-ot__btn--track" type="button">
                       تفاصيل الطلب <ArrowLeft size={16} />
                     </button>
@@ -572,7 +629,9 @@ export default function OrderTrack() {
                   <Banknote size={20} className="wz-ot__payIcon" />
                   <div className="wz-ot__payText">
                     <span className="wz-ot__payTitle">الدفع عند الاستلام</span>
-                    <span className="wz-ot__paySub">— المبلغ المستحق: {money(amountDue)} د.ت عند التسليم</span>
+                    <span className="wz-ot__paySub">
+                      — المبلغ المستحق: {money(amountDue)} د.ت عند التسليم
+                    </span>
                   </div>
                   <ShieldCheck size={16} className="wz-ot__payShield" />
                 </div>
@@ -581,7 +640,7 @@ export default function OrderTrack() {
               {/* Timeline */}
               <section className="wz-ot__card wz-ot-anim wz-ot-anim--d2">
                 <div className="wz-ot__cardBody wz-ot__cardBody--lg">
-                  <h2 className="wz-ot__sectionTitle">مخطط الشحنة</h2>
+                  <h2 className="wz-ot__sectionTitle">مخطط التوصيل</h2>
 
                   <div className="wz-ot__timeline">
                     {steps.map((s, i) => {
@@ -593,11 +652,15 @@ export default function OrderTrack() {
                             <div className={`wz-ot__dot ${s.done ? "is-done" : ""}`}>
                               <Icon size={18} />
                             </div>
-                            {!last ? <div className={`wz-ot__line ${s.done ? "is-done" : ""}`} /> : null}
+                            {!last ? (
+                              <div className={`wz-ot__line ${s.done ? "is-done" : ""}`} />
+                            ) : null}
                           </div>
 
                           <div className="wz-ot__stepBody">
-                            <div className={`wz-ot__stepTitle ${s.done ? "is-done" : ""}`}>{s.label}</div>
+                            <div className={`wz-ot__stepTitle ${s.done ? "is-done" : ""}`}>
+                              {s.label}
+                            </div>
                             <div className="wz-ot__stepDesc">{s.desc}</div>
                             <div className="wz-ot__stepDate">{s.date}</div>
                           </div>
@@ -605,8 +668,6 @@ export default function OrderTrack() {
                       );
                     })}
                   </div>
-
-                 
                 </div>
               </section>
 
@@ -659,39 +720,50 @@ export default function OrderTrack() {
                               {it.title}
                             </div>
 
-                            <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>
-                              {it.color ? <span>اللون: {it.color} </span> : null}
-                              {it.size ? <span>— المقاس: {it.size} </span> : null}
-                              <span>— الكمية: {it.qty}</span>
+                            <div
+                              style={{
+                                fontSize: 13,
+                                opacity: 0.9,
+                                marginTop: 6,
+                                display: "grid",
+                                gap: 3,
+                              }}
+                            >
+                              {it.pid ? <span>Product ID: {it.pid}</span> : null}
+                              {it.category ? <span>Category: {it.category}</span> : null}
+                              {it.subCategory ? <span>Sub category: {it.subCategory}</span> : null}
+                              {it.color ? <span>اللون: {it.color}</span> : null}
+                              {it.size ? <span>المقاس: {it.size}</span> : null}
+                              <span>الكمية: {it.qty}</span>
                             </div>
 
                             {it.colorKey ? (
-                              <div style={{ fontSize: 12, opacity: 0.7, marginTop: 4, direction: "ltr" }}>
+                              <div
+                                style={{
+                                  fontSize: 12,
+                                  opacity: 0.7,
+                                  marginTop: 4,
+                                  direction: "ltr",
+                                }}
+                              >
                                 colorKey: {it.colorKey}
                               </div>
-                            ) : null}
-                          </div>
-
-                          <div style={{ textAlign: "left", whiteSpace: "nowrap" }}>
-                            <div style={{ fontWeight: 900 }}>{money(it.total)} د.ت</div>
-                            {it.unit ? (
-                              <div style={{ fontSize: 12, opacity: 0.8 }}>سعر القطعة: {money(it.unit)} د.ت</div>
                             ) : null}
                           </div>
                         </div>
                       ))}
 
                       <div style={{ marginTop: 10, fontSize: 14, opacity: 0.9 }}>
+                        
                         <div>
-                          المجموع الفرعي: <strong>{money(totals.subtotal)} د.ت</strong>
+                          التوصيل:{" "}
+                          <strong>
+                            {Number(totals.shipping) === 0
+                              ? "مجاني"
+                              : `${money(totals.shipping)} د.ت`}
+                          </strong>
                         </div>
-                        <div>
-                          الشحن:{" "}
-                          <strong>{Number(totals.shipping) === 0 ? "مجاني" : `${money(totals.shipping)} د.ت`}</strong>
-                        </div>
-                        <div>
-                          الإجمالي: <strong>{money(totals.total)} د.ت</strong>
-                        </div>
+                        
                       </div>
                     </div>
                   ) : (
@@ -708,19 +780,19 @@ export default function OrderTrack() {
                   <div className="wz-ot__details">
                     <div className="wz-ot__box">
                       <div className="wz-ot__muted">الاسم</div>
-                      <div className="wz-ot__strong">{safeText(order?.name || "—")}</div>
+                      <div className="wz-ot__strong">{guest.fullName}</div>
 
                       <div className="wz-ot__spacer" />
 
                       <div className="wz-ot__muted">الهاتف</div>
                       <div className="wz-ot__strong">
-                        <LTR>{safeText(order?.phone || "—")}</LTR>
+                        <LTR>{guest.phone}</LTR>
                       </div>
                     </div>
 
                     <div className="wz-ot__box">
                       <div className="wz-ot__muted">البريد الإلكتروني</div>
-                      <div className="wz-ot__strong">{safeText(order?.email || "—")}</div>
+                      <div className="wz-ot__strong">{guest.email}</div>
 
                       <div className="wz-ot__spacer" />
 
@@ -731,21 +803,7 @@ export default function OrderTrack() {
 
                   <div style={{ marginTop: 12, fontSize: 13, opacity: 0.95 }}>
                     <span className="wz-ot__muted">العنوان: </span>
-                    <span>
-                      {safeText(order?.address?.street || order?.address?.address) || safeText(order?.address) ? (
-                        <>
-                          {safeText(order?.address?.street || order?.address?.address)}
-                          {safeText(order?.address?.city) ? `، ${safeText(order.address.city)}` : ""}
-                          {safeText(order?.address?.state) ? `، ${safeText(order.address.state)}` : ""}
-                          {safeText(order?.address?.zipcode || order?.address?.postalCode || order?.address?.postal)
-                            ? `، ${safeText(order.address.zipcode || order.address.postalCode || order.address.postal)}`
-                            : ""}
-                          {safeText(order?.address?.country) ? `، ${safeText(order.address.country)}` : ""}
-                        </>
-                      ) : (
-                        "—"
-                      )}
-                    </span>
+                    <span>{guest.addressLine}</span>
                   </div>
                 </div>
               </section>
@@ -764,7 +822,9 @@ export default function OrderTrack() {
 
                     <button className="wz-ot__btnGhost" type="button">
                       <Mail size={16} />
-                      <LTR className="wz-ot__ltr">wahretzmensabri521@gmail.com / emnabes930@gmail.com</LTR>
+                      <LTR className="wz-ot__ltr">
+                        wahretzmensabri521@gmail.com / emnabes930@gmail.com
+                      </LTR>
                     </button>
 
                     <button className="wz-ot__btnGhost" type="button">
