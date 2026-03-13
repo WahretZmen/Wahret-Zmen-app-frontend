@@ -623,9 +623,7 @@ export default function OrderTrack() {
                   <Banknote size={20} className="wz-ot__payIcon" />
                   <div className="wz-ot__payText">
                     <span className="wz-ot__payTitle">الدفع عند الاستلام</span>
-                    <span className="wz-ot__paySub">
-                      — المبلغ المستحق: {money(amountDue)} د.ت عند التسليم
-                    </span>
+                    
                   </div>
                   <ShieldCheck size={16} className="wz-ot__payShield" />
                 </div>

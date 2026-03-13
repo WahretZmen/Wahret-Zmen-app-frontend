@@ -733,7 +733,7 @@ export default function OrderConfirm() {
               </div>
 
               <div style={{ marginTop: 12, fontSize: 13, opacity: 0.9 }}>
-                <span className="wz-oc__muted2">حالة الطلب (Admin): </span>
+                <span className="wz-oc__muted2">حالة الطلب : </span>
                 <strong>{orderStatus}</strong>
               </div>
             </div>
