@@ -181,7 +181,6 @@
 .cz-bubble{
   width:32px;
   height:32px;
-  border-radius:999px;
   background:rgba(185,135,43,.10);
   display:flex;
   align-items:center;

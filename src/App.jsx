@@ -9,14 +9,13 @@ import "./App.css";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import Loading from "./components/Loading";
 import { AuthProvider } from "./context/AuthContext";
 
 function App() {
   const location = useLocation();
 
-  const [loading, setLoading] = useState(true);
   const [layoutReady, setLayoutReady] = useState(false);
+  const [singleProductReady, setSingleProductReady] = useState(true);
 
   const pathname = location?.pathname || "";
   const isSingleProductPage = /^\/products\/[^/]+$/.test(pathname);
@@ -30,16 +29,28 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 2000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
     if (typeof window === "undefined") return;
     if ("scrollRestoration" in window.history) {
       window.history.scrollRestoration = "manual";
     }
   }, []);
+
+  useEffect(() => {
+    setSingleProductReady(!isSingleProductPage);
+  }, [isSingleProductPage, pathname]);
+
+  useEffect(() => {
+    if (!isSingleProductPage) return;
+
+    const onSingleProductReady = () => {
+      setSingleProductReady(true);
+    };
+
+    window.addEventListener("wz:single-product-ready", onSingleProductReady);
+    return () => {
+      window.removeEventListener("wz:single-product-ready", onSingleProductReady);
+    };
+  }, [isSingleProductPage]);
 
   useLayoutEffect(() => {
     if (typeof window === "undefined") return;
@@ -82,7 +93,7 @@ function App() {
   }, [pathname]);
 
   useEffect(() => {
-    const shouldLock = loading || !layoutReady;
+    const shouldLock = !layoutReady;
 
     if (shouldLock) {
       document.documentElement.classList.add("app-scroll-lock");
@@ -96,29 +107,27 @@ function App() {
       document.documentElement.classList.remove("app-scroll-lock");
       document.body.classList.remove("app-scroll-lock");
     };
-  }, [loading, layoutReady]);
+  }, [layoutReady]);
+
+  const canShowFooter = layoutReady && (!isSingleProductPage || singleProductReady);
 
   return (
     <AuthProvider>
-      {loading ? (
-        <Loading />
-      ) : (
-        <div className="app-shell min-h-screen flex flex-col bg-[rgb(var(--background))] text-[rgb(var(--foreground))]">
-          <Navbar />
+      <div className="app-shell min-h-screen flex flex-col bg-[rgb(var(--background))] text-[rgb(var(--foreground))]">
+        <Navbar />
 
-          <main
-            className={`flex-1 app-main ${
-              layoutReady ? "app-main--ready" : "app-main--hidden"
-            }`}
-          >
-            <Outlet />
-          </main>
+        <main
+          className={`flex-1 app-main ${
+            layoutReady ? "app-main--ready" : "app-main--hidden"
+          }`}
+        >
+          <Outlet />
+        </main>
 
-          {layoutReady ? (
-            <Footer key={isSingleProductPage ? "footer-sp" : "footer-default"} />
-          ) : null}
-        </div>
-      )}
+        {canShowFooter ? (
+          <Footer key={isSingleProductPage ? "footer-sp" : "footer-default"} />
+        ) : null}
+      </div>
     </AuthProvider>
   );
 }
