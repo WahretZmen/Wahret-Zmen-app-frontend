@@ -1,6 +1,5 @@
 // src/redux/features/cart/cartSlice.js
 import { createSlice } from "@reduxjs/toolkit";
-import Swal from "sweetalert2";
 
 /* -----------------------------
    Helpers
@@ -54,16 +53,6 @@ const ensureImages = (color, coverImage) => {
   const images = Array.isArray(color?.images) ? color.images.filter(Boolean) : [];
   const safeImages = images.length ? images : image ? [image] : [];
   return { image, images: safeImages };
-};
-
-const toast = (icon, title) => {
-  Swal.fire({
-    position: "top-end",
-    icon,
-    title,
-    showConfirmButton: false,
-    timer: 1300,
-  });
 };
 
 /* -----------------------------
@@ -121,8 +110,6 @@ const cartSlice = createSlice({
           colorKey,
         });
       }
-
-      toast("success", "تمت إضافة المنتج إلى العربة");
     },
 
     // removeFromCart
@@ -144,8 +131,6 @@ const cartSlice = createSlice({
       state.cartItems = state.cartItems.filter(
         (item) => !(item.productId === productId && item.colorKey === computedKey)
       );
-
-      toast("info", "تم حذف المنتج من العربة");
     },
 
     // updateQuantity
@@ -177,7 +162,6 @@ const cartSlice = createSlice({
     // clearCart
     clearCart: (state) => {
       state.cartItems = [];
-      toast("warning", "تم تفريغ العربة");
     },
   },
 });

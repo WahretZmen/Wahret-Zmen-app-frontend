@@ -5,6 +5,7 @@ import React, {
   useRef,
   useState,
   useCallback,
+  useLayoutEffect,
 } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -32,7 +33,6 @@ import {
   Plus,
   ShoppingBag,
 } from "lucide-react";
-import Swal from "sweetalert2";
 
 import {
   useGetProductByIdQuery,
@@ -413,6 +413,7 @@ const SingleProduct = () => {
   const checkoutSectionRef = useRef(null);
   const pendingScrollToCheckoutRef = useRef(false);
   const checkoutScrollRetryRef = useRef(0);
+  const checkoutScrollFrameRef = useRef(0);
 
   useSelector((s) => {
     const c = s?.cart;
@@ -428,7 +429,8 @@ const SingleProduct = () => {
     isError: isQueryError,
   } = useGetProductByIdQuery(routeId, { skip: !routeId });
 
-  const { data: allProducts = [], isLoading: isLoadingAll } = useGetAllProductsQuery();
+  const { data: allProducts = [], isLoading: isLoadingAll } =
+    useGetAllProductsQuery();
   const [createOrder, { isLoading: isCreatingOrder }] = useCreateOrderMutation();
 
   const product = useMemo(() => {
@@ -532,7 +534,9 @@ const SingleProduct = () => {
     setSelectedImageIndex(0);
     setThumbStart(0);
     setActiveTab("desc");
-    setSelectedSize(Array.isArray(product?.sizes) && product.sizes.length ? product.sizes[0] : "");
+    setSelectedSize(
+      Array.isArray(product?.sizes) && product.sizes.length ? product.sizes[0] : ""
+    );
     setQuantity(1);
     setErrors({});
     setAgree(false);
@@ -542,6 +546,11 @@ const SingleProduct = () => {
     if (checkoutScrollRetryRef.current) {
       window.clearTimeout(checkoutScrollRetryRef.current);
       checkoutScrollRetryRef.current = 0;
+    }
+
+    if (checkoutScrollFrameRef.current) {
+      window.cancelAnimationFrame(checkoutScrollFrameRef.current);
+      checkoutScrollFrameRef.current = 0;
     }
   }, [routeId, product]);
 
@@ -593,7 +602,10 @@ const SingleProduct = () => {
     return picks.slice(0, 10);
   }, [allProducts, searchTerm]);
 
-  const ratingValue = Math.max(0, Math.min(5, Math.round(Number(product?.rating ?? 0))));
+  const ratingValue = Math.max(
+    0,
+    Math.min(5, Math.round(Number(product?.rating ?? 0)))
+  );
 
   const renderStars = (rating, big = false) =>
     Array.from({ length: 5 }).map((_, i) => (
@@ -628,46 +640,23 @@ const SingleProduct = () => {
     [shareUrl, translatedTitle]
   );
 
-  const copyLink = async (withToast = true) => {
+  const copyLink = async () => {
     const text = shareUrl || "";
     if (!text) return false;
 
     try {
       await navigator.clipboard.writeText(text);
-      if (withToast) {
-        Swal.fire({
-          icon: "success",
-          title: "تم نسخ الرابط",
-          text: "تم نسخ رابط المنتج. يمكنك لصقه مباشرة.",
-          confirmButtonColor: "#111",
-          confirmButtonText: "حسنًا",
-          timer: 1200,
-          showConfirmButton: false,
-          returnFocus: false,
-          heightAuto: false,
-          scrollbarPadding: false,
-        });
-      }
       return true;
     } catch {
-      if (withToast) {
-        Swal.fire({
-          icon: "info",
-          title: "انسخ الرابط يدويًا",
-          text,
-          confirmButtonColor: "#111",
-          confirmButtonText: "حسنًا",
-          returnFocus: false,
-          heightAuto: false,
-          scrollbarPadding: false,
-        });
-      }
+      try {
+        window.prompt("انسخ رابط المنتج يدويًا:", text);
+      } catch {}
       return false;
     }
   };
 
   const openShare = async (url) => {
-    await copyLink(false);
+    await copyLink();
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
@@ -792,30 +781,12 @@ const SingleProduct = () => {
 
   const validateSelectionBeforeAction = () => {
     if (sizes.length > 0 && !selectedSize) {
-      Swal.fire({
-        icon: "warning",
-        title: "اختر المقاس أولًا",
-        text: "الرجاء اختيار المقاس المناسب قبل المتابعة.",
-        confirmButtonText: "حسنًا",
-        confirmButtonColor: "#111",
-        returnFocus: false,
-        heightAuto: false,
-        scrollbarPadding: false,
-      });
+      window.alert("الرجاء اختيار المقاس المناسب قبل المتابعة.");
       return false;
     }
 
     if (selectedColorStock === 0) {
-      Swal.fire({
-        icon: "warning",
-        title: "المنتج غير متوفر حاليًا",
-        text: "هذا اللون غير متوفر في المخزون الآن.",
-        confirmButtonText: "حسنًا",
-        confirmButtonColor: "#111",
-        returnFocus: false,
-        heightAuto: false,
-        scrollbarPadding: false,
-      });
+      window.alert("هذا اللون غير متوفر في المخزون الآن.");
       return false;
     }
 
@@ -880,7 +851,37 @@ const SingleProduct = () => {
     };
   };
 
-  const scrollToCheckoutWhenReady = useCallback(() => {
+  const performCheckoutScroll = useCallback(() => {
+    if (typeof window === "undefined") return false;
+
+    const el = checkoutSectionRef.current;
+    if (!el) return false;
+
+    el.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+      inline: "nearest",
+    });
+
+    const offset = window.innerWidth <= 640 ? 14 : 22;
+
+    const applyOffset = () => {
+      const rect = el.getBoundingClientRect();
+      const absoluteTop = window.pageYOffset + rect.top;
+      window.scrollTo({
+        top: Math.max(0, absoluteTop - offset),
+        behavior: "smooth",
+      });
+    };
+
+    window.setTimeout(applyOffset, 80);
+    window.setTimeout(applyOffset, 220);
+    window.setTimeout(applyOffset, 420);
+
+    return true;
+  }, []);
+
+  const queueReliableCheckoutScroll = useCallback(() => {
     if (typeof window === "undefined") return;
 
     if (checkoutScrollRetryRef.current) {
@@ -889,82 +890,78 @@ const SingleProduct = () => {
     }
 
     let tries = 0;
-    const maxTries = 36;
+    const maxTries = 30;
 
-    const run = () => {
-      const el = checkoutSectionRef.current;
+    const tryScroll = () => {
+      tries += 1;
 
-      if (el) {
-        const rect = el.getBoundingClientRect();
-        const absoluteTop = window.pageYOffset + rect.top;
-        const offset = window.innerWidth <= 640 ? 84 : 110;
-
-        window.scrollTo({
-          top: Math.max(0, absoluteTop - offset),
-          behavior: "smooth",
-        });
-
+      const ok = performCheckoutScroll();
+      if (ok) {
         pendingScrollToCheckoutRef.current = false;
         checkoutScrollRetryRef.current = 0;
         return;
       }
 
-      tries += 1;
-
       if (tries < maxTries) {
-        checkoutScrollRetryRef.current = window.setTimeout(run, 70);
+        checkoutScrollRetryRef.current = window.setTimeout(tryScroll, 120);
       } else {
         pendingScrollToCheckoutRef.current = false;
         checkoutScrollRetryRef.current = 0;
       }
     };
 
-    run();
-  }, []);
+    checkoutScrollFrameRef.current = window.requestAnimationFrame(() => {
+      checkoutScrollFrameRef.current = window.requestAnimationFrame(() => {
+        tryScroll();
+      });
+    });
+  }, [performCheckoutScroll]);
 
-  const handleAddToCartAndCheckout = async () => {
+  const handleAddToCartAndCheckout = () => {
     if (!validateSelectionBeforeAction()) return;
 
     dispatch(addToCart(buildCartPayload()));
     pendingScrollToCheckoutRef.current = true;
     setShowCheckout(true);
-
-    await Swal.fire({
-      icon: "success",
-      title: "تمت إضافة المنتج بنجاح إلى العربة.",
-      text: "سيتم توجيهك الآن إلى نموذج الطلب.",
-      confirmButtonColor: "#111",
-      confirmButtonText: "OK",
-      allowOutsideClick: false,
-      allowEscapeKey: true,
-      returnFocus: false,
-      focusConfirm: false,
-      heightAuto: false,
-      scrollbarPadding: false,
-    });
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        scrollToCheckoutWhenReady();
-      });
-    });
   };
+
+  useLayoutEffect(() => {
+    if (!showCheckout) return;
+    if (!pendingScrollToCheckoutRef.current) return;
+
+    queueReliableCheckoutScroll();
+  }, [showCheckout, queueReliableCheckoutScroll]);
 
   useEffect(() => {
     if (!showCheckout) return;
     if (!pendingScrollToCheckoutRef.current) return;
 
-    const t = window.setTimeout(() => {
-      scrollToCheckoutWhenReady();
-    }, 140);
+    const t1 = window.setTimeout(() => {
+      queueReliableCheckoutScroll();
+    }, 180);
 
-    return () => window.clearTimeout(t);
-  }, [showCheckout, scrollToCheckoutWhenReady]);
+    const t2 = window.setTimeout(() => {
+      queueReliableCheckoutScroll();
+    }, 420);
+
+    const t3 = window.setTimeout(() => {
+      queueReliableCheckoutScroll();
+    }, 700);
+
+    return () => {
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+      window.clearTimeout(t3);
+    };
+  }, [showCheckout, queueReliableCheckoutScroll]);
 
   useEffect(() => {
     return () => {
       if (checkoutScrollRetryRef.current) {
         window.clearTimeout(checkoutScrollRetryRef.current);
+      }
+      if (checkoutScrollFrameRef.current) {
+        window.cancelAnimationFrame(checkoutScrollFrameRef.current);
       }
     };
   }, []);
@@ -1102,15 +1099,7 @@ const SingleProduct = () => {
     const v = validateCheckout();
     if (v.msg) {
       setErrors(v.fields || {});
-      Swal.fire({
-        icon: "warning",
-        title: "تنبيه",
-        text: v.msg,
-        confirmButtonText: "حسنًا",
-        returnFocus: false,
-        heightAuto: false,
-        scrollbarPadding: false,
-      });
+      window.alert(v.msg);
       return;
     }
 
@@ -1142,15 +1131,7 @@ const SingleProduct = () => {
         state: { order },
       });
     } catch (err) {
-      Swal.fire({
-        icon: "error",
-        title: "فشل إنشاء الطلب",
-        text: err?.data?.message || err?.message || "حدث خطأ غير متوقع.",
-        confirmButtonText: "حسنًا",
-        returnFocus: false,
-        heightAuto: false,
-        scrollbarPadding: false,
-      });
+      window.alert(err?.data?.message || err?.message || "حدث خطأ غير متوقع.");
     }
   };
 
@@ -1303,7 +1284,9 @@ const SingleProduct = () => {
 
                   <img
                     src={getImgUrl(
-                      activeGallery[selectedImageIndex] || selectedColor?.image || product?.coverImage
+                      activeGallery[selectedImageIndex] ||
+                        selectedColor?.image ||
+                        product?.coverImage
                     )}
                     alt={translatedTitle}
                     className="sp2-mainImg sp2-zoomImg"
@@ -1446,7 +1429,7 @@ const SingleProduct = () => {
                   <button
                     type="button"
                     className="sp2-shareBtn is-ig"
-                    onClick={() => copyLink(true)}
+                    onClick={copyLink}
                     aria-label="مشاركة على إنستغرام (نسخ الرابط)"
                     title="Instagram (Copy Link)"
                   >
@@ -1457,7 +1440,7 @@ const SingleProduct = () => {
                   <button
                     type="button"
                     className="sp2-shareBtn is-link"
-                    onClick={() => copyLink(true)}
+                    onClick={copyLink}
                     aria-label="نسخ رابط المنتج"
                     title="Copy Link"
                   >
@@ -1488,8 +1471,12 @@ const SingleProduct = () => {
                       {product.colors.map((c, idx) => {
                         const color = normalizeColor(c);
                         const isActive =
-                          (selectedColor?._id && color?._id && selectedColor._id === color._id) ||
-                          (selectedColor?.image && color?.image && selectedColor.image === color.image);
+                          (selectedColor?._id &&
+                            color?._id &&
+                            selectedColor._id === color._id) ||
+                          (selectedColor?.image &&
+                            color?.image &&
+                            selectedColor.image === color.image);
 
                         return (
                           <button
@@ -1716,6 +1703,7 @@ const SingleProduct = () => {
           <FadeInSection delay={0.03} yOffset={20}>
             <div className="sp2-checkoutMount">
               <section
+                id="sp2-inline-checkout"
                 ref={checkoutSectionRef}
                 className="sp2-inlineCheckout sp2-reveal sp2-reveal--section"
                 aria-label="إتمام الطلب من صفحة المنتج"
@@ -1724,7 +1712,7 @@ const SingleProduct = () => {
                   <span className="sp2-likeEyebrow">Premium Checkout</span>
                   <h2 className="sp2-likeTitle">إتمام الطلب مباشرة من هذه الصفحة</h2>
                   <p className="sp2-likeIntro">
-                    تمّت إضافة المنتج بنجاح. أكمل الآن معلوماتك ليتم تأكيد الطلب بسرعة وبأناقة.
+                    أكمل الآن معلوماتك ليتم تأكيد الطلب بسرعة وبأناقة.
                   </p>
                 </div>
 
