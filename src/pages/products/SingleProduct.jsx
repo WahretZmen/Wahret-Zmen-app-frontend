@@ -360,7 +360,7 @@ const BOUTIQUE_RATING = {
   distribution: { 5: 100, 4: 0, 3: 0, 2: 0, 1: 0 },
   quality: { embroidery: 96, fabric: 94, fit: 92, packaging: 90 },
   locationLabel: "المدينة العتيقة - تونس",
-  ownerLabel: "بإدارة صبري بن سّعد",
+  ownerLabel: "بإدارة صبري بن سعد",
 };
 
 /* =============================================================================

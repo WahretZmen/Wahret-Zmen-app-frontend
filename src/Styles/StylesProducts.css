@@ -3,6 +3,7 @@
    - Fully responsive layout
    - Premium filters intro
    - Mobile / tablet / desktop improvements
+   - Android safe visibility fix
 ============================================================================ */
 
 html {
@@ -41,6 +42,7 @@ html {
   border-top-color: rgba(15, 23, 42, 0.92);
   border-radius: 999px;
   animation: wzSpin 0.7s linear infinite;
+  flex: 0 0 auto;
 }
 
 @keyframes wzSpin {
@@ -55,6 +57,15 @@ html {
 .main-content.wz-productsPage {
   margin-top: 0;
   width: 100%;
+  display: block;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.wz-productsPageVisible {
+  visibility: visible !important;
+  opacity: 1 !important;
+  transform: none !important;
 }
 
 .wz-productsShell {
@@ -64,6 +75,8 @@ html {
   padding-bottom: 24px;
   padding-inline: clamp(14px, 2vw, 32px);
   box-sizing: border-box;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .wz-productsSearchArea {
@@ -93,6 +106,8 @@ html {
 .wz-productsMain {
   min-width: 0;
   width: 100%;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 /* ---------------------------
@@ -461,6 +476,8 @@ html {
 .products-list {
   width: 100%;
   min-width: 0;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .wz-productsGrid3 {
@@ -472,6 +489,15 @@ html {
 
 .wz-productsGrid3 > * {
   min-width: 0;
+}
+
+.wz-productCardItem {
+  min-width: 0;
+  width: 100%;
+  display: block;
+  visibility: visible !important;
+  opacity: 1 !important;
+  transform: none !important;
 }
 
 @media (min-width: 640px) {

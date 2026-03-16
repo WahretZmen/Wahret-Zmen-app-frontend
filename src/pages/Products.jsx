@@ -1,4 +1,3 @@
-// src/pages/Products.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Helmet } from "react-helmet";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,8 +9,6 @@ import SelectorPageProducts from "../components/SelectorProductsPage.jsx";
 
 import { useGetAllProductsQuery } from "../redux/features/products/productsApi.js";
 import { productEventsActions } from "../redux/features/products/productEventsSlice.js";
-
-import FadeInSection from "../Animations/FadeInSection";
 
 import "../Styles/StylesProducts.css";
 import "../Styles/StylesSelectorProductsPage.css";
@@ -32,7 +29,7 @@ const capitalize = (s) => {
 const CATEGORY_ALIAS_TO_UI = {
   all: "All",
   tous: "All",
-  "الكل": "All",
+  الكل: "All",
 
   men: "Men",
   women: "Women",
@@ -89,23 +86,20 @@ const SUBCATEGORY_OPTIONS = [
 
 const SUBCATEGORY_ALIAS_TO_KEY = {
   all: "All",
-  "الكل": "All",
+  الكل: "All",
 
   accessories: "accessories",
   accessory: "accessories",
   accessoires: "accessories",
-  "إكسسوارات": "accessories",
+  إكسسوارات: "accessories",
   اكسسوارات: "accessories",
 
   costume: "costume",
   suit: "costume",
-  "بدلة": "costume",
   بدلة: "costume",
 
   vest: "vest",
   gilet: "vest",
-  "صدريّة": "vest",
-  "صدرية": "vest",
   صدريّة: "vest",
   صدرية: "vest",
 
@@ -118,8 +112,8 @@ const SUBCATEGORY_ALIAS_TO_KEY = {
 
   jebba: "jebba",
   jebbah: "jebba",
-  "جبة": "jebba",
-  "جبّة": "jebba",
+  جبة: "jebba",
+  جبّة: "jebba",
 };
 
 const canonicalSubCategory = (raw) => {
@@ -234,7 +228,7 @@ const SUBCATEGORY_COPY = {
     badge: "بدلات أنيقة",
     title: "بدلات تقليدية بحضور رسمي ولمسة فخمة",
     description:
-      "اكتشف بدلات تجمع بين الهيبة، التناسق، والأناقة الراقية، صُممت لتمنحك مظهرًا مرتبًا ومميزًا يليق بالمناسبات الخاصة والإطلالات الرفيعة.",
+      "اكتشف بدلات تجمع بين الهيبة، التناسق، والأناقة الراقية، صممت لتمنحك مظهرًا مرتبًا ومميزًا يليق بالمناسبات الخاصة والإطلالات الرفيعة.",
   },
   vest: {
     badge: "صدريّات راقية",
@@ -364,7 +358,7 @@ const Products = () => {
   const searchDebounceRef = useRef(null);
 
   const {
-    data: products = [],
+    data,
     isLoading,
     isFetching,
     isError,
@@ -373,6 +367,13 @@ const Products = () => {
     refetchOnMountOrArgChange: true,
     refetchOnReconnect: true,
   });
+
+  const products = useMemo(() => {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.products)) return data.products;
+    if (Array.isArray(data?.data)) return data.data;
+    return [];
+  }, [data]);
 
   const shouldRefetch = useSelector((state) => state.productEvents.shouldRefetch);
 
@@ -384,7 +385,7 @@ const Products = () => {
   }, [shouldRefetch, refetch, dispatch]);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [location.pathname, location.search]);
 
   useEffect(() => {
@@ -587,7 +588,9 @@ const Products = () => {
     navigate({ search: params.toString() }, { replace: true });
   };
 
-  if (isLoading || isFetching) {
+  const isInitialLoading = isLoading && products.length === 0;
+
+  if (isInitialLoading) {
     return (
       <div className="wz-products-firstLoad" dir="rtl">
         <div className="wz-firstLoadCard">
@@ -599,156 +602,159 @@ const Products = () => {
   }
 
   return (
-    <FadeInSection>
-      <div className="main-content wz-productsPage">
-        <div className="wz-productsShell">
-          <Helmet>
-            <title>المنتجات - Wahret Zmen</title>
-          </Helmet>
+    <div className="main-content wz-productsPage wz-productsPageVisible">
+      <div className="wz-productsShell">
+        <Helmet>
+          <title>المنتجات - Wahret Zmen</title>
+        </Helmet>
 
-          <div className="wz-productsSearchArea" dir="rtl">
-            <SearchInput
-              setSearchTerm={handleSearchChange}
-              placeholder="ابحث بالـ ID، اللون، الفئة، نوع القطعة أو نوع التطريز..."
-              initialValue={searchTerm}
-              defaultValue={searchTerm}
-              value={searchTerm}
-            />
+        <div className="wz-productsSearchArea" dir="rtl">
+          <SearchInput
+            setSearchTerm={handleSearchChange}
+            placeholder="ابحث بالـ ID، اللون، الفئة، نوع القطعة أو نوع التطريز..."
+            initialValue={searchTerm}
+            defaultValue={searchTerm}
+            value={searchTerm}
+          />
 
-            {searchLoading && (
-              <div className="wz-inlineLoader" role="status" aria-live="polite">
-                <span className="wz-btnSpinner" aria-hidden="true" />
-                <span>جاري البحث…</span>
-              </div>
-            )}
-          </div>
-
-          {isError && (
-            <div className="wz-products-error" dir="rtl">
-              <span>حدث خطأ أثناء تحميل المنتجات.</span>
-              <button type="button" className="wz-retryBtn" onClick={() => refetch()}>
-                إعادة المحاولة
-              </button>
+          {searchLoading && (
+            <div className="wz-inlineLoader" role="status" aria-live="polite">
+              <span className="wz-btnSpinner" aria-hidden="true" />
+              <span>جاري البحث…</span>
             </div>
           )}
 
-          <div className="wz-productsLayout">
-            <aside className="wz-productsSidebar" dir="rtl">
-              <div className="wz-productsSidebarInner">
-                <SelectorPageProducts
-                  categorySel={categorySel}
-                  setCategorySel={setCategorySel}
-                  categories={categories}
-                  subCategorySel={subCategorySel}
-                  setSubCategorySel={setSubCategorySel}
-                  subCategories={SUBCATEGORY_OPTIONS.map((o) => o.value)}
-                  colorSel={colorSel}
-                  setColorSel={setColorSel}
-                  colors={colors}
-                  embroiderySel={embroiderySel}
-                  setEmbroiderySel={setEmbroiderySel}
-                  embroideryTypes={embroideryTypes}
-                  priceRange={priceRange}
-                  setPriceRange={setPriceRange}
-                  minPrice={minPrice}
-                  maxPrice={maxPrice}
-                  clearFilters={clearFilters}
-                />
-              </div>
-            </aside>
+          {isFetching && !isInitialLoading && !searchLoading && (
+            <div className="wz-inlineLoader" role="status" aria-live="polite">
+              <span className="wz-btnSpinner" aria-hidden="true" />
+              <span>جاري تحديث المنتجات…</span>
+            </div>
+          )}
+        </div>
 
-            <section className="wz-productsMain" dir="rtl">
-              <div className="wz-filterIntro">
-                <div className="wz-filterIntroBadge">{filterIntro.badge}</div>
+        {isError && (
+          <div className="wz-products-error" dir="rtl">
+            <span>حدث خطأ أثناء تحميل المنتجات.</span>
+            <button type="button" className="wz-retryBtn" onClick={() => refetch()}>
+              إعادة المحاولة
+            </button>
+          </div>
+        )}
 
-                <h2 className={`wz-filterIntroTitle sparkle ${isRTL ? "rtl" : "ltr"}`}>
-                  <span className="wz-filterIntroTitle__text">{filterIntro.title}</span>
-                  <span className="wz-filterIntroTitle__underline" />
-                </h2>
+        <div className="wz-productsLayout">
+          <aside className="wz-productsSidebar" dir="rtl">
+            <div className="wz-productsSidebarInner">
+              <SelectorPageProducts
+                categorySel={categorySel}
+                setCategorySel={setCategorySel}
+                categories={categories}
+                subCategorySel={subCategorySel}
+                setSubCategorySel={setSubCategorySel}
+                subCategories={SUBCATEGORY_OPTIONS.map((o) => o.value)}
+                colorSel={colorSel}
+                setColorSel={setColorSel}
+                colors={colors}
+                embroiderySel={embroiderySel}
+                setEmbroiderySel={setEmbroiderySel}
+                embroideryTypes={embroideryTypes}
+                priceRange={priceRange}
+                setPriceRange={setPriceRange}
+                minPrice={minPrice}
+                maxPrice={maxPrice}
+                clearFilters={clearFilters}
+              />
+            </div>
+          </aside>
 
-                <p className="wz-filterIntroDesc">{filterIntro.description}</p>
+          <section className="wz-productsMain" dir="rtl">
+            <div className="wz-filterIntro">
+              <div className="wz-filterIntroBadge">{filterIntro.badge}</div>
 
-                <div className="wz-filterIntroMeta">
-                  <span className="wz-filterIntroCount">{filterIntro.countLabel}</span>
+              <h2 className={`wz-filterIntroTitle sparkle ${isRTL ? "rtl" : "ltr"}`}>
+                <span className="wz-filterIntroTitle__text">{filterIntro.title}</span>
+                <span className="wz-filterIntroTitle__underline" />
+              </h2>
 
-                  {(canonicalSubCategory(subCategorySel || "All") !== "All" ||
-                    canonicalCategory(categorySel || "All") !== "All" ||
-                    normalize(searchTerm) ||
-                    normalize(colorSel) !== "all" ||
-                    normalize(embroiderySel) !== "all") && (
-                    <button
-                      type="button"
-                      className="wz-filterIntroReset"
-                      onClick={clearFilters}
-                    >
-                      عرض جميع المنتجات
-                    </button>
-                  )}
-                </div>
-              </div>
+              <p className="wz-filterIntroDesc">{filterIntro.description}</p>
 
-              <div className="products-list wz-productsGrid3">
-                {filtered.length ? (
-                  filtered.map((product, index) => (
-                    <FadeInSection
-                      key={product?._id || index}
-                      delay={index * 0.05}
-                      duration={0.45}
-                      yOffset={20}
-                    >
-                      <ProductCard product={product} />
-                    </FadeInSection>
-                  ))
-                ) : (
-                  <div className="wz-emptyState">
-                    <h3 className="wz-emptyStateTitle">لا توجد نتائج مطابقة</h3>
-                    <p className="wz-emptyStateText">
-                      لم يتم العثور على منتجات مطابقة للفلاتر الحالية. جرّب تعديل
-                      الفئة أو نوع القطعة أو نطاق السعر للحصول على نتائج أقرب لما تبحث عنه.
-                    </p>
-                    <button
-                      type="button"
-                      className="wz-emptyStateBtn"
-                      onClick={clearFilters}
-                    >
-                      مسح الفلاتر وعرض الكل
-                    </button>
-                  </div>
-                )}
-              </div>
+              <div className="wz-filterIntroMeta">
+                <span className="wz-filterIntroCount">{filterIntro.countLabel}</span>
 
-              {matched.length > 0 && filtered.length < matched.length && !searchLoading && (
-                <div className="wz-loadMoreWrap">
+                {(canonicalSubCategory(subCategorySel || "All") !== "All" ||
+                  canonicalCategory(categorySel || "All") !== "All" ||
+                  normalize(searchTerm) ||
+                  normalize(colorSel) !== "all" ||
+                  normalize(embroiderySel) !== "all") && (
                   <button
                     type="button"
-                    className="wz-loadMoreBtn"
-                    onClick={handleLoadMore}
-                    disabled={isLoadingMore}
-                    aria-busy={isLoadingMore ? "true" : "false"}
+                    className="wz-filterIntroReset"
+                    onClick={clearFilters}
                   >
-                    <span className="wz-loadMoreInner">
-                      {isLoadingMore && <span className="wz-btnSpinner" aria-hidden="true" />}
-                      <span>
-                        {isLoadingMore
-                          ? "جاري تحميل المزيد…"
-                          : `عرض المزيد (${Math.min(
-                              LOAD_STEP,
-                              matched.length - filtered.length
-                            )} منتجات)`}
-                      </span>
-                    </span>
+                    عرض جميع المنتجات
                   </button>
+                )}
+              </div>
+            </div>
 
-                  <div className="wz-loadMoreHint">
-                    تم عرض <strong>{filtered.length}</strong> من <strong>{matched.length}</strong>
+            <div className="products-list wz-productsGrid3">
+              {filtered.length ? (
+                filtered.map((product, index) => (
+                  <div
+                    key={product?._id || product?.id || index}
+                    className="wz-productCardItem"
+                  >
+                    <ProductCard product={product} />
                   </div>
+                ))
+              ) : (
+                <div className="wz-emptyState">
+                  <h3 className="wz-emptyStateTitle">لا توجد نتائج مطابقة</h3>
+                  <p className="wz-emptyStateText">
+                    لم يتم العثور على منتجات مطابقة للفلاتر الحالية. جرّب تعديل الفئة
+                    أو نوع القطعة أو نطاق السعر للحصول على نتائج أقرب لما تبحث عنه.
+                  </p>
+                  <button
+                    type="button"
+                    className="wz-emptyStateBtn"
+                    onClick={clearFilters}
+                  >
+                    مسح الفلاتر وعرض الكل
+                  </button>
                 </div>
               )}
-            </section>
-          </div>
+            </div>
+
+            {matched.length > 0 && filtered.length < matched.length && !searchLoading && (
+              <div className="wz-loadMoreWrap">
+                <button
+                  type="button"
+                  className="wz-loadMoreBtn"
+                  onClick={handleLoadMore}
+                  disabled={isLoadingMore}
+                  aria-busy={isLoadingMore ? "true" : "false"}
+                >
+                  <span className="wz-loadMoreInner">
+                    {isLoadingMore && <span className="wz-btnSpinner" aria-hidden="true" />}
+                    <span>
+                      {isLoadingMore
+                        ? "جاري تحميل المزيد…"
+                        : `عرض المزيد (${Math.min(
+                            LOAD_STEP,
+                            matched.length - filtered.length
+                          )} منتجات)`}
+                    </span>
+                  </span>
+                </button>
+
+                <div className="wz-loadMoreHint">
+                  تم عرض <strong>{filtered.length}</strong> من <strong>{matched.length}</strong>
+                </div>
+              </div>
+            )}
+          </section>
         </div>
       </div>
-    </FadeInSection>
+    </div>
   );
 };
 
