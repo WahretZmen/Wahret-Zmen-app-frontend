@@ -52,8 +52,6 @@ html {
 /* ---------------------------
    Main page shell
 --------------------------- */
-.main-content { margin-top: -150px!important;}
-
 .main-content.wz-productsPage {
   margin-top: 0;
   width: 100%;
@@ -96,8 +94,6 @@ html {
   min-width: 0;
   width: 100%;
 }
-
-
 
 /* ---------------------------
    First full page loader
