@@ -7,53 +7,99 @@
 // - monthlySales
 // -----------------------------------------------------------------------------
 // Auth:
-// - Requires admin token in localStorage ("token")
+// - Requires admin token in localStorage ("token" / "adminToken")
+// -----------------------------------------------------------------------------
+// Auto refresh:
+// - Refreshes admin stats every 5 seconds without page reload
+// - First load shows loader
+// - Next refreshes are silent to avoid flicker
 // -----------------------------------------------------------------------------
 
 import { FaBoxOpen, FaClipboardList, FaChartLine } from "react-icons/fa";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 import Loading from "../../components/Loading";
-import RevenueChart from "./RevenueChart";
+// import RevenueChart from "./RevenueChart";
 import ManageOrders from "./manageOrders/manageOrder";
 import getBaseUrl from "../../utils/baseURL";
 
+const REFRESH_INTERVAL = 5000;
+
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [data, setData] = useState({
     totalProducts: 0,
     totalSales: 0,
     totalOrders: 0,
     monthlySales: [],
+    trendingProducts: 0,
   });
   const [error, setError] = useState("");
+
   const navigate = useNavigate();
+  const intervalRef = useRef(null);
+  const isMountedRef = useRef(true);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/admin");
-      return;
-    }
+  const getAdminToken = () =>
+    localStorage.getItem("adminToken") ||
+    localStorage.getItem("token") ||
+    "";
 
-    const fetchData = async () => {
+  const clearAdminSession = () => {
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("adminToken_expiresAt");
+    localStorage.removeItem("token");
+  };
+
+  const handleUnauthorized = useCallback(() => {
+    clearAdminSession();
+    navigate("/admin");
+  }, [navigate]);
+
+  const fetchDashboardStats = useCallback(
+    async ({ initial = false } = {}) => {
+      const token = getAdminToken();
+
+      if (!token) {
+        handleUnauthorized();
+        return;
+      }
+
       try {
-        setLoading(true);
-        setError("");
+        if (initial) {
+          setLoading(true);
+        } else {
+          setRefreshing(true);
+        }
 
         const response = await axios.get(`${getBaseUrl()}/api/admin`, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
+            Accept: "application/json",
           },
           timeout: 20000,
         });
 
-        setData(response.data || {});
-        setLoading(false);
+        if (!isMountedRef.current) return;
+
+        setData({
+          totalProducts: response?.data?.totalProducts ?? 0,
+          totalSales: response?.data?.totalSales ?? 0,
+          totalOrders: response?.data?.totalOrders ?? 0,
+          monthlySales: Array.isArray(response?.data?.monthlySales)
+            ? response.data.monthlySales
+            : [],
+          trendingProducts: response?.data?.trendingProducts ?? 0,
+        });
+
+        setError("");
       } catch (err) {
+        if (!isMountedRef.current) return;
+
         const status = err?.response?.status;
         const msg =
           err?.response?.data?.message ||
@@ -64,23 +110,48 @@ const Dashboard = () => {
             : "حدث خطأ أثناء تحميل الإحصائيات.");
 
         setError(msg);
-        setLoading(false);
 
         if (status === 401 || status === 403) {
-          localStorage.removeItem("token");
-          navigate("/admin");
+          handleUnauthorized();
         }
 
         console.error("[Dashboard] fetch /api/admin failed:", err);
+      } finally {
+        if (!isMountedRef.current) return;
+        setLoading(false);
+        setRefreshing(false);
       }
-    };
+    },
+    [handleUnauthorized]
+  );
 
-    fetchData();
-  }, [navigate]);
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    const token = getAdminToken();
+    if (!token) {
+      navigate("/admin");
+      return;
+    }
+
+    fetchDashboardStats({ initial: true });
+
+    intervalRef.current = setInterval(() => {
+      fetchDashboardStats({ initial: false });
+    }, REFRESH_INTERVAL);
+
+    return () => {
+      isMountedRef.current = false;
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [fetchDashboardStats, navigate]);
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-100" dir="rtl">
+      <div
+        className="flex justify-center items-center min-h-screen bg-gray-100"
+        dir="rtl"
+      >
         <Loading />
       </div>
     );
@@ -127,6 +198,12 @@ const Dashboard = () => {
         </div>
       )}
 
+      <div className="mb-4 flex justify-start">
+        <div className="text-xs text-gray-500 bg-gray-50 border border-gray-200 px-3 py-2">
+          {refreshing ? "جاري تحديث الإحصائيات..." : "تحديث تلقائي كل 5 ثوانٍ"}
+        </div>
+      </div>
+
       {/* Stats */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         {stats.map((stat, i) => (
@@ -148,7 +225,7 @@ const Dashboard = () => {
         ))}
       </section>
 
-      {/* Chart */}
+      {/*
       <section className="flex flex-col lg:flex-row gap-6 overflow-x-auto">
         <div className="flex-1 bg-white shadow-sm border border-gray-200 p-6 min-w-[520px]">
           <div className="font-semibold mb-4 text-lg text-right">
@@ -156,12 +233,12 @@ const Dashboard = () => {
           </div>
 
           <div className="flex items-center justify-center bg-gray-50 border-2 border-gray-200 border-dashed p-4">
-            <RevenueChart />
+            <RevenueChart monthlySales={data?.monthlySales || []} />
           </div>
         </div>
       </section>
+      */}
 
-      {/* Orders table */}
       <section className="bg-white shadow-sm p-6 mt-6 overflow-x-auto min-w-[520px] border border-gray-200">
         <ManageOrders />
       </section>

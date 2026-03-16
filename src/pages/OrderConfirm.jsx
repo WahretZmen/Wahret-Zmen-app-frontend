@@ -1,21 +1,19 @@
-import React, { useMemo, useState, useEffect } from "react";
-import { Link, useLocation, useParams } from "react-router-dom";
+import React, { useMemo, useState, useEffect, useRef } from "react";
+import { useParams, useLocation, Link } from "react-router-dom";
 import {
+  Search,
   CheckCircle,
   Package,
   Truck,
-  ArrowLeft,
-  Copy,
   Banknote,
-  ShieldCheck,
-  User,
   Phone,
   Mail,
-  MapPin,
-  Image as ImageIcon,
-  Search,
+  MessageCircle,
+  ShieldCheck,
   Loader2,
-  RefreshCw,
+  Image as ImageIcon,
+  Copy,
+  ArrowLeft,
   ExternalLink,
 } from "lucide-react";
 
@@ -26,9 +24,6 @@ import getBaseUrl from "../utils/baseURL";
 import { getImgUrl } from "../utils/getImgUrl";
 import "../Styles/StylesOrderConfirm.css";
 
-/* -----------------------
-   Helpers
------------------------- */
 const STATUSES = [
   "تم تأكيد الطلب",
   "قيد التحضير",
@@ -36,15 +31,15 @@ const STATUSES = [
   "تم التسليم والدفع",
 ];
 
-const safeMoney = (n) => {
-  const x = Number(n);
-  return Number.isFinite(x) ? x.toFixed(2) : "0.00";
-};
+const makeFallbackId = () =>
+  "WZ-2026-" + Math.random().toString(36).substring(2, 8).toUpperCase();
 
 const safeText = (v) => (typeof v === "string" ? v.trim() : String(v ?? "").trim());
 
-const makeFallbackId = () =>
-  "WZ-2026-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+const money = (n) => {
+  const x = Number(n);
+  return Number.isFinite(x) ? x.toFixed(2) : "0.00";
+};
 
 const statusIndex = (s) => {
   const i = STATUSES.indexOf(String(s || "").trim());
@@ -67,36 +62,9 @@ const getProgressObj = (order) => {
   return typeof p === "object" ? p : {};
 };
 
-const readStoredOrder = (orderId) => {
-  try {
-    const byId = sessionStorage.getItem(`wz_order_${String(orderId)}`);
-    if (byId) return JSON.parse(byId);
-
-    const last = sessionStorage.getItem("wz_last_order");
-    if (!last) return null;
-    const parsed = JSON.parse(last);
-    const storedId = safeText(parsed?.orderId);
-    if (storedId && safeText(orderId) && storedId !== safeText(orderId)) return null;
-    return parsed?.order || null;
-  } catch (_) {
-    return null;
-  }
-};
-
-const persistOrderSnapshot = (id, order) => {
-  const v = safeText(id);
-  if (!v || !order) return;
-  try {
-    sessionStorage.setItem(
-      "wz_last_order",
-      JSON.stringify({ orderId: v, order, savedAt: Date.now() })
-    );
-  } catch (_) {}
-  try {
-    sessionStorage.setItem(`wz_order_${v}`, JSON.stringify(order));
-  } catch (_) {}
-};
-
+/* -----------------------
+   Robust product pickers
+------------------------ */
 const pickLineImageRaw = (line) => {
   const colorImgs = Array.isArray(line?.color?.images) ? line.color.images.filter(Boolean) : [];
   const prod = line?.productData || line?.productId || line?.product || {};
@@ -124,6 +92,7 @@ const pickTitle = (line) => {
     prod?.translations?.fr?.title ||
     prod?.translations?.en?.title ||
     prod?.title ||
+    line?.translations?.ar?.title ||
     line?.title ||
     "منتج"
   );
@@ -131,10 +100,10 @@ const pickTitle = (line) => {
 
 const pickColorName = (line) => {
   const cn = line?.color?.colorName ?? line?.colorName;
-  if (!cn) return "";
-  if (typeof cn === "string") return cn.trim();
-  if (typeof cn === "object") return (cn.ar || cn.fr || cn.en || "").trim();
-  return "";
+  if (!cn) return "أصلي";
+  if (typeof cn === "string") return cn.trim() || "أصلي";
+  if (typeof cn === "object") return (cn.ar || cn.fr || cn.en || "").trim() || "أصلي";
+  return "أصلي";
 };
 
 const pickSize = (line) => safeText(line?.size || line?.selectedSize || "");
@@ -151,7 +120,10 @@ const pickCategory = (line) =>
 
 const pickSubCategory = (line) =>
   safeText(
-    line?.productData?.subCategory || line?.productId?.subCategory || line?.product?.subCategory || ""
+    line?.productData?.subCategory ||
+      line?.productId?.subCategory ||
+      line?.product?.subCategory ||
+      ""
   );
 
 /* -----------------------
@@ -182,29 +154,103 @@ const buildProgressKey = (line, lineIndex, itemIndex) => {
   return `${pid}|${colorPart}|${lineIndex}-${itemIndex}`;
 };
 
-/* ========================================================================== */
-export default function OrderConfirm() {
-  const { orderId: orderIdParam } = useParams();
+// Timeline seed (UI)
+const trackingStepsSeed = [
+  {
+    icon: CheckCircle,
+    label: "تم تأكيد الطلب",
+    date: "—",
+    desc: "تم استلام طلبك وتأكيده بنجاح",
+    done: false,
+  },
+  {
+    icon: Package,
+    label: "قيد التحضير",
+    date: "—",
+    desc: "حرفيّونا يقومون بتجهيز الطلب بعناية",
+    done: false,
+  },
+  {
+    icon: Truck,
+    label: "خارج للتسليم",
+    date: "—",
+    desc: "طلبك في الطريق إليك",
+    done: false,
+  },
+  {
+    icon: Banknote,
+    label: "تم التسليم والدفع",
+    date: "—",
+    desc: "الدفع نقدًا عند الاستلام",
+    done: false,
+  },
+];
+
+/* -----------------------
+   Helpers for storage
+------------------------ */
+const readAnyStoredOrder = (id) => {
+  const v = safeText(id);
+  if (!v) return null;
+
+  try {
+    const byId = sessionStorage.getItem(`wz_order_${v}`);
+    if (byId) return JSON.parse(byId);
+  } catch (_) {}
+
+  try {
+    const raw = sessionStorage.getItem("wz_last_order");
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    const storedId = safeText(parsed?.orderId);
+    if (storedId && storedId !== v) return null;
+    return parsed?.order || null;
+  } catch (_) {
+    return null;
+  }
+};
+
+const persistOrderSnapshot = (id, order) => {
+  const v = safeText(id);
+  if (!v || !order) return;
+  try {
+    sessionStorage.setItem(
+      "wz_last_order",
+      JSON.stringify({ orderId: v, order, savedAt: Date.now() })
+    );
+  } catch (_) {}
+  try {
+    sessionStorage.setItem(`wz_order_${v}`, JSON.stringify(order));
+  } catch (_) {}
+};
+
+export default function OrderTrack() {
+  const { orderId } = useParams();
   const location = useLocation();
+
+  const [trackingId, setTrackingId] = useState(orderId || "");
+  const [hasSearched, setHasSearched] = useState(Boolean(orderId));
+  const [error, setError] = useState("");
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const [copied, setCopied] = useState(false);
 
-  const [serverLoading, setServerLoading] = useState(false);
-  const [serverError, setServerError] = useState("");
-  const [lastUpdatedAt, setLastUpdatedAt] = useState(0);
+  const [silentRefreshing, setSilentRefreshing] = useState(false);
+  const pollRef = useRef(null);
 
-  const initialOrder = location.state?.order || readStoredOrder(orderIdParam) || null;
-  const [order, setOrder] = useState(initialOrder);
+  const effectiveId = safeText(trackingId) || orderId || makeFallbackId();
 
-  const ref =
-    location.state?.orderId ||
-    orderIdParam ||
-    order?.orderId ||
-    order?._id ||
-    makeFallbackId();
+  useEffect(() => {
+    document.documentElement.dir = "rtl";
+  }, []);
 
   const LTR = ({ children, className = "" }) => (
-    <span dir="ltr" className={className} style={{ unicodeBidi: "plaintext", direction: "ltr" }}>
+    <span
+      dir="ltr"
+      className={className}
+      style={{ unicodeBidi: "plaintext", direction: "ltr" }}
+    >
       {children}
     </span>
   );
@@ -223,7 +269,7 @@ export default function OrderConfirm() {
     });
 
     if (!res.ok) {
-      let msg = "تعذّر جلب بيانات الطلب.";
+      let msg = "تعذّر العثور على الطلب.";
       try {
         const data = await res.json();
         msg = data?.message || msg;
@@ -236,47 +282,109 @@ export default function OrderConfirm() {
     return await res.json();
   };
 
-  const revalidate = async () => {
-    const v = safeText(ref);
-    if (!v) return;
+  const applyOrderIfChanged = (next, trackId) => {
+    if (!next) return;
 
-    setServerError("");
-    setServerLoading(true);
-    try {
-      const data = await fetchOrderByTrackId(v);
-      setOrder(data);
-      persistOrderSnapshot(v, data);
-      setLastUpdatedAt(Date.now());
-    } catch (e) {
-      setServerError(e?.message || "تعذّر تحديث بيانات الطلب من السيرفر.");
-    } finally {
-      setServerLoading(false);
+    const prev = order;
+    const prevSig = JSON.stringify({
+      status: prev?.status,
+      totals: prev?.totals,
+      totalPrice: prev?.totalPrice,
+      productProgress: prev?.productProgress,
+      updatedAt: prev?.updatedAt,
+    });
+
+    const nextSig = JSON.stringify({
+      status: next?.status,
+      totals: next?.totals,
+      totalPrice: next?.totalPrice,
+      productProgress: next?.productProgress,
+      updatedAt: next?.updatedAt,
+    });
+
+    if (prevSig !== nextSig) {
+      setOrder(next);
+      persistOrderSnapshot(trackId, next);
+    } else {
+      persistOrderSnapshot(trackId, next);
     }
   };
 
+  const runSearch = async (idValue, { silent = false } = {}) => {
+    const v = safeText(idValue);
+
+    if (!v) {
+      setError("يرجى إدخال مرجع الطلب.");
+      setHasSearched(false);
+      setOrder(null);
+      return;
+    }
+
+    setError("");
+    setHasSearched(true);
+
+    if (!silent) {
+      const passed = location.state?.order || null;
+      const passedId = safeText(passed?.orderId || passed?._id);
+      if (passed && passedId === v) setOrder(passed);
+    }
+
+    if (!silent) {
+      const stored = readAnyStoredOrder(v);
+      const storedId = safeText(stored?.orderId || stored?._id);
+      if (stored && storedId === v) setOrder(stored);
+    }
+
+    if (!silent) setLoading(true);
+    else setSilentRefreshing(true);
+
+    try {
+      const data = await fetchOrderByTrackId(v);
+      applyOrderIfChanged(data, v);
+    } catch (e) {
+      if (!silent) {
+        setOrder(null);
+        setError(e?.message || "تعذّر جلب الطلب من السيرفر.");
+      }
+    } finally {
+      if (!silent) setLoading(false);
+      else setSilentRefreshing(false);
+    }
+  };
+
+  const onTrack = (e) => {
+    e?.preventDefault?.();
+    runSearch(trackingId, { silent: false });
+  };
+
   useEffect(() => {
-    let alive = true;
+    if (orderId) runSearch(orderId, { silent: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderId]);
 
-    const run = async () => {
-      if (!alive) return;
-      await revalidate();
-    };
+  useEffect(() => {
+    const id = safeText(effectiveId);
+    if (!hasSearched || !id) return;
 
-    run();
+    if (pollRef.current) clearInterval(pollRef.current);
 
-    const t = setInterval(() => {
-      if (!alive) return;
-      revalidate();
-    }, 5000);
+    pollRef.current = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        runSearch(id, { silent: true });
+      }
+    }, 8000);
 
     return () => {
-      alive = false;
-      clearInterval(t);
+      if (pollRef.current) clearInterval(pollRef.current);
+      pollRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ref]);
+  }, [hasSearched, effectiveId]);
 
-  const lines = useMemo(() => (Array.isArray(order?.products) ? order.products : []), [order]);
+  const products = useMemo(
+    () => (Array.isArray(order?.products) ? order.products : []),
+    [order]
+  );
 
   const totals = useMemo(() => {
     const subtotal = order?.totals?.subtotal ?? order?.subtotal ?? 0;
@@ -284,6 +392,8 @@ export default function OrderConfirm() {
     const total = order?.totals?.total ?? order?.totalPrice ?? order?.total ?? 0;
     return { subtotal, shipping, total };
   }, [order]);
+
+  const amountDue = useMemo(() => Number(totals?.total || 0) || 0, [totals]);
 
   const guest = useMemo(() => {
     const addr = order?.address || {};
@@ -302,480 +412,399 @@ export default function OrderConfirm() {
     return { fullName, email, phone, addressLine: addressLine || "—" };
   }, [order]);
 
-  const copyId = async () => {
-    try {
-      await navigator.clipboard.writeText(String(ref || ""));
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1200);
-    } catch {
-      // ignore
-    }
-  };
+  const orderStatus = useMemo(() => {
+    const s = safeText(order?.status);
+    return STATUSES.includes(s) ? s : "تم تأكيد الطلب";
+  }, [order]);
+
+  const orderPct = useMemo(() => percentOfStatus(orderStatus), [orderStatus]);
 
   const progressMap = useMemo(() => getProgressObj(order), [order]);
+
+  const orderedPieces = useMemo(() => {
+    const pieces = [];
+    products.forEach((line, lineIndex) => {
+      const qty = Math.max(1, Number(line?.quantity || 1));
+      for (let itemIndex = 0; itemIndex < qty; itemIndex++) {
+        const key = buildProgressKey(line, lineIndex, itemIndex);
+        const status = safeText(progressMap?.[key]) || "تم تأكيد الطلب";
+        const idx = statusIndex(status);
+        const pct = percentOfStatus(status);
+        pieces.push({ key, status, statusIdx: idx, pct, lineIndex, itemIndex });
+      }
+    });
+    return pieces;
+  }, [products, progressMap]);
+
+  const globalPctPieces = useMemo(() => {
+    if (!orderedPieces.length) return 0;
+    const sum = orderedPieces.reduce((acc, it) => acc + (it.pct || 0), 0);
+    return Math.round(sum / orderedPieces.length);
+  }, [orderedPieces]);
 
   const hasAnyPieceProgress = useMemo(
     () => Object.keys(progressMap || {}).length > 0,
     [progressMap]
   );
 
-  const orderStatus = useMemo(() => {
-    const s = safeText(order?.status);
-    return STATUSES.includes(s) ? s : "تم تأكيد الطلب";
-  }, [order]);
+  const globalPct = hasAnyPieceProgress ? globalPctPieces : orderPct;
 
-  const pieces = useMemo(() => {
-    const out = [];
-    lines.forEach((line, lineIndex) => {
-      const qty = Math.max(1, Number(line?.quantity || 1));
-      for (let itemIndex = 0; itemIndex < qty; itemIndex++) {
-        const key = buildProgressKey(line, lineIndex, itemIndex);
-        const st = safeText(progressMap?.[key]) || "تم تأكيد الطلب";
-        const pct = percentOfStatus(st);
-
-        out.push({
-          key,
-          status: STATUSES.includes(st) ? st : "تم تأكيد الطلب",
-          pct,
-          lineIndex,
-          itemIndex,
-        });
-      }
-    });
-    return out;
-  }, [lines, progressMap]);
-
-  const globalPctPieces = useMemo(() => {
-    if (!pieces.length) return 0;
-    const sum = pieces.reduce((acc, it) => acc + (it.pct || 0), 0);
-    return Math.round(sum / pieces.length);
-  }, [pieces]);
-
-  const globalPct = hasAnyPieceProgress ? globalPctPieces : percentOfStatus(orderStatus);
-
-  const completedSteps = useMemo(() => {
+  const steps = useMemo(() => {
+    const st = trackingStepsSeed.map((x) => ({ ...x }));
     const doneCount = Math.floor((globalPct / 100) * STATUSES.length);
-    return Math.max(1, Math.min(STATUSES.length, doneCount));
+    for (let i = 0; i < st.length; i++) st[i].done = i < doneCount;
+    return st;
   }, [globalPct]);
 
-  const progressPercent = useMemo(() => (completedSteps / STATUSES.length) * 100, [completedSteps]);
+  const completedSteps = useMemo(() => steps.filter((s) => s.done).length, [steps]);
 
-  const steps = useMemo(
-    () => [
-      { icon: CheckCircle, title: "تم تأكيد الطلب", desc: "تم استلام طلبك وتأكيده بنجاح." },
-      { icon: Package, title: "قيد التحضير", desc: "سيقوم فريقنا بتجهيز المنتج بعناية وتغليفه." },
-      { icon: Truck, title: "خارج للتسليم", desc: "طلبك في الطريق إليك مع شركة التوصيل." },
-      { icon: Banknote, title: "تم التسليم والدفع", desc: "تم التسليم والدفع عند الاستلام." },
-    ],
-    []
+  const progress = useMemo(
+    () => (steps.length ? (completedSteps / steps.length) * 100 : 0),
+    [completedSteps, steps.length, steps]
   );
 
+  const orderedLinesSimple = useMemo(() => {
+    return products.map((line, idx) => {
+      const title = pickTitle(line);
+      const img = pickLineImage(line);
+      const color = pickColorName(line);
+      const size = pickSize(line);
+      const pid = getPid(line);
+      const category = pickCategory(line);
+      const subCategory = pickSubCategory(line);
+      const qty = Math.max(1, Number(line?.quantity || 1));
+
+      return {
+        key: line?._id || `${getPid(line) || "line"}-${idx}`,
+        title,
+        img,
+        color,
+        size,
+        qty,
+        pid,
+        category,
+        subCategory,
+        
+      };
+    });
+  }, [products]);
+
+  const copyRef = async () => {
+    try {
+      await navigator.clipboard.writeText(String(effectiveId || ""));
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1200);
+    } catch (_) {}
+  };
+
   return (
-    <div className="wz-oc" dir="rtl" lang="ar">
+    <div className="wz-ot" dir="rtl" lang="ar">
       <Header />
 
-      <main className="wz-oc__main">
-        <div className="wz-oc__container">
-          <header className="wz-oc__hero wz-anim">
-            <div className="wz-oc__badge">
-              <CheckCircle size={38} />
+      <main className="wz-ot__main">
+        <div className="wz-ot__container">
+          <header className="wz-ot__hero wz-ot-anim">
+            <div className="wz-ot__heroBadge">
+              <Package size={30} />
             </div>
-
-            <h1 className="wz-oc__title">تم تأكيد الطلب!</h1>
-            <p className="wz-oc__sub">
-              شكرًا لطلبك. احتفظ بمرجع الطلب لأنك ستستخدمه لتتبّع الطلب في أي وقت.
-            </p>
+            <h1 className="wz-ot__title">تتبّع طلبك</h1>
+            <p className="wz-ot__sub">أدخل مرجع الطلب لعرض الحالة والتفاصيل</p>
           </header>
 
-          <section className="wz-oc__card wz-oc__card--soft wz-anim wz-anim--d1">
-            <div className="wz-oc__cardBody wz-oc__idRow">
-              <div>
-                <div className="wz-oc__muted">مرجع الطلب</div>
-                <div className="wz-oc__ref" style={{ direction: "ltr", unicodeBidi: "plaintext" }}>
-                  {ref}
-                </div>
-              </div>
+          <section className="wz-ot__card wz-ot-anim wz-ot-anim--d1">
+            <div className="wz-ot__cardBody wz-ot__cardBody--search">
+              <form className="wz-ot__search" onSubmit={onTrack}>
+                <div className="wz-ot__field">
+                  <label className="wz-ot__srOnly" htmlFor="trackId">
+                    مرجع الطلب
+                  </label>
 
-              <div className="wz-oc__idRight">
-                <div className="wz-oc__pill">
-                  <Banknote size={14} />
-                  الدفع عند الاستلام
+                  <input
+                    id="trackId"
+                    className="wz-ot__input"
+                    placeholder="مثال: WZ-2026-A3F8KD"
+                    value={trackingId}
+                    onChange={(e) => setTrackingId(e.target.value)}
+                    inputMode="text"
+                    autoComplete="off"
+                    spellCheck={false}
+                    dir="ltr"
+                  />
                 </div>
 
                 <button
-                  className="wz-oc__iconBtn"
-                  onClick={copyId}
-                  type="button"
-                  aria-label="نسخ رقم الطلب"
-                  title="نسخ رقم الطلب"
+                  className="wz-ot__btn wz-ot__btn--track"
+                  type="submit"
+                  disabled={loading}
+                  aria-busy={loading ? "true" : "false"}
                 >
-                  <Copy size={18} />
+                  {loading ? <Loader2 size={16} className="wz-ot__spin" /> : <Search size={16} />}
+                  {loading ? "جاري..." : "تتبّع"}
                 </button>
+              </form>
 
-                <button
-                  className="wz-oc__iconBtn"
-                  onClick={revalidate}
-                  type="button"
-                  aria-label="تحديث الحالة"
-                  title="تحديث الحالة"
-                  style={{ marginInlineStart: 8 }}
-                  disabled={serverLoading}
-                >
-                  {serverLoading ? <Loader2 size={18} className="wz-oc__spin" /> : <RefreshCw size={18} />}
-                </button>
-              </div>
+              {error ? <div className="wz-ot__alert">{error}</div> : null}
             </div>
-
-            {copied ? <div className="wz-oc__toast">تم النسخ!</div> : null}
-
-            {(serverLoading || serverError || lastUpdatedAt) && (
-              <div style={{ marginTop: 10, fontSize: 12, opacity: 0.9 }}>
-                {serverError ? (
-                  <span style={{ color: "#b91c1c" }}>{serverError}</span>
-                ) : (
-                  <span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
-                    {serverLoading ? <Loader2 size={14} className="wz-oc__spin" /> : null}
-                    {lastUpdatedAt ? <span style={{ opacity: 0.75 }}></span> : null}
-                  </span>
-                )}
-              </div>
-            )}
           </section>
 
-          <section className="wz-oc__card wz-anim wz-anim--d1">
-            <div className="wz-oc__cardBody wz-oc__cardBody--lg">
-              <div
-                className="wz-oc__bar"
-                role="progressbar"
-                aria-valuenow={Math.round(progressPercent)}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                style={{ marginTop: 10 }}
-              >
-                <div className="wz-oc__barFill" style={{ width: `${progressPercent}%` }} />
-              </div>
+          {hasSearched && (
+            <>
+              <section className="wz-ot__progress wz-ot-anim wz-ot-anim--d2">
+                <div className="wz-ot__progTop">
+                  <div className="wz-ot__progLeft">
+                    <span className="wz-ot__progLabel">تقدّم الطلب</span>
 
-              <div style={{ marginTop: 10, fontSize: 13 }}>
-                <span className="wz-oc__muted2">حالة الطلب الحالية : </span>
-                <strong>{orderStatus}</strong>
-              </div>
+                    <span className="wz-ot__chip">
+                      {completedSteps}/{steps.length} مراحل
+                    </span>
 
-              {hasAnyPieceProgress && pieces.length ? (
-                <div style={{ marginTop: 12 }}>
-                  <div className="wz-oc__muted2" style={{ marginBottom: 8 }}>
-                    تقدّم القطع:
-                  </div>
+                    <span className="wz-ot__chip" title="مصدر تقدّم الطلب">
+                      {hasAnyPieceProgress ? "حسب القطع" : "حسب حالة الطلب"}
+                    </span>
 
-                  <div style={{ display: "grid", gap: 8 }}>
-                    {pieces.slice(0, 12).map((p, idx) => (
-                      <div
-                        key={p.key}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          gap: 10,
-                          border: "1px solid rgba(0,0,0,.08)",
-                          background: "rgba(255,255,255,.85)",
-                          padding: 10,
-                        }}
-                      >
-                        <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-                          <span style={{ fontWeight: 900 }}>#{idx + 1}</span>
-                          <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                            {p.status}
-                          </span>
-                        </div>
-
-                        <div style={{ fontSize: 12, opacity: 0.85, direction: "ltr" }}>{p.pct}%</div>
-                      </div>
-                    ))}
-
-                    {pieces.length > 12 ? (
-                      <div style={{ fontSize: 12, opacity: 0.8 }}>
-                        يتم عرض أول 12 قطعة فقط… (الإجمالي: {pieces.length})
-                      </div>
+                    {silentRefreshing ? (
+                      <span className="wz-ot__chip" title="تحديث تلقائي">
+                        <Loader2 size={14} className="wz-ot__spin" /> تحديث…
+                      </span>
                     ) : null}
                   </div>
-                </div>
-              ) : null}
-            </div>
-          </section>
 
-          <section className="wz-oc__card wz-oc__card--guide wz-anim wz-anim--d1">
-            <div className="wz-oc__cardBody wz-oc__cardBody--lg">
-              <div className="wz-oc__guideHead">
-                <div className="wz-oc__guideIcon">
-                  <Search size={18} />
-                </div>
-                <div className="wz-oc__guideText">
-                  <h2 className="wz-oc__sectionTitle wz-oc__sectionTitle--tight">
-                    كيف تتبّع طلبك بسهولة؟
-                  </h2>
-                  <p className="wz-oc__guideSub">
-                    اتّبع هذه الخطوات البسيطة — وسترى حالة الطلب والمنتجات ومعلومات التوصيل.
-                  </p>
-                </div>
-              </div>
-
-              <div className="wz-oc__guideSteps">
-                <div className="wz-oc__gStep">
-                  <div className="wz-oc__gNum">1</div>
-                  <div className="wz-oc__gStepBody">
-                    <div className="wz-oc__gStepTitle">انسخ مرجع الطلب</div>
-                    <div className="wz-oc__gStepDesc">اضغط زر النسخ بجانب المرجع لتجنّب أي خطأ.</div>
-                  </div>
+                  <span className="wz-ot__pct">{Math.round(progress)}%</span>
                 </div>
 
-                <div className="wz-oc__gStep">
-                  <div className="wz-oc__gNum">2</div>
-                  <div className="wz-oc__gStepBody">
-                    <div className="wz-oc__gStepTitle">افتح صفحة التتبّع</div>
-                    <div className="wz-oc__gStepDesc">اضغط “تتبّع الطلب الآن” للانتقال مباشرةً لصفحة التتبّع.</div>
-                  </div>
+                <div
+                  className="wz-ot__bar"
+                  role="progressbar"
+                  aria-valuenow={Math.round(progress)}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                >
+                  <div className="wz-ot__barFill" style={{ width: `${progress}%` }} />
                 </div>
 
-                <div className="wz-oc__gStep">
-                  <div className="wz-oc__gNum">3</div>
-                  <div className="wz-oc__gStepBody">
-                    <div className="wz-oc__gStepTitle">الصق المرجع واضغط “تتبّع”</div>
-                    <div className="wz-oc__gStepDesc">إذا لم يتم فتح الطلب تلقائيًا، الصق المرجع ثم اضغط زر “تتبّع”.</div>
-                  </div>
-                </div>
-              </div>
+                <div className="wz-ot__trackRef" style={{ marginTop: 10 }}>
+                  <span className="wz-ot__muted">مرجع الطلب</span>
 
-              <div className="wz-oc__guideCtas">
-                <Link to={`/order-track/${ref}`} state={{ order }} className="wz-oc__actionLink wz-oc__actionLink--wide">
-                  <button className="wz-oc__btn wz-oc__btn--primary" type="button">
-                    تتبّع الطلب الآن <ArrowLeft size={16} />
+                  <span
+                    className="wz-ot__mono"
+                    style={{ direction: "ltr", unicodeBidi: "plaintext" }}
+                  >
+                    {effectiveId}
+                  </span>
+
+                  <button
+                    type="button"
+                    className="wz-ot__iconBtn"
+                    onClick={copyRef}
+                    aria-label="نسخ مرجع الطلب"
+                    title="نسخ مرجع الطلب"
+                  >
+                    <Copy size={16} />
                   </button>
-                </Link>
 
-                <button className="wz-oc__btn wz-oc__btn--outline" type="button" onClick={copyId}>
-                  نسخ مرجع الطلب <Copy size={16} />
-                </button>
-              </div>
-
-              <div className="wz-oc__guideHint">
-                <span className="wz-oc__guideHintStrong">مهم:</span> احتفظ بمرجع الطلب (Screenshot أو كتابة) لأنك
-                ستحتاجه لاحقًا للتتبّع أو عند التواصل مع الدعم.
-              </div>
-            </div>
-          </section>
-
-          <section className="wz-oc__card wz-anim wz-anim--d1">
-            <div className="wz-oc__cardBody wz-oc__cardBody--lg">
-              <h2 className="wz-oc__sectionTitle">معلومات الزبون</h2>
-
-              <div className="wz-oc__guestGrid">
-                <div className="wz-oc__guestItem">
-                  <span className="wz-oc__gIcon">
-                    <User size={16} />
-                  </span>
-                  <div className="wz-oc__gBody">
-                    <div className="wz-oc__gLabel">الاسم</div>
-                    <div className="wz-oc__gValue">{guest.fullName}</div>
-                  </div>
+                  {copied ? <span className="wz-ot__copied">تم النسخ!</span> : null}
                 </div>
 
-                <div className="wz-oc__guestItem">
-                  <span className="wz-oc__gIcon">
-                    <Phone size={16} />
-                  </span>
-                  <div className="wz-oc__gBody">
-                    <div className="wz-oc__gLabel">الهاتف</div>
-                    <div className="wz-oc__gValue" style={{ direction: "ltr", unicodeBidi: "plaintext" }}>
-                      {guest.phone}
-                    </div>
-                  </div>
+                <div style={{ display: "flex", gap: 10, marginTop: 12, flexWrap: "wrap" }}>
+                  <Link
+                    to={`/order-confirm/${effectiveId}`}
+                    state={{ order }}
+                    className="wz-ot__actionLink"
+                  >
+                    <button className="wz-ot__btn wz-ot__btn--track" type="button">
+                      تفاصيل الطلب <ArrowLeft size={16} />
+                    </button>
+                  </Link>
                 </div>
+              </section>
 
-                <div className="wz-oc__guestItem">
-                  <span className="wz-oc__gIcon">
-                    <Mail size={16} />
-                  </span>
-                  <div className="wz-oc__gBody">
-                    <div className="wz-oc__gLabel">البريد الإلكتروني</div>
-                    <div className="wz-oc__gValue">{guest.email}</div>
+              <section className="wz-ot__card wz-ot__card--note wz-ot-anim wz-ot-anim--d2">
+                <div className="wz-ot__cardBody wz-ot__payRow">
+                  <Banknote size={20} className="wz-ot__payIcon" />
+                  <div className="wz-ot__payText">
+                    <span className="wz-ot__payTitle">الدفع عند الاستلام</span>
+                    
                   </div>
+                  <ShieldCheck size={16} className="wz-ot__payShield" />
                 </div>
+              </section>
 
-                <div className="wz-oc__guestItem wz-oc__guestItem--full">
-                  <span className="wz-oc__gIcon">
-                    <MapPin size={16} />
-                  </span>
-                  <div className="wz-oc__gBody">
-                    <div className="wz-oc__gLabel">عنوان الشحن</div>
-                    <div className="wz-oc__gValue">{guest.addressLine}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
+              <section className="wz-ot__card wz-ot-anim wz-ot-anim--d2">
+                <div className="wz-ot__cardBody wz-ot__cardBody--lg">
+                  <h2 className="wz-ot__sectionTitle">مخطط التوصيل</h2>
 
-          <section className="wz-oc__card wz-anim wz-anim--d3">
-            <div className="wz-oc__cardBody wz-oc__cardBody--lg">
-              <h2 className="wz-oc__sectionTitle">المنتجات المطلوبة</h2>
-
-              {lines.length ? (
-                <div className="wz-oc__plist">
-                  {lines.map((line, idx) => {
-                    const title = pickTitle(line);
-                    const qty = Math.max(1, Number(line?.quantity || 1));
-                    const size = pickSize(line);
-                    const colorName = pickColorName(line);
-                    const pid = getPid(line);
-                    const category = pickCategory(line);
-                    const subCategory = pickSubCategory(line);
-                    const src = pickLineImage(line);
-
-                    return (
-                      <div className="wz-oc__pitem" key={line?._id || `${ref}-${idx}`}>
-                        <div className="wz-oc__pThumbWrap">
-                          {src ? (
-                            <a
-                              href={src}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="wz-oc__pThumbLink"
-                              title="فتح الصورة في تبويب جديد"
-                              aria-label={`فتح صورة ${title} في تبويب جديد`}
-                            >
-                              <div className="wz-oc__pThumb">
-                                <img
-                                  className="wz-oc__pImg"
-                                  src={src}
-                                  alt={title}
-                                  loading="lazy"
-                                  decoding="async"
-                                />
-                              </div>
-
-                              <span className="wz-oc__pZoomBadge">
-                                <ExternalLink size={15} />
-                                فتح الصورة
-                              </span>
-                            </a>
-                          ) : (
-                            <div className="wz-oc__pThumb" aria-hidden="true">
-                              <div className="wz-oc__pFallback" title="لا توجد صورة">
-                                <ImageIcon size={22} />
-                              </div>
+                  <div className="wz-ot__timeline">
+                    {steps.map((s, i) => {
+                      const Icon = s.icon;
+                      const last = i === steps.length - 1;
+                      return (
+                        <div className="wz-ot__step" key={i}>
+                          <div className="wz-ot__stepLeft">
+                            <div className={`wz-ot__dot ${s.done ? "is-done" : ""}`}>
+                              <Icon size={18} />
                             </div>
-                          )}
-                        </div>
-
-                        <div className="wz-oc__pMain">
-                          <div className="wz-oc__pTop">
-                            <div className="wz-oc__pTitle" title={title}>
-                              {title}
-                            </div>
+                            {!last ? (
+                              <div className={`wz-ot__line ${s.done ? "is-done" : ""}`} />
+                            ) : null}
                           </div>
 
-                          <div className="wz-oc__pMeta wz-oc__pMeta--stack">
-                            {pid ? <span>Product ID: {pid}</span> : null}
-                            {category ? <span>Category: {category}</span> : null}
-                            {subCategory ? <span>Sub category: {subCategory}</span> : null}
-                            {colorName ? <span>اللون: {colorName}</span> : null}
-                            {size ? <span>المقاس: {size}</span> : null}
-                            <span>الكمية: {qty}</span>
+                          <div className="wz-ot__stepBody">
+                            <div className={`wz-ot__stepTitle ${s.done ? "is-done" : ""}`}>
+                              {s.label}
+                            </div>
+                            <div className="wz-ot__stepDesc">{s.desc}</div>
+                            <div className="wz-ot__stepDate">{s.date}</div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              ) : (
-                <div className="wz-oc__empty">لا توجد تفاصيل للمنتجات داخل التأكيد.</div>
-              )}
-            </div>
-          </section>
+              </section>
 
-          <section className="wz-oc__card wz-oc__card--note wz-anim wz-anim--d1">
-            <div className="wz-oc__cardBody wz-oc__noteRow">
-              <div className="wz-oc__noteIcon">
-                <ShieldCheck size={20} />
-              </div>
+              <section className="wz-ot__card wz-ot-anim wz-ot-anim--d3">
+                <div className="wz-ot__cardBody wz-ot__cardBody--lg">
+                  <h2 className="wz-ot__sectionTitle">المنتجات المطلوبة</h2>
 
-              <div className="wz-oc__noteText">
-                <div className="wz-oc__noteTitle">لا يوجد دفع الآن</div>
-                <div className="wz-oc__noteDesc">ستدفع نقدًا عند توصيل الطلب.</div>
-              </div>
-            </div>
-          </section>
+                  {orderedLinesSimple.length ? (
+                    <div className="wz-ot__itemsBig">
+                      {orderedLinesSimple.map((it) => (
+                        <div key={it.key} className="wz-ot__itemBig">
+                          <div className="wz-ot__itemBigMedia">
+                            {it.img ? (
+                              <a
+                                href={it.img}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="wz-ot__imgLink"
+                                title="فتح الصورة في تبويب جديد"
+                                aria-label={`فتح صورة ${it.title} في تبويب جديد`}
+                              >
+                                <div className="wz-ot__imgFrameLarge">
+                                  <img
+                                    src={it.img}
+                                    alt={it.title}
+                                    loading="lazy"
+                                    decoding="async"
+                                    className="wz-ot__imgLarge"
+                                  />
+                                </div>
 
-          <section className="wz-oc__card wz-anim wz-anim--d2">
-            <div className="wz-oc__cardBody wz-oc__cardBody--lg">
-              <h2 className="wz-oc__sectionTitle">ماذا سيحدث بعد ذلك؟</h2>
+                                <span className="wz-ot__openImgBadge">
+                                  <ExternalLink size={15} />
+                                  فتح الصورة
+                                </span>
+                              </a>
+                            ) : (
+                              <div className="wz-ot__imgFrameLarge">
+                                <div className="wz-ot__imgFallbackLarge">
+                                  <ImageIcon size={22} />
+                                </div>
+                              </div>
+                            )}
+                          </div>
 
-              <div className="wz-oc__timeline">
-                {steps.map((s, i) => {
-                  const Icon = s.icon;
-                  const last = i === steps.length - 1;
-                  const done = i < completedSteps;
+                          <div className="wz-ot__itemBigMain">
+                            <div className="wz-ot__itemBigTitle" title={it.title}>
+                              {it.title}
+                            </div>
 
-                  return (
-                    <div className="wz-oc__step" key={i}>
-                      <div className="wz-oc__stepLeft">
-                        <div className={`wz-oc__dot ${done ? "is-active" : ""}`}>
-                          <Icon size={18} />
+                            <div className="wz-ot__itemBigMeta">
+                              {it.pid ? <span>Product ID (منتج) : {it.pid}</span> : null}
+                              {it.category ? <span>Category: {it.category}</span> : null}
+                              {it.subCategory ? <span>Sub category: {it.subCategory}</span> : null}
+                              {it.color ? <span>اللون: {it.color}</span> : null}
+                              {it.size ? <span>المقاس: {it.size}</span> : null}
+                              <span>الكمية: {it.qty}</span>
+                            </div>
+
+                            {it.colorKey ? (
+                              <div className="wz-ot__itemBigKey">
+                                colorKey: {it.colorKey}
+                              </div>
+                            ) : null}
+                          </div>
                         </div>
-                        {!last ? <div className={`wz-oc__line ${done ? "is-active" : ""}`} /> : null}
-                      </div>
+                      ))}
 
-                      <div className="wz-oc__stepBody">
-                        <div className={`wz-oc__stepTitle ${done ? "is-active" : ""}`}>{s.title}</div>
-                        <div className="wz-oc__stepDesc">{s.desc}</div>
+                      <div style={{ marginTop: 10, fontSize: 14, opacity: 0.9 }}>
+                        <div>
+                          التوصيل:{" "}
+                          <strong>
+                            {Number(totals.shipping) === 0
+                              ? "مجاني"
+                              : `${money(totals.shipping)} د.ت`}
+                          </strong>
+                        </div>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-
-              <div style={{ marginTop: 12, fontSize: 13, opacity: 0.9 }}>
-                <span className="wz-oc__muted2">حالة الطلب : </span>
-                <strong>{orderStatus}</strong>
-              </div>
-            </div>
-          </section>
-
-          <section className="wz-oc__card wz-anim wz-anim--d3">
-            <div className="wz-oc__cardBody wz-oc__cardBody--lg">
-              <h2 className="wz-oc__sectionTitle">ملخص المبلغ</h2>
-
-              <div className="wz-oc__summary">
-                <div className="wz-oc__sumRow wz-oc__sumRow--sm">
-                  <span className="wz-oc__muted2">التوصيل</span>
-                  <span className={Number(totals.shipping) === 0 ? "wz-oc__green" : ""}>
-                    {Number(totals.shipping) === 0 ? "مجاني" : `${safeMoney(totals.shipping)} د.ت`}
-                  </span>
+                  ) : (
+                    <div className="wz-ot__empty">لا توجد تفاصيل منتجات لهذا المرجع.</div>
+                  )}
                 </div>
+              </section>
 
-                <div className="wz-oc__sumRow wz-oc__sumRow--sm">
-                  <span className="wz-oc__muted2">طريقة الدفع</span>
-                  <span className="wz-oc__pay">
-                    <Banknote size={14} /> الدفع عند الاستلام
-                  </span>
+              <section className="wz-ot__card wz-ot-anim wz-ot-anim--d3">
+                <div className="wz-ot__cardBody wz-ot__cardBody--lg">
+                  <h2 className="wz-ot__sectionTitle">بيانات الحريف</h2>
+
+                  <div className="wz-ot__details">
+                    <div className="wz-ot__box">
+                      <div className="wz-ot__muted">الاسم</div>
+                      <div className="wz-ot__strong">{guest.fullName}</div>
+
+                      <div className="wz-ot__spacer" />
+
+                      <div className="wz-ot__muted">الهاتف</div>
+                      <div className="wz-ot__strong">
+                        <LTR>{guest.phone}</LTR>
+                      </div>
+                    </div>
+
+                    <div className="wz-ot__box">
+                      <div className="wz-ot__muted">البريد الإلكتروني</div>
+                      <div className="wz-ot__strong">{guest.email}</div>
+
+                      <div className="wz-ot__spacer" />
+
+                      <div className="wz-ot__muted">طريقة الدفع</div>
+                      <div className="wz-ot__strong">الدفع عند الاستلام</div>
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: 12, fontSize: 13, opacity: 0.95 }}>
+                    <span className="wz-ot__muted">العنوان: </span>
+                    <span>{guest.addressLine}</span>
+                  </div>
                 </div>
+              </section>
 
-                <div className="wz-oc__sep" />
-              </div>
-            </div>
-          </section>
+              <section className="wz-ot__card wz-ot__card--support wz-ot-anim wz-ot-anim--d3">
+                <div className="wz-ot__cardBody wz-ot__cardBody--lg wz-ot__support">
+                  <h2 className="wz-ot__supportTitle">هل تحتاج مساعدة؟</h2>
+                  <p className="wz-ot__supportSub">فريق الدعم متاح لمساعدتك</p>
 
-          <section className="wz-oc__actions wz-anim wz-anim--d3">
-            <Link to={`/order-track/${ref}`} state={{ order }} className="wz-oc__actionLink">
-              <button className="wz-oc__btn wz-oc__btn--primary" type="button">
-                تتبّع الطلب <ArrowLeft size={16} />
-              </button>
-            </Link>
+                  <div className="wz-ot__supportBtns">
+                    <button className="wz-ot__btnGhost" type="button">
+                      <Phone size={16} />
+                      <LTR className="wz-ot__ltr">+216 55 495 816</LTR>
+                    </button>
 
-            <Link to="/" className="wz-oc__actionLink">
-              <button className="wz-oc__btn wz-oc__btn--outline" type="button">
-                مواصلة التسوق
-              </button>
-            </Link>
-          </section>
+                    <button className="wz-ot__btnGhost" type="button">
+                      <Mail size={16} />
+                      <LTR className="wz-ot__ltr">
+                        wahretzmensabri521@gmail.com / emnabes930@gmail.com
+                      </LTR>
+                    </button>
+
+                    <button className="wz-ot__btnGhost" type="button">
+                      <MessageCircle size={16} /> واتساب
+                    </button>
+                  </div>
+                </div>
+              </section>
+            </>
+          )}
         </div>
       </main>
 

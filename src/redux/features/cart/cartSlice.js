@@ -14,6 +14,11 @@ const pick = (v, d = "") => {
   return String(v);
 };
 
+const toNum = (v, d = 0) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : d;
+};
+
 const getProductId = (payload) =>
   pick(
     payload?.productId ||
@@ -55,6 +60,25 @@ const ensureImages = (color, coverImage) => {
   return { image, images: safeImages };
 };
 
+const getMaxStock = (payload) => {
+  const colorStock = toNum(payload?.color?.stock, NaN);
+  if (Number.isFinite(colorStock)) return Math.max(0, colorStock);
+
+  const totalStock = toNum(payload?.stockQuantity ?? payload?.stock, NaN);
+  if (Number.isFinite(totalStock)) return Math.max(0, totalStock);
+
+  return Infinity;
+};
+
+const clampQuantity = (qty, maxStock) => {
+  const next = Math.max(1, toNum(qty, 1));
+  if (Number.isFinite(maxStock)) {
+    if (maxStock <= 0) return 0;
+    return Math.min(next, maxStock);
+  }
+  return next;
+};
+
 /* -----------------------------
    Initial State
 ------------------------------ */
@@ -71,7 +95,6 @@ const cartSlice = createSlice({
   name: "cart",
   initialState,
   reducers: {
-    // addToCart
     addToCart: (state, action) => {
       const payload = action.payload || {};
       const productId = getProductId(payload);
@@ -96,23 +119,35 @@ const cartSlice = createSlice({
         (item) => item.productId === productId && item.colorKey === colorKey
       );
 
+      const maxStock = getMaxStock({
+        ...payload,
+        color: normalizedColor,
+      });
+
+      if (Number.isFinite(maxStock) && maxStock <= 0) return;
+
       const qtyToAdd = Math.max(1, Number(payload.quantity || 1));
 
       if (existingItem) {
-        existingItem.quantity = Math.max(1, Number(existingItem.quantity || 1) + qtyToAdd);
+        existingItem.quantity = clampQuantity(
+          Number(existingItem.quantity || 1) + qtyToAdd,
+          maxStock
+        );
       } else {
+        const initialQty = clampQuantity(qtyToAdd, maxStock);
+        if (initialQty <= 0) return;
+
         state.cartItems.push({
           ...payload,
           productId,
           id: productId,
-          quantity: qtyToAdd,
+          quantity: initialQty,
           color: normalizedColor,
           colorKey,
         });
       }
     },
 
-    // removeFromCart
     removeFromCart: (state, action) => {
       const payload = action.payload || {};
       const productId = getProductId(payload);
@@ -133,7 +168,6 @@ const cartSlice = createSlice({
       );
     },
 
-    // updateQuantity
     updateQuantity: (state, action) => {
       const payload = action.payload || {};
       const productId = getProductId(payload);
@@ -154,12 +188,17 @@ const cartSlice = createSlice({
       );
 
       if (item) {
-        const next = Math.max(1, Number(payload.quantity || 1));
-        item.quantity = next;
+        const maxStock = getMaxStock({
+          ...item,
+          ...payload,
+          color: payload.color || item.color,
+        });
+
+        const next = clampQuantity(payload.quantity, maxStock);
+        item.quantity = next > 0 ? next : 1;
       }
     },
 
-    // clearCart
     clearCart: (state) => {
       state.cartItems = [];
     },

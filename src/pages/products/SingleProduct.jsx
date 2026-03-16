@@ -8,7 +8,7 @@ import React, {
   useLayoutEffect,
 } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import {
   FiFacebook,
   FiTwitter,
@@ -38,7 +38,8 @@ import {
   useGetProductByIdQuery,
   useGetAllProductsQuery,
 } from "../../redux/features/products/productsApi.js";
-import { addToCart } from "../../redux/features/cart/cartSlice.js";
+import productsApi from "../../redux/features/products/productsApi.js";
+import { addToCart, clearCart } from "../../redux/features/cart/cartSlice.js";
 import { useCreateOrderMutation } from "../../redux/features/orders/ordersApi.js";
 
 import { getImgUrl } from "../../utils/getImgUrl.js";
@@ -55,7 +56,9 @@ const num = (v, d = 0) => (Number.isFinite(Number(v)) ? Number(v) : d);
 const safeStr = (v) => (typeof v === "string" ? v : String(v ?? ""));
 const unique = (arr) => [...new Set((arr || []).filter(Boolean))];
 const normalizeKey = (v) => String(v || "").trim().toLowerCase();
+
 const VENDOR_PHONE = "+216 55 495 816";
+const VENDOR_PHONE_RAW = "+21655495816";
 
 const displayId = (p) =>
   safeStr(p?.productId || p?._id || p?.id || p?.slug || "").trim();
@@ -122,6 +125,39 @@ function normalizeColor(color) {
   };
 }
 
+const getColorIdentity = (color) => {
+  if (!color) return "";
+  const byId = safeStr(color?._id);
+  if (byId) return `id:${byId}`;
+
+  const byImage = safeStr(color?.image || color?.images?.[0]);
+  if (byImage) return `img:${byImage}`;
+
+  const byName =
+    safeStr(color?.colorName?.ar) ||
+    safeStr(color?.colorName?.fr) ||
+    safeStr(color?.colorName?.en) ||
+    pickText(color?.colorName);
+
+  return `name:${byName}`;
+};
+
+const findFreshSelectedColor = (product, selectedColor) => {
+  const colors = Array.isArray(product?.colors) ? product.colors : [];
+  if (!colors.length) return selectedColor ? normalizeColor(selectedColor) : null;
+
+  if (!selectedColor) return normalizeColor(colors[0]);
+
+  const wantedIdentity = getColorIdentity(selectedColor);
+
+  const matched = colors.find((c) => {
+    const normalized = normalizeColor(c);
+    return getColorIdentity(normalized) === wantedIdentity;
+  });
+
+  return normalizeColor(matched || colors[0]);
+};
+
 const getProductGallery = (product, selectedColor) => {
   if (!product) return [];
 
@@ -165,6 +201,21 @@ const getUnitPrice = (product) => {
     return Math.max(0, Number(oldP));
   }
   return 0;
+};
+
+const getCartItemProductId = (it) =>
+  safeStr(
+    it?.productId ||
+      it?.id ||
+      it?._id ||
+      it?.product?.productId ||
+      it?.product?.id ||
+      it?.product?._id
+  );
+
+const pickItemImage = (it) => {
+  const images = Array.isArray(it?.color?.images) ? it.color.images.filter(Boolean) : [];
+  return it?.color?.image || images[0] || it?.coverImage || "";
 };
 
 /* =============================================================================
@@ -415,13 +466,9 @@ const SingleProduct = () => {
   const checkoutScrollRetryRef = useRef(0);
   const checkoutScrollFrameRef = useRef(0);
 
-  useSelector((s) => {
-    const c = s?.cart;
-    return c?.cartItems || c?.items || c?.products || c?.cart || [];
-  });
-
   const [searchTerm, setSearchTerm] = useState("");
   const [showCheckout, setShowCheckout] = useState(false);
+  const [checkoutItems, setCheckoutItems] = useState([]);
 
   const {
     data: queriedProduct,
@@ -472,6 +519,8 @@ const SingleProduct = () => {
     product?.translations?.en?.description ||
     "لا يوجد وصف متاح لهذا المنتج.";
 
+  const productDisplayId = useMemo(() => displayId(product), [product]);
+
   const categoryAr = mapCategoryToArabic(product?.category);
   const categoryKey = normalizeCategoryKey(product?.category);
   const categoryEn = EN_CATEGORY_MAP[categoryKey] || "Products";
@@ -498,7 +547,17 @@ const SingleProduct = () => {
   );
 
   const unitPrice = useMemo(() => getUnitPrice(product), [product]);
-  const subtotal = useMemo(() => unitPrice * quantity, [unitPrice, quantity]);
+
+  const subtotal = useMemo(
+    () =>
+      checkoutItems.reduce(
+        (acc, item) =>
+          acc + Number(item?.newPrice || item?.price || item?.unitPrice || 0) * Number(item?.quantity || 0),
+        0
+      ),
+    [checkoutItems]
+  );
+
   const shipping = 0;
   const total = subtotal + shipping;
 
@@ -509,9 +568,13 @@ const SingleProduct = () => {
     return pieces.join(" - ");
   }, [categoryEn, subCategoryText, embroideryText]);
 
-  const activeGallery = useMemo(() => {
-    return getProductGallery(product, selectedColor);
+  const liveSelectedColor = useMemo(() => {
+    return findFreshSelectedColor(product, selectedColor);
   }, [product, selectedColor]);
+
+  const activeGallery = useMemo(() => {
+    return getProductGallery(product, liveSelectedColor);
+  }, [product, liveSelectedColor]);
 
   useEffect(() => {
     if (!product) return;
@@ -530,7 +593,7 @@ const SingleProduct = () => {
           }
         : null);
 
-    setSelectedColor(firstColor);
+    setSelectedColor(firstColor ? normalizeColor(firstColor) : null);
     setSelectedImageIndex(0);
     setThumbStart(0);
     setActiveTab("desc");
@@ -541,6 +604,7 @@ const SingleProduct = () => {
     setErrors({});
     setAgree(false);
     setShowCheckout(false);
+    setCheckoutItems([]);
     pendingScrollToCheckoutRef.current = false;
 
     if (checkoutScrollRetryRef.current) {
@@ -758,12 +822,32 @@ const SingleProduct = () => {
     return list.filter((p) => !sameIds.has(displayId(p))).slice(0, 8);
   }, [product, allProducts, embroideryKey, sameCategoryProducts]);
 
-  const selectedColorStock =
-    typeof selectedColor?.stock === "number"
-      ? selectedColor.stock
-      : num(product?.stockQuantity || product?.stock, 0);
+  const selectedColorStock = useMemo(() => {
+    if (liveSelectedColor && Number.isFinite(Number(liveSelectedColor.stock))) {
+      return Math.max(0, Number(liveSelectedColor.stock));
+    }
 
-  const canIncreaseQty = selectedColorStock > 0 ? quantity < selectedColorStock : true;
+    const colors = Array.isArray(product?.colors) ? product.colors : [];
+    if (colors.length) {
+      const total = colors.reduce((sum, c) => sum + Math.max(0, num(c?.stock, 0)), 0);
+      return Math.max(0, total);
+    }
+
+    return Math.max(0, num(product?.stockQuantity || product?.stock, 0));
+  }, [liveSelectedColor, product]);
+
+  useEffect(() => {
+    setQuantity((prev) => {
+      const safePrev = Math.max(1, Number(prev || 1));
+
+      if (selectedColorStock <= 0) return 1;
+      if (safePrev > selectedColorStock) return selectedColorStock;
+
+      return safePrev;
+    });
+  }, [selectedColorStock]);
+
+  const canIncreaseQty = selectedColorStock > 0 && quantity < selectedColorStock;
   const canDecreaseQty = quantity > 1;
 
   const handleIncreaseQty = () => {
@@ -794,31 +878,36 @@ const SingleProduct = () => {
   };
 
   const buildCartPayload = () => {
-    const normalizedColor = selectedColor
+    const safeQty =
+      selectedColorStock > 0
+        ? Math.max(1, Math.min(quantity, selectedColorStock))
+        : Math.max(1, quantity);
+
+    const baseColor = liveSelectedColor
       ? {
-          ...selectedColor,
-          colorName: selectedColor.colorName || {
-            ar: pickColorLabel(selectedColor),
-            fr: pickColorLabel(selectedColor),
-            en: pickColorLabel(selectedColor),
+          ...liveSelectedColor,
+          colorName: liveSelectedColor.colorName || {
+            ar: pickColorLabel(liveSelectedColor),
+            fr: pickColorLabel(liveSelectedColor),
+            en: pickColorLabel(liveSelectedColor),
           },
           image:
-            selectedColor.image ||
-            selectedColor.images?.[0] ||
+            liveSelectedColor.image ||
+            liveSelectedColor.images?.[0] ||
             activeGallery[0] ||
             product?.coverImage ||
             "",
           images:
-            Array.isArray(selectedColor.images) && selectedColor.images.length
-              ? selectedColor.images
-              : selectedColor.image
-              ? [selectedColor.image]
+            Array.isArray(liveSelectedColor.images) && liveSelectedColor.images.length
+              ? liveSelectedColor.images
+              : liveSelectedColor.image
+              ? [liveSelectedColor.image]
               : activeGallery[0]
               ? [activeGallery[0]]
               : product?.coverImage
               ? [product.coverImage]
               : [],
-          stock: selectedColor.stock,
+          stock: Math.max(0, num(liveSelectedColor.stock, 0)),
         }
       : {
           colorName: { ar: "افتراضي", fr: "Default", en: "Default" },
@@ -827,7 +916,7 @@ const SingleProduct = () => {
             activeGallery[0] || product?.coverImage
               ? [activeGallery[0] || product?.coverImage]
               : [],
-          stock: num(product?.stockQuantity || 0),
+          stock: Math.max(0, num(product?.stockQuantity || product?.stock, 0)),
         };
 
     return {
@@ -835,19 +924,22 @@ const SingleProduct = () => {
       productId: displayId(product),
       id: displayId(product),
       title: translatedTitle,
-      coverImage: product?.coverImage || normalizedColor.image || "",
+      coverImage: product?.coverImage || baseColor.image || "",
       newPrice: unitPrice,
       oldPrice: product?.oldPrice ?? null,
-      quantity,
+      price: unitPrice,
+      unitPrice,
+      quantity: safeQty,
       size: selectedSize || "",
       selectedSize: selectedSize || "",
-      color: normalizedColor,
+      color: baseColor,
       colorKey:
-        normalizedColor?.image ||
-        normalizedColor?.images?.[0] ||
-        JSON.stringify(normalizedColor?.colorName || {}),
+        baseColor?.image ||
+        baseColor?.images?.[0] ||
+        JSON.stringify(baseColor?.colorName || {}),
       embroideryCategory: product?.embroideryCategory || "",
       translations: product?.translations || {},
+      stockQuantity: num(product?.stockQuantity, 0),
     };
   };
 
@@ -920,7 +1012,11 @@ const SingleProduct = () => {
   const handleAddToCartAndCheckout = () => {
     if (!validateSelectionBeforeAction()) return;
 
-    dispatch(addToCart(buildCartPayload()));
+    const payload = buildCartPayload();
+
+    setCheckoutItems([payload]);
+    dispatch(addToCart(payload));
+
     pendingScrollToCheckoutRef.current = true;
     setShowCheckout(true);
   };
@@ -993,8 +1089,8 @@ const SingleProduct = () => {
       if (!safeStr(formData[f]).trim()) next[f] = true;
     });
 
-    if (sizes.length > 0 && !selectedSize) {
-      return { msg: "الرجاء اختيار المقاس أولًا.", fields: next };
+    if (!checkoutItems.length) {
+      return { msg: "لا توجد منتجات داخل السلة لإتمام الطلب.", fields: next };
     }
 
     if (!agree) {
@@ -1011,46 +1107,36 @@ const SingleProduct = () => {
     return { msg: "", fields: {} };
   };
 
-  const summaryItem = useMemo(() => {
-    const img =
-      selectedColor?.image ||
-      selectedColor?.images?.[0] ||
-      activeGallery[0] ||
-      product?.coverImage ||
-      "";
+  const checkoutSummaryItems = useMemo(() => {
+    return checkoutItems.map((it, index) => {
+      const pid = getCartItemProductId(it);
+      const title =
+        it?.translations?.ar?.title ||
+        it?.translations?.fr?.title ||
+        it?.translations?.en?.title ||
+        it?.title ||
+        "منتج";
 
-    return {
-      productId: displayId(product),
-      title: translatedTitle,
-      quantity,
-      size: selectedSize || "",
-      colorLabel: pickColorLabel(selectedColor),
-      image: img,
-      unitPrice,
-      total: unitPrice * quantity,
-    };
-  }, [product, translatedTitle, quantity, selectedSize, selectedColor, activeGallery, unitPrice]);
+      const colorLabel =
+        it?.color?.colorName?.ar ||
+        it?.color?.colorName?.fr ||
+        it?.color?.colorName?.en ||
+        (typeof it?.color?.colorName === "string" ? it.color.colorName : "") ||
+        "أصلي";
+
+      return {
+        key: `${pid}-${safeStr(it?.colorKey || index)}`,
+        productId: pid,
+        title,
+        quantity: Number(it?.quantity || 1),
+        size: safeStr(it?.size || it?.selectedSize || ""),
+        colorLabel,
+        image: pickItemImage(it),
+      };
+    });
+  }, [checkoutItems]);
 
   const buildPayload = () => {
-    const colorName =
-      selectedColor?.colorName?.ar ||
-      selectedColor?.colorName?.fr ||
-      selectedColor?.colorName?.en ||
-      pickColorLabel(selectedColor);
-
-    const images =
-      Array.isArray(selectedColor?.images) && selectedColor.images.length
-        ? selectedColor.images.filter(Boolean)
-        : selectedColor?.image
-        ? [selectedColor.image]
-        : activeGallery[0]
-        ? [activeGallery[0]]
-        : product?.coverImage
-        ? [product.coverImage]
-        : [];
-
-    const mainImg = selectedColor?.image || images[0] || product?.coverImage || "";
-
     const fullName = `${safeStr(formData.firstName).trim()} ${safeStr(
       formData.lastName
     ).trim()}`.trim();
@@ -1066,23 +1152,31 @@ const SingleProduct = () => {
         country: "Tunisia",
         zipcode: safeStr(formData.postal).trim(),
       },
-      products: [
-        {
-          productId: displayId(product),
-          quantity: Number(quantity || 1),
+      products: checkoutItems.map((it) => {
+        const productId = getCartItemProductId(it);
+        const images = Array.isArray(it?.color?.images)
+          ? it.color.images.filter(Boolean)
+          : [];
+        const mainImg = it?.color?.image || images[0] || it?.coverImage || "";
+        const colorName =
+          it?.color?.colorName?.ar ||
+          it?.color?.colorName?.fr ||
+          it?.color?.colorName?.en ||
+          (typeof it?.color?.colorName === "string" ? it.color.colorName : "") ||
+          "Default";
+
+        return {
+          productId,
+          quantity: Math.max(1, Number(it?.quantity || 1)),
           color: {
             colorName,
             image: mainImg,
             images: images.length ? images : mainImg ? [mainImg] : [],
           },
-          colorKey: safeStr(
-            selectedColor?.image ||
-              selectedColor?.images?.[0] ||
-              JSON.stringify(selectedColor?.colorName || {})
-          ),
-          size: safeStr(selectedSize),
-        },
-      ],
+          colorKey: safeStr(it?.colorKey || ""),
+          size: safeStr(it?.size || it?.selectedSize || ""),
+        };
+      }),
       paymentMethod: "cod",
       totals: {
         subtotal: Number(subtotal.toFixed(2)),
@@ -1126,6 +1220,13 @@ const SingleProduct = () => {
           JSON.stringify({ orderId: String(orderId), order, savedAt: Date.now() })
         );
       } catch {}
+
+      dispatch(
+        productsApi.util.invalidateTags([{ type: "Products", id: "LIST" }])
+      );
+      dispatch(clearCart());
+
+      setCheckoutItems([]);
 
       navigate(`/order-success/${encodeURIComponent(orderId)}`, {
         state: { order },
@@ -1261,9 +1362,9 @@ const SingleProduct = () => {
 
             <span className="sp2-crumbText sp2-crumbCurrent">{breadcrumbCurrentLabel}</span>
 
-            {displayId(product) ? (
-              <span className="sp2-crumbId" dir="ltr" title={displayId(product)}>
-                #{displayId(product)}
+            {productDisplayId ? (
+              <span className="sp2-crumbId" dir="ltr" title={productDisplayId}>
+                #{productDisplayId}
               </span>
             ) : null}
           </div>
@@ -1285,7 +1386,8 @@ const SingleProduct = () => {
                   <img
                     src={getImgUrl(
                       activeGallery[selectedImageIndex] ||
-                        selectedColor?.image ||
+                        liveSelectedColor?.image ||
+                        liveSelectedColor?.images?.[0] ||
                         product?.coverImage
                     )}
                     alt={translatedTitle}
@@ -1351,7 +1453,7 @@ const SingleProduct = () => {
               <div className="sp2-idHero">
                 <div className="sp2-idHeroLabel">مرجع المنتج</div>
                 <div className="sp2-idHeroValue" dir="ltr">
-                  #{displayId(product)}
+                  #{productDisplayId}
                 </div>
               </div>
 
@@ -1367,7 +1469,7 @@ const SingleProduct = () => {
 
                 <a
                   className="sp2-vendorBtn"
-                  href="/contact"
+                  href={`tel:${VENDOR_PHONE_RAW}`}
                   aria-label={`اتصل بالبائع ${VENDOR_PHONE}`}
                   title="اتصل بالبائع"
                 >
@@ -1377,10 +1479,15 @@ const SingleProduct = () => {
                 </a>
               </div>
 
-              <div className="sp2-priceHint sp2-priceHint--premium">
-                لمعرفة سعر هذه القطعة بدقة، يرجى التواصل مباشرةً مع البائع على
-                <strong dir="ltr"> {VENDOR_PHONE} </strong>
-                وستحصل على التأكيد النهائي بسرعة ووضوح.
+              <div className="sp2-orderGuide">
+                <div className="sp2-orderGuideBadge">مهم جدًا قبل الطلب</div>
+                <p className="sp2-orderGuideText">
+                  يُرجى الاتصال بالبائع أولًا على الرقم
+                  <strong dir="ltr"> {VENDOR_PHONE} </strong>
+                  لمعرفة السعر النهائي، ثم واصل إتمام الطلب لهذا المنتج{" "}
+                  <span>باستعمال</span>{" "}
+                  <strong dir="ltr">رقم المنتج # {productDisplayId}</strong>.
+                </p>
               </div>
 
               <div className="sp2-ratingRow sp2-ratingRowBig">
@@ -1460,8 +1567,29 @@ const SingleProduct = () => {
                   </div>
                   <div className="sp2-purchaseMeta">
                     <span className="sp2-purchaseMetaLabel">اللون المحدد</span>
-                    <strong>{pickColorLabel(selectedColor)}</strong>
+                    <strong>{pickColorLabel(liveSelectedColor)}</strong>
                   </div>
+                </div>
+
+                <div className="sp2-orderFlowNotice">
+                  <div className="sp2-orderFlowNoticeTop">
+                    <span className="sp2-orderFlowChip">طريقة الطلب</span>
+                    <span className="sp2-orderFlowId" dir="ltr">
+                      Product ID: #{productDisplayId}
+                    </span>
+                  </div>
+
+                  <ol className="sp2-orderFlowList">
+                    <li>
+                      اتصل بالبائع على
+                      <strong dir="ltr"> {VENDOR_PHONE}</strong>
+                    </li>
+                    <li>اعرف السعر النهائي للمنتج</li>
+                    <li>
+                      ثم أكمل الطلب باستخدام{" "}
+                      <strong dir="ltr">رقم المنتج # {productDisplayId}</strong>
+                    </li>
+                  </ol>
                 </div>
 
                 {Array.isArray(product?.colors) && product.colors.length > 1 && (
@@ -1471,12 +1599,12 @@ const SingleProduct = () => {
                       {product.colors.map((c, idx) => {
                         const color = normalizeColor(c);
                         const isActive =
-                          (selectedColor?._id &&
+                          (liveSelectedColor?._id &&
                             color?._id &&
-                            selectedColor._id === color._id) ||
-                          (selectedColor?.image &&
+                            liveSelectedColor._id === color._id) ||
+                          (liveSelectedColor?.image &&
                             color?.image &&
-                            selectedColor.image === color.image);
+                            liveSelectedColor.image === color.image);
 
                         return (
                           <button
@@ -1484,8 +1612,10 @@ const SingleProduct = () => {
                             type="button"
                             className={`sp2-colorCard ${isActive ? "is-active" : ""}`}
                             onClick={() => {
-                              setSelectedColor(color);
+                              const freshColor = normalizeColor(color);
+                              setSelectedColor(freshColor);
                               setSelectedImageIndex(0);
+                              setQuantity(1);
                             }}
                           >
                             <span className="sp2-colorThumbWrap">
@@ -1566,19 +1696,6 @@ const SingleProduct = () => {
                   </div>
                 </div>
 
-                <div className="sp2-inlineSummary">
-                  <div className="sp2-inlineSummaryRow sp2-inlineSummaryRow--stack">
-                    <span className="sp2-inlineSummaryLabel">سعر القطعة</span>
-                    <div className="sp2-inlinePriceHint">
-                      <span className="sp2-inlinePriceHintBadge">معلومة مهمة</span>
-                      <p>
-                        لمعرفة السعر، يرجى الاتصال بالبائع مباشرةً على الرقم
-                        <strong dir="ltr"> {VENDOR_PHONE} </strong>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
                 <div className="sp2-actionsGrid">
                   <button
                     type="button"
@@ -1635,7 +1752,7 @@ const SingleProduct = () => {
                   <div className="sp2-detailsTop">
                     <div className="sp2-detailsRef">
                       <span>المرجع</span>
-                      <strong dir="ltr">#{displayId(product)}</strong>
+                      <strong dir="ltr">#{productDisplayId}</strong>
                     </div>
                   </div>
 
@@ -1714,6 +1831,18 @@ const SingleProduct = () => {
                   <p className="sp2-likeIntro">
                     أكمل الآن معلوماتك ليتم تأكيد الطلب بسرعة وبأناقة.
                   </p>
+
+                  <div className="sp2-checkoutImportantBox">
+                    <div className="sp2-checkoutImportantTop">
+                      <span className="sp2-checkoutImportantBadge">تنبيه مهم</span>
+                    </div>
+                    <p className="sp2-checkoutImportantText">
+                      قبل تأكيد الطلب، اتصل بالبائع على
+                      <strong dir="ltr"> {VENDOR_PHONE} </strong>
+                      لمعرفة السعر النهائي، ثم واصل الطلب باستعمال{" "}
+                      <strong>مراجع المنتجات الموجودة في السلة</strong>.
+                    </p>
+                  </div>
                 </div>
 
                 <div className="cz-grid sp2-inlineCheckoutGrid">
@@ -1975,45 +2104,59 @@ const SingleProduct = () => {
 
                       <div className="cz-card__content">
                         <div className="cz-summary">
+                          <div className="sp2-summaryReference">
+                            <span className="sp2-summaryReferenceLabel"> (منتج) Product ID</span>
+                            <strong className="sp2-summaryReferenceValue" dir="ltr">
+                              #{productDisplayId}
+                            </strong>
+                          </div>
+
                           <div className="cz-items cz-items--withImg">
-                            <div className="cz-item cz-item--img">
-                              <div className="cz-item__thumb cz-item__thumb--lg" aria-hidden="true">
-                                {summaryItem.image ? (
-                                  <img
-                                    src={getImgUrl(summaryItem.image)}
-                                    alt={summaryItem.title}
-                                    loading="lazy"
-                                    decoding="async"
-                                    className="cz-item__img"
-                                  />
-                                ) : (
-                                  <div className="cz-item__imgFallback" title="لا توجد صورة">
-                                    <ImageIcon size={18} />
+                            {checkoutSummaryItems.length ? (
+                              checkoutSummaryItems.map((item) => (
+                                <div className="cz-item cz-item--img" key={item.key}>
+                                  <div className="cz-item__thumb cz-item__thumb--lg" aria-hidden="true">
+                                    {item.image ? (
+                                      <img
+                                        src={getImgUrl(item.image)}
+                                        alt={item.title}
+                                        loading="lazy"
+                                        decoding="async"
+                                        className="cz-item__img"
+                                      />
+                                    ) : (
+                                      <div className="cz-item__imgFallback" title="لا توجد صورة">
+                                        <ImageIcon size={18} />
+                                      </div>
+                                    )}
                                   </div>
-                                )}
-                              </div>
 
-                              <div className="cz-item__main">
-                                <div className="cz-item__top cz-item__top--single">
-                                  <p className="cz-item__name">{summaryItem.title}</p>
+                                  <div className="cz-item__main">
+                                    <div className="cz-item__top cz-item__top--single">
+                                      <p className="cz-item__name">{item.title}</p>
+                                    </div>
+
+                                    <p className="cz-item__meta">
+                                      <span dir="ltr">#{item.productId}</span>
+                                      {item.size ? ` · المقاس: ${item.size}` : ""}
+                                      {" · "}اللون: {item.colorLabel}
+                                      {" · "}الكمية: {item.quantity}
+                                    </p>
+
+                                    <div className="sp2-checkoutPriceNote">
+                                      <span className="sp2-checkoutPriceNoteLabel">سعر القطعة</span>
+                                      <p className="sp2-checkoutImportantText">
+                                        قبل تأكيد الطلب، اتصل بالبائع على
+                                        <strong dir="ltr"> {VENDOR_PHONE} </strong>
+                                        لمعرفة السعر النهائي لهذا المنتج{" "}
+                                      </p>
+                                    </div>
+                                  </div>
                                 </div>
-
-                                <p className="cz-item__meta">
-                                  اللون: {summaryItem.colorLabel}
-                                  {summaryItem.size ? ` · المقاس: ${summaryItem.size}` : ""}
-                                  {" · "}الكمية: {summaryItem.quantity}
-                                </p>
-
-                                <div className="sp2-checkoutPriceNote">
-                                  <span className="sp2-checkoutPriceNoteLabel">سعر القطعة</span>
-                                  <p>
-                                    يرجى الاتصال بالبائع على الرقم
-                                    <strong dir="ltr"> {VENDOR_PHONE} </strong>
-                                    لمعرفة السعر وتأكيد تفاصيل الطلب.
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
+                              ))
+                            ) : (
+                              <div className="cz-empty">لا توجد منتجات في السلة.</div>
+                            )}
                           </div>
 
                           <div className="cz-sep" />
@@ -2031,7 +2174,8 @@ const SingleProduct = () => {
 
                           <p className="cz-terms">
                             بإتمام الطلب، أنت توافق على الشروط والأحكام وسياسة الخصوصية.
-                            سيتم تحديد السعر النهائي مباشرةً مع البائع.
+                            سيتم تحديد السعر النهائي مباشرةً مع البائع عبر الرقم
+                            <strong dir="ltr"> {VENDOR_PHONE} </strong>.
                           </p>
 
                           <div className="cz-sep" />

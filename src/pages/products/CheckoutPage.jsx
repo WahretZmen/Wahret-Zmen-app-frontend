@@ -22,16 +22,12 @@ import Footer from "../../components/ui/Footer.jsx";
 
 import { clearCart } from "../../redux/features/cart/cartSlice.js";
 import { useCreateOrderMutation } from "../../redux/features/orders/ordersApi.js";
+import productsApi from "../../redux/features/products/productsApi.js";
 
 import { getImgUrl } from "../../utils/getImgUrl";
 import "../../Styles/StylesCheckoutPage.css";
 
 const VENDOR_PHONE = "+216 55 495 816";
-
-const money = (n) => {
-  const x = Number(n);
-  return Number.isFinite(x) ? x.toFixed(2) : "0.00";
-};
 
 const safeText = (v) =>
   typeof v === "string" ? v.trim() : String(v ?? "").trim();
@@ -51,9 +47,6 @@ const pickItemImage = (it) => {
   return it?.color?.image || images[0] || it?.coverImage || it?.image || it?.thumbnail || "";
 };
 
-/* --------------------------------------------------------------------------- */
-/* Minimal, accessible modal for Terms & Privacy                               */
-/* --------------------------------------------------------------------------- */
 const TermsModal = ({ open, onClose, title, children, isRTL = true }) => {
   const dialogRef = useRef(null);
   const [visible, setVisible] = useState(open);
@@ -140,15 +133,11 @@ export default function CheckoutPage() {
     [cartItems]
   );
 
-  // ✅ FREE DELIVERY ALWAYS
   const shipping = 0;
-
-  // ✅ Total = Subtotal
   const total = useMemo(() => subtotal + shipping, [subtotal, shipping]);
 
   const [createOrder, { isLoading }] = useCreateOrderMutation();
 
-  // form state
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -160,12 +149,9 @@ export default function CheckoutPage() {
     postal: "",
   });
 
-  // errors
   const [errors, setErrors] = useState({});
-
-  // terms checkbox + modal
   const [agree, setAgree] = useState(false);
-  const [openWhich, setOpenWhich] = useState(null); // "terms" | "privacy" | null
+  const [openWhich, setOpenWhich] = useState(null);
 
   useEffect(() => {
     // if (!cartItems.length) navigate("/cart");
@@ -290,7 +276,6 @@ export default function CheckoutPage() {
 
       const res = await createOrder(payload).unwrap();
 
-      // ✅ Support multiple backend shapes
       const order = res?.order || res?.data?.order || res || null;
       const orderId =
         order?.orderId || order?._id || res?.orderId || res?._id || "";
@@ -299,7 +284,6 @@ export default function CheckoutPage() {
         throw new Error("لم يتم استلام مرجع الطلب من السيرفر.");
       }
 
-      // ✅ Cache full order for OrderTrack fallback
       try {
         sessionStorage.setItem(
           "wz_last_order",
@@ -307,10 +291,12 @@ export default function CheckoutPage() {
         );
       } catch (_) {}
 
-      // ✅ Clear cart AFTER we have order
+      dispatch(
+        productsApi.util.invalidateTags([{ type: "Products", id: "LIST" }])
+      );
+
       dispatch(clearCart());
 
-      // ✅ Go to OrderSuccess
       navigate(`/order-success/${encodeURIComponent(orderId)}`, {
         state: { order },
       });
@@ -330,7 +316,6 @@ export default function CheckoutPage() {
 
       <main className="cz-main">
         <div className="cz-container">
-          {/* Breadcrumb */}
           <div className="cz-breadcrumb animate-fade-in-up" aria-label="مسار الصفحات">
             <Link to="/cart" className="cz-breadcrumb__link">
               السلة
@@ -345,7 +330,6 @@ export default function CheckoutPage() {
             <span className="cz-breadcrumb__current">الدفع</span>
           </div>
 
-          {/* Title */}
           <div className="cz-hero animate-fade-in-delay-100">
             <h1 className="cz-h1">إتمام الطلب بأمان</h1>
             <p className="cz-subtitle">أكمل طلبك — الدفع عند الاستلام</p>
@@ -359,10 +343,8 @@ export default function CheckoutPage() {
           </div>
 
           <div className="cz-grid">
-            {/* Form */}
             <div className="cz-left">
               <form id="cz-checkout-form" className="cz-formWrap" onSubmit={submit}>
-                {/* Contact */}
                 <section className="cz-card animate-fade-in-delay-100">
                   <header className="cz-card__header">
                     <h2 className="cz-card__title">
@@ -443,7 +425,6 @@ export default function CheckoutPage() {
                   </div>
                 </section>
 
-                {/* Address */}
                 <section className="cz-card animate-fade-in-delay-200">
                   <header className="cz-card__header">
                     <h2 className="cz-card__title">
@@ -532,7 +513,6 @@ export default function CheckoutPage() {
                   </div>
                 </section>
 
-                {/* Payment */}
                 <section className="cz-card cz-card--pay animate-fade-in-delay-300">
                   <header className="cz-card__header">
                     <h2 className="cz-card__title">
@@ -570,7 +550,6 @@ export default function CheckoutPage() {
                   </div>
                 </section>
 
-                {/* Terms & Conditions block */}
                 <section className="cz-card cz-card--consent animate-fade-in-delay-300">
                   <div className="cz-card__content cz-consent">
                     <p className="cz-consent__line">
@@ -611,7 +590,6 @@ export default function CheckoutPage() {
               </form>
             </div>
 
-            {/* Summary */}
             <div className="cz-right animate-fade-in-delay-300">
               <section className="cz-card cz-sticky">
                 <header className="cz-card__header">
@@ -623,7 +601,6 @@ export default function CheckoutPage() {
 
                 <div className="cz-card__content">
                   <div className="cz-summary">
-                    {/* Items with bigger images */}
                     <div className="cz-items cz-items--withImg">
                       {cartItems.length ? (
                         cartItems.slice(0, 8).map((it, idx) => {
@@ -761,7 +738,6 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* Modals */}
           <TermsModal
             open={openWhich === "terms"}
             onClose={() => setOpenWhich(null)}

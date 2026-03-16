@@ -1,3 +1,4 @@
+// src/pages/OrderTrack.jsx
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useParams, useLocation, Link } from "react-router-dom";
 import {
@@ -60,6 +61,11 @@ const getProgressObj = (order) => {
     return obj;
   }
   return typeof p === "object" ? p : {};
+};
+
+const getLineQty = (line) => {
+  const n = Number(line?.quantity ?? line?.qty ?? 1);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 1;
 };
 
 /* -----------------------
@@ -127,7 +133,7 @@ const pickSubCategory = (line) =>
   );
 
 /* -----------------------
-   ✅ Stable progress key
+   Stable progress key
 ------------------------ */
 const normalizeKeyPart = (s) =>
   safeText(s)
@@ -292,6 +298,7 @@ export default function OrderTrack() {
       totalPrice: prev?.totalPrice,
       productProgress: prev?.productProgress,
       updatedAt: prev?.updatedAt,
+      products: prev?.products,
     });
 
     const nextSig = JSON.stringify({
@@ -300,6 +307,7 @@ export default function OrderTrack() {
       totalPrice: next?.totalPrice,
       productProgress: next?.productProgress,
       updatedAt: next?.updatedAt,
+      products: next?.products,
     });
 
     if (prevSig !== nextSig) {
@@ -393,6 +401,10 @@ export default function OrderTrack() {
     return { subtotal, shipping, total };
   }, [order]);
 
+  const totalOrderedUnits = useMemo(() => {
+    return products.reduce((sum, line) => sum + getLineQty(line), 0);
+  }, [products]);
+
   const amountDue = useMemo(() => Number(totals?.total || 0) || 0, [totals]);
 
   const guest = useMemo(() => {
@@ -424,17 +436,29 @@ export default function OrderTrack() {
   const orderedPieces = useMemo(() => {
     const pieces = [];
     products.forEach((line, lineIndex) => {
-      const qty = Math.max(1, Number(line?.quantity || 1));
+      const qty = getLineQty(line);
       for (let itemIndex = 0; itemIndex < qty; itemIndex++) {
         const key = buildProgressKey(line, lineIndex, itemIndex);
-        const status = safeText(progressMap?.[key]) || "تم تأكيد الطلب";
+        const rawProgress = progressMap?.[key];
+
+        let status = orderStatus;
+        if (typeof rawProgress === "number") {
+          if (rawProgress >= 100) status = "تم التسليم والدفع";
+          else if (rawProgress >= 60) status = "خارج للتسليم";
+          else if (rawProgress >= 40) status = "قيد التحضير";
+          else status = "تم تأكيد الطلب";
+        } else {
+          const textProgress = safeText(rawProgress);
+          status = STATUSES.includes(textProgress) ? textProgress : orderStatus;
+        }
+
         const idx = statusIndex(status);
         const pct = percentOfStatus(status);
         pieces.push({ key, status, statusIdx: idx, pct, lineIndex, itemIndex });
       }
     });
     return pieces;
-  }, [products, progressMap]);
+  }, [products, progressMap, orderStatus]);
 
   const globalPctPieces = useMemo(() => {
     if (!orderedPieces.length) return 0;
@@ -472,7 +496,7 @@ export default function OrderTrack() {
       const pid = getPid(line);
       const category = pickCategory(line);
       const subCategory = pickSubCategory(line);
-      const qty = Math.max(1, Number(line?.quantity || 1));
+      const qty = getLineQty(line);
 
       return {
         key: line?._id || `${getPid(line) || "line"}-${idx}`,
@@ -484,8 +508,7 @@ export default function OrderTrack() {
         pid,
         category,
         subCategory,
-        colorKey: safeText(line?.colorKey || ""),
-      };
+        };
     });
   }, [products]);
 
@@ -562,6 +585,10 @@ export default function OrderTrack() {
                       {hasAnyPieceProgress ? "حسب القطع" : "حسب حالة الطلب"}
                     </span>
 
+                    <span className="wz-ot__chip" title="إجمالي القطع المطلوبة">
+                      القطع: {totalOrderedUnits}
+                    </span>
+
                     {silentRefreshing ? (
                       <span className="wz-ot__chip" title="تحديث تلقائي">
                         <Loader2 size={14} className="wz-ot__spin" /> تحديث…
@@ -605,6 +632,10 @@ export default function OrderTrack() {
                   {copied ? <span className="wz-ot__copied">تم النسخ!</span> : null}
                 </div>
 
+                <div style={{ marginTop: 10, fontSize: 14, fontWeight: 800 }}>
+                  إجمالي الكمية المطلوبة في هذا الطلب: <strong>{totalOrderedUnits}</strong>
+                </div>
+
                 <div style={{ display: "flex", gap: 10, marginTop: 12, flexWrap: "wrap" }}>
                   <Link
                     to={`/order-confirm/${effectiveId}`}
@@ -623,7 +654,6 @@ export default function OrderTrack() {
                   <Banknote size={20} className="wz-ot__payIcon" />
                   <div className="wz-ot__payText">
                     <span className="wz-ot__payTitle">الدفع عند الاستلام</span>
-                    
                   </div>
                   <ShieldCheck size={16} className="wz-ot__payShield" />
                 </div>
@@ -709,13 +739,40 @@ export default function OrderTrack() {
                               {it.title}
                             </div>
 
+                            <div
+                              style={{
+                                marginTop: 10,
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 8,
+                                padding: "7px 12px",
+                                border: "1px solid rgba(0,0,0,.08)",
+                                background: "rgba(255,255,255,.85)",
+                                fontWeight: 800,
+                                fontSize: 14,
+                              }}
+                            >
+                              <Package size={16} />
+                              الكمية المطلوبة من هذا المنتج:
+                              <strong style={{ fontSize: 16 }}>{it.qty}</strong>
+                            </div>
+
                             <div className="wz-ot__itemBigMeta">
-                              {it.pid ? <span>Product ID: {it.pid}</span> : null}
+                              {it.pid ? <span>Product ID (منتج): {it.pid}</span> : null}
                               {it.category ? <span>Category: {it.category}</span> : null}
                               {it.subCategory ? <span>Sub category: {it.subCategory}</span> : null}
                               {it.color ? <span>اللون: {it.color}</span> : null}
                               {it.size ? <span>المقاس: {it.size}</span> : null}
                               <span>الكمية: {it.qty}</span>
+                              {it.qty > 1 ? (
+                                <span>
+                                  تم طلب <strong>{it.qty}</strong> قطع من هذا المنتج
+                                </span>
+                              ) : (
+                                <span>
+                                  تم طلب <strong>قطعة واحدة</strong> من هذا المنتج
+                                </span>
+                              )}
                             </div>
 
                             {it.colorKey ? (
@@ -736,6 +793,10 @@ export default function OrderTrack() {
                               : `${money(totals.shipping)} د.ت`}
                           </strong>
                         </div>
+                        <div style={{ marginTop: 6 }}>
+                          إجمالي كل القطع المطلوبة: <strong>{totalOrderedUnits}</strong>
+                        </div>
+                       
                       </div>
                     </div>
                   ) : (

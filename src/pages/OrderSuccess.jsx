@@ -1,7 +1,7 @@
 // src/pages/OrderSuccess.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
-import { Sparkles, ArrowLeft, Search, Copy } from "lucide-react";
+import { Sparkles, ArrowLeft, Search, Copy, Package } from "lucide-react";
 
 import Header from "../components/ui/Header.jsx";
 import Footer from "../components/ui/Footer.jsx";
@@ -21,7 +21,7 @@ const readStoredOrder = (orderId) => {
     const storedId = safeText(parsed?.orderId);
     if (storedId && safeText(orderId) && storedId !== safeText(orderId)) return null;
     return parsed?.order || null;
-  } catch (_) {
+  } catch {
     return null;
   }
 };
@@ -35,11 +35,21 @@ const persistOrderSnapshot = (orderId, order) => {
       "wz_last_order",
       JSON.stringify({ orderId: id, order, savedAt: Date.now() })
     );
-  } catch (_) {}
+  } catch {}
 
   try {
     sessionStorage.setItem(`wz_order_${id}`, JSON.stringify(order));
-  } catch (_) {}
+  } catch {}
+};
+
+const countTotalItems = (order) => {
+  const lines = Array.isArray(order?.products) ? order.products : [];
+  return lines.reduce((sum, line) => sum + Math.max(1, Number(line?.quantity || 1)), 0);
+};
+
+const countDistinctProducts = (order) => {
+  const lines = Array.isArray(order?.products) ? order.products : [];
+  return lines.length;
 };
 
 export default function OrderSuccess() {
@@ -52,6 +62,8 @@ export default function OrderSuccess() {
   }, [location.state, orderId]);
 
   const ref = safeText(order?.orderId || order?._id || orderId || "WZ-2026-ORDER");
+  const totalItems = useMemo(() => countTotalItems(order), [order]);
+  const distinctProducts = useMemo(() => countDistinctProducts(order), [order]);
 
   useEffect(() => {
     document.documentElement.dir = "rtl";
@@ -59,9 +71,7 @@ export default function OrderSuccess() {
   }, []);
 
   useEffect(() => {
-    if (ref && order) {
-      persistOrderSnapshot(ref, order);
-    }
+    if (ref && order) persistOrderSnapshot(ref, order);
   }, [ref, order]);
 
   const copyId = async () => {
@@ -69,9 +79,7 @@ export default function OrderSuccess() {
       await navigator.clipboard.writeText(String(ref || ""));
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1200);
-    } catch {
-      // ignore
-    }
+    } catch {}
   };
 
   return (
@@ -88,7 +96,6 @@ export default function OrderSuccess() {
             <p className="wz-os__sub">شكرًا لك! تم تسجيل طلبك بنجاح — الدفع عند الاستلام.</p>
           </header>
 
-          {/* Main card */}
           <section className="wz-os__card wz-os-anim wz-os-anim--d1">
             <div className="wz-os__cardBody">
               <div className="wz-os__row">
@@ -111,6 +118,22 @@ export default function OrderSuccess() {
                     تتبّع الطلب الآن <ArrowLeft size={16} />
                   </button>
                 </Link>
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
+                  gap: 12,
+                  marginTop: 16,
+                }}
+              >
+                <div className="wz-os__note" style={{ margin: 0 }}>
+                  عدد الأسطر في الطلب: <strong>{distinctProducts}</strong>
+                </div>
+                <div className="wz-os__note" style={{ margin: 0 }}>
+                  إجمالي القطع المطلوبة: <strong>{totalItems}</strong>
+                </div>
               </div>
 
               <div className="wz-os__note">
@@ -137,7 +160,6 @@ export default function OrderSuccess() {
             </div>
           </section>
 
-          {/* Tracking Guide */}
           <section className="wz-os__card wz-os__card--guide wz-os-anim wz-os-anim--d1">
             <div className="wz-os__cardBody wz-os__cardBody--lg">
               <div className="wz-os__guideHead">
@@ -150,7 +172,7 @@ export default function OrderSuccess() {
                     كيف تتابع طلبك باستخدام رقم الطلب؟
                   </h2>
                   <p className="wz-os__guideSub">
-                    إذا كنت تطلب كضيف (بدون حساب)، يمكنك دائمًا تتبّع طلبك: انسخ رقم الطلب، ثم
+                    إذا كنت تطلب كضيف، يمكنك دائمًا تتبّع طلبك: انسخ رقم الطلب، ثم
                     الصقه في صفحة التتبّع واضغط “تتبّع”.
                   </p>
                 </div>
@@ -182,7 +204,7 @@ export default function OrderSuccess() {
                   <div className="wz-os__gStepBody">
                     <div className="wz-os__gStepTitle">الصق الرقم واضغط “تتبّع”</div>
                     <div className="wz-os__gStepDesc">
-                      ستظهر حالة الطلب والمنتجات وبيانات العميل (طلب كضيف) عند توفرها.
+                      ستظهر حالة الطلب والمنتجات والكميات وبيانات العميل عند توفرها.
                     </div>
                   </div>
                 </div>
@@ -210,6 +232,21 @@ export default function OrderSuccess() {
                 <span className="wz-os__guideHintStrong">ملاحظة:</span> يُفضّل أخذ لقطة شاشة
                 لرقم الطلب أو حفظه في الملاحظات للرجوع إليه لاحقًا.
               </div>
+
+              {totalItems > 0 ? (
+                <div
+                  style={{
+                    marginTop: 16,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                    fontWeight: 800,
+                  }}
+                >
+                  <Package size={18} />
+                  هذا الطلب يحتوي على <strong>{totalItems}</strong> قطعة.
+                </div>
+              ) : null}
             </div>
           </section>
         </div>
