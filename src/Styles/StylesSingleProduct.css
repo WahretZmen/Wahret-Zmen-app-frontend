@@ -781,6 +781,7 @@ img{
   margin-top:14px;
   border:1px solid rgba(166,124,82,.24);
   background:linear-gradient(180deg,#fffdf9 0%, #f8f4ef 100%);
+  width: 450px !important;
   padding:14px;
   box-shadow:0 12px 26px rgba(166,124,82,.08);
 }
@@ -2672,6 +2673,7 @@ img{
     padding:11px 10px;
     font-size:13px;
     gap:8px;
+    
   }
 
   .sp2-vendorBtn strong{
