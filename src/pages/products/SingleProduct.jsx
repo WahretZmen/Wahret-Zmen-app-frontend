@@ -1310,7 +1310,7 @@ const SingleProduct = () => {
       style={{ minHeight: "calc(100vh - 140px)" }}
     >
       <div className="sp2-container">
-        <div className="text-center text-[#111]">جارٍ التحميل...</div>
+        <SingleProductLoader isRTL={isRTL} />
       </div>
     </div>
   );
