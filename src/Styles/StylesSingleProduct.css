@@ -2725,11 +2725,7 @@ img{
   }
 }
 
-@media (max-width:520px){
-  .sp2-right{
-    width:100%;
-    display:block;
-  }
+
 
   .sp2-titleBlock{
     width:100%;
@@ -2764,5 +2760,13 @@ img{
     margin-top:0;
     font-size:18px;
     line-height:1.2;
+  }
+}
+
+@media (max-width:980px){
+  .sp2-right,
+  .sp2-left{
+    width:100%;
+    max-width:100%;
   }
 }
