@@ -344,18 +344,15 @@ const Products = () => {
   const LOAD_STEP = 9;
   const isRTL = true;
 
-  // Filters
   const [categorySel, setCategorySel] = useState("All");
   const [subCategorySel, setSubCategorySel] = useState("All");
   const [colorSel, setColorSel] = useState("All");
   const [embroiderySel, setEmbroiderySel] = useState("All");
   const [priceRange, setPriceRange] = useState([0, 1000]);
 
-  // Search + visible items
   const [searchTerm, setSearchTerm] = useState("");
   const [visibleCount, setVisibleCount] = useState(LOAD_STEP);
 
-  // UI states
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
 
@@ -363,10 +360,9 @@ const Products = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Prevent URL sync loop
   const isSyncingFromURL = useRef(false);
+  const searchDebounceRef = useRef(null);
 
-  // Fetch
   const {
     data: products = [],
     isLoading,
@@ -378,8 +374,8 @@ const Products = () => {
     refetchOnReconnect: true,
   });
 
-  // Refetch after admin changes
   const shouldRefetch = useSelector((state) => state.productEvents.shouldRefetch);
+
   useEffect(() => {
     if (shouldRefetch) {
       refetch();
@@ -387,12 +383,10 @@ const Products = () => {
     }
   }, [shouldRefetch, refetch, dispatch]);
 
-  // Smooth top on route/query changes
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
   }, [location.pathname, location.search]);
 
-  // Read URL params => UI state
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const rawCat = params.get("category");
@@ -419,7 +413,6 @@ const Products = () => {
     return () => clearTimeout(t);
   }, [location.search]);
 
-  // Push category + subcategory to URL
   useEffect(() => {
     if (isSyncingFromURL.current) return;
 
@@ -440,20 +433,24 @@ const Products = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categorySel, subCategorySel]);
 
-  // Search debounce
   const handleSearchChange = (term) => {
     setSearchLoading(true);
 
-    const id = setTimeout(() => {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+
+    searchDebounceRef.current = setTimeout(() => {
       setSearchTerm(term);
       setSearchLoading(false);
       setVisibleCount(LOAD_STEP);
     }, 300);
-
-    return () => clearTimeout(id);
   };
 
-  // Build options
+  useEffect(() => {
+    return () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    };
+  }, []);
+
   const { categories, colors, minPrice, maxPrice, embroideryTypes } = useMemo(() => {
     const catSet = new Set(["All", "Men", "Women", "Children"]);
     const colorSet = new Set(["All"]);
@@ -492,7 +489,6 @@ const Products = () => {
     };
   }, [products]);
 
-  // Keep price range safe
   useEffect(() => {
     setPriceRange(([lo, hi]) => {
       const next = [
@@ -503,13 +499,11 @@ const Products = () => {
     });
   }, [minPrice, maxPrice]);
 
-  // Reset visible when filters change
   useEffect(() => {
     setVisibleCount(LOAD_STEP);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categorySel, subCategorySel, colorSel, embroiderySel, priceRange]);
 
-  // Filter products
   const matched = useMemo(() => {
     const q = normalize(searchTerm);
     const sel = canonicalCategory(categorySel) || "All";
@@ -552,10 +546,8 @@ const Products = () => {
     });
   }, [products, categorySel, subCategorySel, colorSel, priceRange, searchTerm, embroiderySel]);
 
-  // Visible slice
   const filtered = useMemo(() => matched.slice(0, visibleCount), [matched, visibleCount]);
 
-  // Dynamic intro
   const filterIntro = useMemo(() => {
     const categoryKey = canonicalCategory(categorySel || "All") || "All";
     const subCategoryKey = canonicalSubCategory(subCategorySel || "All") || "All";
@@ -567,7 +559,6 @@ const Products = () => {
     });
   }, [categorySel, subCategorySel, matched.length]);
 
-  // Load more
   const handleLoadMore = () => {
     if (isLoadingMore) return;
     setIsLoadingMore(true);
@@ -578,7 +569,6 @@ const Products = () => {
     }, 650);
   };
 
-  // Clear filters
   const clearFilters = () => {
     setCategorySel("All");
     setSubCategorySel("All");
@@ -597,7 +587,6 @@ const Products = () => {
     navigate({ search: params.toString() }, { replace: true });
   };
 
-  // Initial loader
   if (isLoading || isFetching) {
     return (
       <div className="wz-products-firstLoad" dir="rtl">
@@ -611,14 +600,13 @@ const Products = () => {
 
   return (
     <FadeInSection>
-      <div className="main-content">
-        <div className="container mx-auto pt-8 sm:pt-12 md:pt-16 pb-4 px-4 sm:px-6 md:px-10 lg:px-20 max-w-[1440px]">
+      <div className="main-content wz-productsPage">
+        <div className="wz-productsShell">
           <Helmet>
             <title>المنتجات - Wahret Zmen</title>
           </Helmet>
 
-          {/* Search */}
-          <div className="products-grid grid gap-6 grid-cols-1" dir="rtl">
+          <div className="wz-productsSearchArea" dir="rtl">
             <SearchInput
               setSearchTerm={handleSearchChange}
               placeholder="ابحث بالـ ID، اللون، الفئة، نوع القطعة أو نوع التطريز..."
@@ -635,7 +623,6 @@ const Products = () => {
             )}
           </div>
 
-          {/* Error */}
           {isError && (
             <div className="wz-products-error" dir="rtl">
               <span>حدث خطأ أثناء تحميل المنتجات.</span>
@@ -645,33 +632,33 @@ const Products = () => {
             </div>
           )}
 
-          <div className="flex flex-col lg:flex-row gap-8 mt-4">
-            {/* Filters */}
-            <div className="w-full lg:w-[360px]">
-              <SelectorPageProducts
-                categorySel={categorySel}
-                setCategorySel={setCategorySel}
-                categories={categories}
-                subCategorySel={subCategorySel}
-                setSubCategorySel={setSubCategorySel}
-                subCategories={SUBCATEGORY_OPTIONS.map((o) => o.value)}
-                colorSel={colorSel}
-                setColorSel={setColorSel}
-                colors={colors}
-                embroiderySel={embroiderySel}
-                setEmbroiderySel={setEmbroiderySel}
-                embroideryTypes={embroideryTypes}
-                priceRange={priceRange}
-                setPriceRange={setPriceRange}
-                minPrice={minPrice}
-                maxPrice={maxPrice}
-                clearFilters={clearFilters}
-              />
-            </div>
+          <div className="wz-productsLayout">
+            <aside className="wz-productsSidebar" dir="rtl">
+              <div className="wz-productsSidebarInner">
+                <SelectorPageProducts
+                  categorySel={categorySel}
+                  setCategorySel={setCategorySel}
+                  categories={categories}
+                  subCategorySel={subCategorySel}
+                  setSubCategorySel={setSubCategorySel}
+                  subCategories={SUBCATEGORY_OPTIONS.map((o) => o.value)}
+                  colorSel={colorSel}
+                  setColorSel={setColorSel}
+                  colors={colors}
+                  embroiderySel={embroiderySel}
+                  setEmbroiderySel={setEmbroiderySel}
+                  embroideryTypes={embroideryTypes}
+                  priceRange={priceRange}
+                  setPriceRange={setPriceRange}
+                  minPrice={minPrice}
+                  maxPrice={maxPrice}
+                  clearFilters={clearFilters}
+                />
+              </div>
+            </aside>
 
-            {/* Products */}
-            <div className="flex-1">
-              <div className="wz-filterIntro" dir="rtl">
+            <section className="wz-productsMain" dir="rtl">
+              <div className="wz-filterIntro">
                 <div className="wz-filterIntroBadge">{filterIntro.badge}</div>
 
                 <h2 className={`wz-filterIntroTitle sparkle ${isRTL ? "rtl" : "ltr"}`}>
@@ -705,15 +692,15 @@ const Products = () => {
                   filtered.map((product, index) => (
                     <FadeInSection
                       key={product?._id || index}
-                      delay={index * 0.06}
-                      duration={0.5}
-                      yOffset={24}
+                      delay={index * 0.05}
+                      duration={0.45}
+                      yOffset={20}
                     >
                       <ProductCard product={product} />
                     </FadeInSection>
                   ))
                 ) : (
-                  <div className="wz-emptyState" dir="rtl">
+                  <div className="wz-emptyState">
                     <h3 className="wz-emptyStateTitle">لا توجد نتائج مطابقة</h3>
                     <p className="wz-emptyStateText">
                       لم يتم العثور على منتجات مطابقة للفلاتر الحالية. جرّب تعديل
@@ -730,9 +717,8 @@ const Products = () => {
                 )}
               </div>
 
-              {/* Load more */}
               {matched.length > 0 && filtered.length < matched.length && !searchLoading && (
-                <div className="wz-loadMoreWrap" dir="rtl">
+                <div className="wz-loadMoreWrap">
                   <button
                     type="button"
                     className="wz-loadMoreBtn"
@@ -758,7 +744,7 @@ const Products = () => {
                   </div>
                 </div>
               )}
-            </div>
+            </section>
           </div>
         </div>
       </div>
