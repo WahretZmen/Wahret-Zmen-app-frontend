@@ -17,6 +17,9 @@
   --sp2-soft-2:#f8f4ef;
   --sp2-dark:#111827;
   --sp2-success:#16a34a;
+  --sp2-warn:#f59e0b;
+  --sp2-danger:#dc2626;
+  --sp2-info:#0f766e;
 }
 
 /* =========================
@@ -161,7 +164,7 @@ img{
   margin-bottom:10px;
   font-size:clamp(15px, 2vw, 25px);
   font-weight:1000;
-  letter-spacing:.18em;
+  letter-spacing:.12em;
   text-transform:uppercase;
   color:var(--sp2-gold2);
   opacity:0;
@@ -382,7 +385,12 @@ img{
   }
 
   .sp2-crumbCurrent{
-    padding:6px 8px;
+    width:100%;
+    padding:8px 10px;
+    white-space:normal;
+    overflow:visible;
+    text-overflow:initial;
+    line-height:1.8;
   }
 
   .sp2-crumbId{
@@ -522,6 +530,7 @@ img{
   background:#fff;
   box-shadow:var(--sp2-shadow);
   overflow:hidden;
+  min-width:0;
 }
 
 .sp2-mainImgWrap{
@@ -534,6 +543,7 @@ img{
   overflow:hidden;
   border-bottom:1px solid rgba(15,23,42,.06);
   padding:10px;
+  min-width:0;
 }
 
 .sp2-mainImg{
@@ -560,7 +570,7 @@ img{
 }
 
 .sp2-zoomStage:hover .sp2-zoomImg{
-  transform:scale(2.4);
+  transform:scale(2.2);
 }
 
 .sp2-zoomStage:active{
@@ -578,11 +588,80 @@ img{
   padding:6px 10px;
   z-index:4;
   max-width:calc(100% - 24px);
+  box-shadow:0 10px 22px rgba(2,6,23,.16);
 }
 
 [dir="rtl"] .sp2-badge{
   left:auto;
   right:12px;
+}
+
+.sp2-stockBadge{
+  position:absolute;
+  left:12px;
+  bottom:12px;
+  z-index:5;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:168px;
+  max-width:calc(100% - 24px);
+  padding:10px 12px;
+  color:#fff;
+  background:rgba(15,23,42,.86);
+  backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.16);
+  box-shadow:0 18px 34px rgba(2,6,23,.16);
+}
+
+[dir="rtl"] .sp2-stockBadge{
+  left:auto;
+  right:12px;
+}
+
+.sp2-stockBadgeDot{
+  width:11px;
+  height:11px;
+  border-radius:999px;
+  flex:0 0 auto;
+  background:currentColor;
+  box-shadow:0 0 0 5px rgba(255,255,255,.08);
+}
+
+.sp2-stockBadgeText{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+
+.sp2-stockBadgeText strong{
+  font-size:13px;
+  font-weight:1000;
+  line-height:1.4;
+  color:#fff;
+}
+
+.sp2-stockBadgeText span{
+  font-size:11px;
+  line-height:1.45;
+  color:rgba(255,255,255,.82);
+}
+
+.sp2-stockBadge.is-good{
+  color:#22c55e;
+}
+
+.sp2-stockBadge.is-mid{
+  color:#38bdf8;
+}
+
+.sp2-stockBadge.is-low{
+  color:#f59e0b;
+}
+
+.sp2-stockBadge.is-out{
+  color:#ef4444;
 }
 
 .sp2-thumbsRow{
@@ -668,7 +747,6 @@ img{
   font-size:clamp(21px, 3vw, 26px);
   font-weight:1000;
   letter-spacing:.2px;
-  text-transform:uppercase;
   line-height:1.45;
   word-break:break-word;
 }
@@ -893,7 +971,7 @@ img{
 }
 
 .sp2-shareBtn{
-  min-height:44px;
+  min-height:46px;
   padding:0 14px;
   border:1px solid rgba(15,23,42,.14);
   background:#fff;
@@ -901,6 +979,7 @@ img{
   cursor:pointer;
   display:inline-flex;
   align-items:center;
+  justify-content:center;
   gap:10px;
   font-weight:1000;
   font-size:14px;
@@ -910,6 +989,9 @@ img{
     border-color .22s ease,
     box-shadow .22s ease;
   max-width:100%;
+  min-width:0;
+  text-align:center;
+  flex:1 1 calc(50% - 10px);
 }
 
 .sp2-shareBtn svg{
@@ -1565,6 +1647,10 @@ img{
 /* =========================
    Inline checkout
 ========================= */
+.sp2-checkoutMount{
+  min-width:0;
+}
+
 .sp2-inlineCheckout{
   margin-top:34px;
   padding:24px;
@@ -1744,7 +1830,7 @@ img{
   margin-bottom:6px;
   font-size:clamp(15px, 2vw, 25px);
   font-weight:1000;
-  letter-spacing:.16em;
+  letter-spacing:.12em;
   text-transform:uppercase;
   color:var(--sp2-gold2);
   line-height:1.5;
@@ -1834,7 +1920,7 @@ img{
   z-index:4;
   font-size:10px;
   font-weight:1000;
-  letter-spacing:.18em;
+  letter-spacing:.16em;
   text-transform:uppercase;
   color:#111;
   background:rgba(255,255,255,.88);
@@ -2181,6 +2267,28 @@ img{
 }
 
 /* =========================
+   Modal polish
+========================= */
+.prose-wz{
+  color:#334155;
+  font-size:14px;
+  line-height:2;
+}
+
+.prose-wz p{
+  margin:0 0 12px;
+}
+
+.wz-bullets{
+  margin:0 0 12px;
+  padding-inline-start:18px;
+}
+
+.wz-bullets li{
+  margin:0 0 6px;
+}
+
+/* =========================
    Responsive
 ========================= */
 @media (max-width:1024px){
@@ -2201,6 +2309,14 @@ img{
 
   .sp2-likeGrid--lux{
     grid-template-columns:repeat(2, minmax(0, 1fr));
+  }
+
+  .sp2-priceHeader{
+    align-items:stretch;
+  }
+
+  .sp2-vendorBtn{
+    width:100%;
   }
 }
 
@@ -2263,6 +2379,10 @@ img{
   .wz-premium-rating{
     padding:1.5rem 1rem 2rem;
   }
+
+  .sp2-shareBtn{
+    flex:1 1 100%;
+  }
 }
 
 @media (max-width:560px){
@@ -2286,6 +2406,12 @@ img{
 
   .sp2-title{
     font-size:20px;
+    line-height:1.6;
+  }
+
+  .sp2-titleKicker{
+    font-size:15px;
+    letter-spacing:.08em;
   }
 
   .sp2-likeImgWrap--lux{
@@ -2298,7 +2424,7 @@ img{
 
   .sp2-shareRow{
     display:grid;
-    grid-template-columns:1fr 1fr;
+    grid-template-columns:1fr;
     gap:8px;
   }
 
@@ -2307,6 +2433,7 @@ img{
     justify-content:center;
     padding:10px 12px;
     font-size:13px;
+    min-height:48px;
   }
 
   .sp2-sizeBox{
@@ -2318,7 +2445,7 @@ img{
 
   .sp2-qtyRow{
     width:100%;
-    justify-content:center;
+    justify-content:space-between;
   }
 
   .sp2-mainAction{
@@ -2340,6 +2467,7 @@ img{
 
   .sp2-mainImgWrap{
     height:360px;
+    padding:6px;
   }
 
   .sp2-badge{
@@ -2347,25 +2475,163 @@ img{
     right:10px;
     left:auto;
     font-size:11px;
-    padding:5px 8px;
+    padding:5px 9px;
+  }
+
+  .sp2-stockBadge{
+    right:10px;
+    left:auto;
+    bottom:10px;
+    min-width:unset;
+    width:auto;
+    max-width:calc(100% - 20px);
+    padding:8px 10px;
+    gap:8px;
+  }
+
+  .sp2-stockBadgeText strong{
+    font-size:12px;
+  }
+
+  .sp2-stockBadgeText span{
+    font-size:10px;
+  }
+
+  .sp2-idHero{
+    padding:12px 10px;
+  }
+
+  .sp2-idHeroValue{
+    font-size:18px;
+  }
+
+  .sp2-subCategoryRow{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:6px;
+  }
+
+  .sp2-subCategoryValue{
+    width:fit-content;
+    max-width:100%;
+  }
+
+  .sp2-orderGuide,
+  .sp2-shareBlock,
+  .sp2-orderFlowNotice{
+    padding:12px;
+  }
+
+  .sp2-orderGuideText,
+  .sp2-orderFlowList,
+  .sp2-purchaseSub{
+    font-size:12.5px;
+    line-height:1.85;
+  }
+
+  .sp2-purchaseTitle{
+    font-size:18px;
+  }
+
+  .sp2-purchaseMeta{
+    width:100%;
+    min-width:0;
+  }
+
+  .sp2-orderFlowId{
+    width:100%;
+    justify-content:center;
+  }
+
+  .sp2-colorsGrid{
+    gap:10px;
+  }
+
+  .sp2-colorCard{
+    padding:9px;
+    gap:10px;
+  }
+
+  .sp2-colorName{
+    font-size:13px;
+  }
+
+  .sp2-colorStock{
+    font-size:11px;
+  }
+
+  .sp2-sizesGrid{
+    gap:8px;
+  }
+
+  .sp2-selectedHint{
+    font-size:12px;
+  }
+
+  .sp2-optionLabel{
+    font-size:13.5px;
+  }
+
+  .sp2-qtyBtn{
+    width:44px;
+    height:44px;
+  }
+
+  .sp2-qtyValue{
+    min-width:44px;
+    font-size:18px;
+  }
+
+  .sp2-stockHint{
+    font-size:11.5px;
+  }
+
+  .sp2-tabHead{
+    gap:12px;
+  }
+
+  .sp2-tabBtn{
+    padding:12px 4px;
+    font-size:13px;
   }
 
   .sp2-tabBody{
     padding:14px 12px;
   }
 
+  .sp2-descText,
+  .sp2-detailKey,
+  .sp2-detailVal{
+    padding:10px;
+    font-size:13px;
+  }
+
+  .sp2-inlineCheckout{
+    margin-top:26px;
+  }
+
+  .sp2-summaryReference{
+    padding:10px 12px;
+  }
+
+  .sp2-summaryReferenceValue{
+    width:100%;
+    text-align:center;
+  }
+
   .wz-premium-title{
     font-size:1.25rem;
   }
 
-  .wz-premium-row{
+  .wz-premium-row,
+  .wz-premium-quality-row{
     grid-template-columns:1fr;
     gap:.35rem;
   }
 
-  .wz-premium-quality-row{
-    grid-template-columns:1fr;
-    gap:.35rem;
+  .wz-premium-row-percent,
+  .wz-premium-quality-percent{
+    justify-self:start;
   }
 }
 
@@ -2375,88 +2641,82 @@ img{
   }
 
   .sp2-mainImgWrap{
-    height:310px;
-    padding:8px;
-  }
-
-  .sp2-searchImg{
-    width:48px;
-    height:48px;
-  }
-
-  .sp2-searchGo{
-    display:none;
-  }
-
-  .sp2-shareRow{
-    grid-template-columns:1fr;
+    height:320px;
   }
 
   .sp2-thumbsRow{
     padding:8px;
+    gap:6px;
+  }
+
+  .sp2-thumbsNav{
+    width:32px;
+    height:32px;
+    font-size:16px;
   }
 
   .sp2-thumbBtn{
-    width:62px;
-    height:60px;
+    width:58px;
+    height:58px;
   }
 
-  .sp2-orderFlowId,
-  .sp2-summaryReferenceValue,
-  .sp2-idHeroValue{
-    font-size:13px;
+  .sp2-title{
+    font-size:18px;
   }
 
   .sp2-vendorBtn{
-    width:100%;
+    padding:11px 10px;
+    font-size:13px;
+    gap:8px;
   }
 
-  .sp2-purchaseMeta{
-    min-width:0;
+  .sp2-vendorBtn strong{
     width:100%;
+    margin-inline-start:0;
+  }
+
+  .sp2-shareBlock{
+    padding:12px 10px;
+  }
+
+  .sp2-purchaseBox{
+    padding:12px;
+  }
+
+  .sp2-mainAction{
+    min-height:50px;
+    padding:11px 12px;
+    font-size:13px;
+  }
+
+  .sp2-stockBadge{
+    padding:7px 9px;
+  }
+
+  .sp2-stockBadgeDot{
+    width:9px;
+    height:9px;
   }
 
   .sp2-likeImgWrap--lux{
     height:250px;
   }
-}
 
-@media (prefers-reduced-motion: reduce){
-  .sp2-pageReveal,
-  .sp2-heroFade,
-  .sp2-softBlurIn,
-  .sp2-cinematicReveal,
-  .sp2-luxFadeRight,
-  .sp2-sectionFade,
-  .sp2-panelFade,
-  .sp2-inlineFade,
-  .sp2-inlineFadeDelay,
-  .sp2-inlineFadeDelay2,
-  .sp2-inlineFadeDelay3,
-  .sp2-panelFadeDelay,
-  .sp2-staggerItem,
-  .sp2-cardReveal,
-  .sp2-ratingReveal,
-  .sp2-titleKicker,
-  .sp2-imageCard--reveal::after{
-    animation:none !important;
-    opacity:1 !important;
-    transform:none !important;
-    filter:none !important;
-    transition:none !important;
+  .sp2-likeMeta{
+    padding:12px;
   }
 
-  .sp2-colorCard,
-  .sp2-sizeBox,
-  .sp2-mainAction,
-  .sp2-qtyBtn,
-  .sp2-shareBtn,
-  .sp2-likeCard--lux,
-  .sp2-vendorBtn{
-    transition:none !important;
+  .wz-premium-rating{
+    padding:1.2rem .85rem 1.6rem;
+  }
+}
+
+@media (hover:none){
+  .sp2-zoomStage{
+    cursor:default;
   }
 
   .sp2-zoomStage:hover .sp2-zoomImg{
-    transform:none !important;
+    transform:none;
   }
 }

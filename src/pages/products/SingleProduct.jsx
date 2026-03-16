@@ -218,6 +218,40 @@ const pickItemImage = (it) => {
   return it?.color?.image || images[0] || it?.coverImage || "";
 };
 
+const getStockBadgeMeta = (stock) => {
+  const qty = Math.max(0, Number(stock || 0));
+
+  if (qty <= 0) {
+    return {
+      label: "نفد المخزون",
+      sub: "غير متوفر الآن",
+      className: "is-out",
+    };
+  }
+
+  if (qty <= 3) {
+    return {
+      label: `آخر ${qty} قطع`,
+      sub: "كمية محدودة",
+      className: "is-low",
+    };
+  }
+
+  if (qty <= 10) {
+    return {
+      label: `${qty} متوفر`,
+      sub: "جاهز للطلب",
+      className: "is-mid",
+    };
+  }
+
+  return {
+    label: `${qty} متوفر`,
+    sub: "متوفر الآن",
+    className: "is-good",
+  };
+};
+
 /* =============================================================================
    Category maps
 ============================================================================= */
@@ -725,6 +759,7 @@ const SingleProduct = () => {
   };
 
   const setZoomVars = useCallback((e) => {
+    if (typeof window !== "undefined" && window.matchMedia("(hover: none)").matches) return;
     const el = e.currentTarget;
     const r = el.getBoundingClientRect();
     const x = ((e.clientX - r.left) / r.width) * 100;
@@ -835,6 +870,11 @@ const SingleProduct = () => {
 
     return Math.max(0, num(product?.stockQuantity || product?.stock, 0));
   }, [liveSelectedColor, product]);
+
+  const stockBadge = useMemo(
+    () => getStockBadgeMeta(selectedColorStock),
+    [selectedColorStock]
+  );
 
   useEffect(() => {
     setQuantity((prev) => {
@@ -1381,6 +1421,18 @@ const SingleProduct = () => {
                   onMouseLeave={resetZoomVars}
                 >
                   {isTrending && <span className="sp2-badge">جديد</span>}
+
+                  <div
+                    className={`sp2-stockBadge ${stockBadge.className}`}
+                    aria-label={`حالة المخزون: ${stockBadge.label}`}
+                  >
+                    <span className="sp2-stockBadgeDot" aria-hidden="true" />
+                    <div className="sp2-stockBadgeText">
+                      <strong>{stockBadge.label}</strong>
+                      <span>{stockBadge.sub}</span>
+                    </div>
+                  </div>
+
                   <span className="sp2-imageGlow" aria-hidden="true" />
 
                   <img
