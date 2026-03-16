@@ -2725,7 +2725,11 @@ img{
   }
 }
 
-
+@media (max-width:520px){
+  .sp2-right{
+    
+    display:block;
+  }
 
   .sp2-titleBlock{
     width:100%;
