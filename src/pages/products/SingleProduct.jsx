@@ -484,6 +484,31 @@ const TermsModal = ({ open, onClose, title, children, isRTL = true }) => {
   );
 };
 
+const SingleProductLoader = ({ isRTL = true }) => {
+  return (
+    <div className="sp2-loaderShell" dir={isRTL ? "rtl" : "ltr"} aria-live="polite" aria-busy="true">
+      <div className="sp2-loaderCard">
+        <div className="sp2-loaderVisual">
+          <span className="sp2-loaderRing" />
+          <span className="sp2-loaderRing sp2-loaderRing--delay" />
+          <span className="sp2-loaderDot" />
+        </div>
+
+        <div className="sp2-loaderTextWrap">
+          <h2 className="sp2-loaderTitle">جارٍ تحميل المنتج</h2>
+          <p className="sp2-loaderText">نقوم بتحضير صور المنتج والتفاصيل بأفضل عرض ممكن...</p>
+        </div>
+
+        <div className="sp2-loaderSkeleton">
+          <span className="sp2-loaderLine sp2-loaderLine--lg" />
+          <span className="sp2-loaderLine" />
+          <span className="sp2-loaderLine sp2-loaderLine--sm" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 /* =============================================================================
    Component
 ============================================================================= */
@@ -1277,19 +1302,19 @@ const SingleProduct = () => {
   };
 
   if (isLoading) {
-    return (
-      <div
-        className="sp2-wrap"
-        dir={isRTL ? "rtl" : "ltr"}
-        lang="ar"
-        style={{ minHeight: "calc(100vh - 140px)" }}
-      >
-        <div className="sp2-container">
-          <div className="text-center text-[#111]">جارٍ التحميل...</div>
-        </div>
+  return (
+    <div
+      className="sp2-wrap"
+      dir={isRTL ? "rtl" : "ltr"}
+      lang="ar"
+      style={{ minHeight: "calc(100vh - 140px)" }}
+    >
+      <div className="sp2-container">
+        <div className="text-center text-[#111]">جارٍ التحميل...</div>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   if (isError || !product) {
     return (
