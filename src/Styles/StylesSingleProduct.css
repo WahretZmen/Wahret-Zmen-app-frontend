@@ -753,6 +753,7 @@ img{
 
 .sp2-idHero{
   margin-top:12px;
+  width: 450px !important;
   border:1px solid rgba(15,23,42,.14);
   background:linear-gradient(180deg,#fff,#fafafa);
   box-shadow:0 14px 40px rgba(2,6,23,.08);
