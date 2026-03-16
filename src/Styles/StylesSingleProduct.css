@@ -43,6 +43,7 @@ img{
 }
 
 .sp2-wrap{
+  margin-top: 100px !important;
   background:var(--sp2-bg);
   color:var(--sp2-fg);
   padding:clamp(14px, 2vw, 26px) clamp(10px, 2vw, 14px) 70px;
@@ -753,7 +754,6 @@ img{
 
 .sp2-idHero{
   margin-top:12px;
-  width: 450px !important;
   border:1px solid rgba(15,23,42,.14);
   background:linear-gradient(180deg,#fff,#fafafa);
   box-shadow:0 14px 40px rgba(2,6,23,.08);
@@ -2398,6 +2398,7 @@ img{
 
 @media (max-width:520px){
   .sp2-wrap{
+    margin-top: 60px !important;
     padding:12px 8px 56px;
   }
 
@@ -2500,10 +2501,12 @@ img{
 
   .sp2-idHero{
     padding:12px 10px;
+    width: 450px !important;
   }
 
   .sp2-idHeroValue{
     font-size:18px;
+    justify-content: center !important;
   }
 
   .sp2-subCategoryRow{
