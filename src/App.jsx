@@ -1,4 +1,4 @@
-// src/App.jsx
+// // src/App.jsx
 // App layout (Arabic / RTL) + providers
 
 import { useEffect, useLayoutEffect, useState } from "react";
@@ -26,6 +26,11 @@ function App() {
     document.body.setAttribute("dir", "rtl");
     document.body.classList.add("rtl");
     document.body.classList.remove("ltr");
+
+    document.documentElement.style.maxWidth = "100%";
+    document.documentElement.style.overflowX = "hidden";
+    document.body.style.maxWidth = "100%";
+    document.body.style.overflowX = "hidden";
   }, []);
 
   useEffect(() => {
