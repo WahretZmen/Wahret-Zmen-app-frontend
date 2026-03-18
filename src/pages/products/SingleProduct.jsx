@@ -226,6 +226,7 @@ const getStockBadgeMeta = (stock) => {
       label: "نفد المخزون",
       sub: "غير متوفر الآن",
       className: "is-out",
+      badgeLabel: "نفد",
     };
   }
 
@@ -234,6 +235,7 @@ const getStockBadgeMeta = (stock) => {
       label: `آخر ${qty} قطع`,
       sub: "كمية محدودة",
       className: "is-low",
+      badgeLabel: "آخر القطع",
     };
   }
 
@@ -242,6 +244,7 @@ const getStockBadgeMeta = (stock) => {
       label: `${qty} متوفر`,
       sub: "جاهز للطلب",
       className: "is-mid",
+      badgeLabel: "متوفر",
     };
   }
 
@@ -249,6 +252,7 @@ const getStockBadgeMeta = (stock) => {
     label: `${qty} متوفر`,
     sub: "متوفر الآن",
     className: "is-good",
+    badgeLabel: "متوفر",
   };
 };
 
@@ -666,6 +670,12 @@ const SingleProduct = () => {
   useEffect(() => {
     const n = activeGallery.length;
     if (!n) return;
+
+    const safeIndex = Math.max(0, Math.min(selectedImageIndex, n - 1));
+    if (safeIndex !== selectedImageIndex) {
+      setSelectedImageIndex(safeIndex);
+      return;
+    }
 
     const min = thumbStart;
     const max = thumbStart + THUMBS_PER_VIEW - 1;
@@ -1287,20 +1297,20 @@ const SingleProduct = () => {
     }
   };
 
- if (isLoading) {
-  return (
-    <div
-      className="sp2-wrap"
-      dir={isRTL ? "rtl" : "ltr"}
-      lang="ar"
-      style={{ minHeight: "calc(100vh - 140px)" }}
-    >
-      <div className="sp2-container">
-        <SingleProductLoader isRTL={isRTL} />
+  if (isLoading) {
+    return (
+      <div
+        className="sp2-wrap"
+        dir={isRTL ? "rtl" : "ltr"}
+        lang="ar"
+        style={{ minHeight: "calc(100vh - 140px)" }}
+      >
+        <div className="sp2-container">
+          <SingleProductLoader isRTL={isRTL} />
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
   if (isError || !product) {
     return (
@@ -1431,17 +1441,15 @@ const SingleProduct = () => {
                   onMouseEnter={resetZoomVars}
                   onMouseLeave={resetZoomVars}
                 >
-                  {isTrending && <span className="sp2-badge">جديد</span>}
+                  <div className="sp2-badges" aria-label="شارات المنتج">
+                    {isTrending && <span className="sp2-badge sp2-badge--trending">جديد</span>}
 
-                  <div
-                    className={`sp2-stockBadge ${stockBadge.className}`}
-                    aria-label={`حالة المخزون: ${stockBadge.label}`}
-                  >
-                    <span className="sp2-stockBadgeDot" aria-hidden="true" />
-                    <div className="sp2-stockBadgeText">
-                      <strong>{stockBadge.label}</strong>
-                      <span>{stockBadge.sub}</span>
-                    </div>
+                    <span
+                      className={`sp2-badge sp2-badge--stock ${stockBadge.className}`}
+                      aria-label={`حالة المخزون: ${stockBadge.label}`}
+                    >
+                      {stockBadge.badgeLabel}
+                    </span>
                   </div>
 
                   <span className="sp2-imageGlow" aria-hidden="true" />
@@ -1484,6 +1492,7 @@ const SingleProduct = () => {
                             onClick={() => setSelectedImageIndex(realIdx)}
                             className={`sp2-thumbBtn ${isActive ? "is-active" : ""}`}
                             aria-label={`صورة ${realIdx + 1}`}
+                            aria-pressed={isActive}
                           >
                             <img src={getImgUrl(img)} alt="" className="sp2-thumbImg" />
                           </button>
@@ -1678,6 +1687,7 @@ const SingleProduct = () => {
                               const freshColor = normalizeColor(color);
                               setSelectedColor(freshColor);
                               setSelectedImageIndex(0);
+                              setThumbStart(0);
                               setQuantity(1);
                             }}
                           >
