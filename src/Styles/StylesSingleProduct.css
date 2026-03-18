@@ -514,7 +514,7 @@ img{
   display:flex;
   align-items:center;
   justify-content:center;
-  height:clamp(320px, 58vw, 560px);
+  height:clamp(340px, 58vw, 620px);
   overflow:hidden;
   border-bottom:1px solid rgba(15,23,42,.06);
   padding:10px;
@@ -540,108 +540,80 @@ img{
 .sp2-zoomImg{
   transform-origin:var(--zoom-x) var(--zoom-y);
   transform:scale(1);
-  transition:transform .12s ease;
+  transition:transform .16s ease;
   will-change:transform;
 }
 
 .sp2-zoomStage:hover .sp2-zoomImg{
-  transform:scale(2.2);
+  transform:scale(2.15);
 }
 
 .sp2-zoomStage:active{
   cursor:zoom-out;
 }
 
-.sp2-badge{
+/* unified badges */
+.sp2-badges{
   position:absolute;
   top:12px;
-  left:12px;
-  background:#111;
+  right:12px;
+  z-index:6;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:8px;
+  max-width:calc(100% - 24px);
+}
+
+.sp2-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:34px;
+  padding:6px 12px;
   color:#fff;
   font-size:12px;
   font-weight:1000;
-  padding:6px 10px;
-  z-index:4;
-  max-width:calc(100% - 24px);
+  line-height:1;
   box-shadow:0 10px 22px rgba(2,6,23,.16);
+  max-width:100%;
+  text-align:center;
+  white-space:nowrap;
 }
 
-[dir="rtl"] .sp2-badge{
-  left:auto;
-  right:12px;
+.sp2-badge--trending{
+  background:#111;
 }
 
-.sp2-stockBadge{
+.sp2-badge--stock.is-good{
+  background:#111;
+}
+
+.sp2-badge--stock.is-mid{
+  background:#111;
+}
+
+.sp2-badge--stock.is-low{
+  background:#111;
+}
+
+.sp2-badge--stock.is-out{
+  background:#111;
+}
+
+.sp2-imageGlow{
   position:absolute;
-  left:12px;
-  bottom:12px;
-  z-index:5;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  min-width:168px;
-  max-width:calc(100% - 24px);
-  padding:10px 12px;
-  color:#fff;
-  background:rgba(15,23,42,.86);
-  backdrop-filter:blur(10px);
-  border:1px solid rgba(255,255,255,.16);
-  box-shadow:0 18px 34px rgba(2,6,23,.16);
-}
-
-[dir="rtl"] .sp2-stockBadge{
-  left:auto;
-  right:12px;
-}
-
-.sp2-stockBadgeDot{
-  width:11px;
-  height:11px;
-  border-radius:999px;
-  flex:0 0 auto;
-  background:currentColor;
-  box-shadow:0 0 0 5px rgba(255,255,255,.08);
-}
-
-.sp2-stockBadgeText{
-  min-width:0;
-  display:flex;
-  flex-direction:column;
-  gap:2px;
-}
-
-.sp2-stockBadgeText strong{
-  font-size:13px;
-  font-weight:1000;
-  line-height:1.4;
-  color:#fff;
-}
-
-.sp2-stockBadgeText span{
-  font-size:11px;
-  line-height:1.45;
-  color:rgba(255,255,255,.82);
-}
-
-.sp2-stockBadge.is-good{
-  color:#22c55e;
-}
-
-.sp2-stockBadge.is-mid{
-  color:#38bdf8;
-}
-
-.sp2-stockBadge.is-low{
-  color:#f59e0b;
-}
-
-.sp2-stockBadge.is-out{
-  color:#ef4444;
+  inset:auto 6% 0 6%;
+  height:24%;
+  background:radial-gradient(ellipse at center, rgba(212,175,55,.16), transparent 72%);
+  filter:blur(20px);
+  pointer-events:none;
+  z-index:1;
 }
 
 .sp2-thumbsRow{
   display:grid;
-  grid-template-columns:40px minmax(0, 1fr) 40px;
+  grid-template-columns:42px minmax(0, 1fr) 42px;
   align-items:center;
   gap:10px;
   padding:12px;
@@ -650,8 +622,8 @@ img{
 }
 
 .sp2-thumbsNav{
-  width:40px;
-  height:40px;
+  width:42px;
+  height:42px;
   border:1px solid rgba(15,23,42,.12);
   background:#fff;
   font-size:18px;
@@ -662,6 +634,7 @@ img{
   justify-content:center;
   flex:0 0 auto;
   z-index:2;
+  box-shadow:0 8px 18px rgba(2,6,23,.05);
 }
 
 .sp2-thumbsNav:hover{
@@ -683,9 +656,9 @@ img{
 }
 
 .sp2-thumbBtn{
-  width:90px;
-  height:82px;
-  min-width:90px;
+  width:96px;
+  height:88px;
+  min-width:96px;
   border:1px solid rgba(15,23,42,.12);
   background:#fff;
   padding:0;
@@ -693,19 +666,25 @@ img{
   flex:0 0 auto;
   transition:
     transform .22s ease,
-    box-shadow .22s ease;
+    box-shadow .22s ease,
+    border-color .22s ease,
+    outline-color .22s ease;
+  box-shadow:0 8px 18px rgba(2,6,23,.04);
 }
 
 .sp2-thumbBtn:hover{
-  outline:2px solid rgba(15,23,42,.35);
+  outline:2px solid rgba(15,23,42,.28);
   outline-offset:2px;
   transform:translateY(-2px);
   box-shadow:0 12px 24px rgba(2,6,23,.08);
 }
 
 .sp2-thumbBtn.is-active{
+  border-color:#111;
   outline:2px solid #111;
   outline-offset:2px;
+  transform:translateY(-1px);
+  box-shadow:0 12px 24px rgba(2,6,23,.10);
 }
 
 .sp2-thumbImg{
@@ -847,7 +826,6 @@ img{
   align-items:center;
   justify-content:center;
   gap:10px;
-  margin-left: 20% !important;
   border:1px solid rgba(15,23,42,.18);
   background:#111;
   color:#fff;
@@ -1950,7 +1928,7 @@ img{
 }
 
 .sp2-likeImgWrap--lux{
-  height:410px;
+  height:460px;
   display:flex;
   align-items:flex-start;
   justify-content:center;
@@ -1999,12 +1977,11 @@ img{
 }
 
 .sp2-likeImg--lux{
-  object-fit:contain;
-  object-position:top center;
+  object-fit:cover;
+  object-position:center top;
   transition:
     transform .72s cubic-bezier(.2,.8,.2,1),
     filter .4s ease;
-  padding-top:14px;
 }
 
 .sp2-likeCard--lux:hover .sp2-likeImg--lux{
@@ -2381,7 +2358,10 @@ img{
 
   .sp2-vendorBtn{
     width:100%;
-    margin-right: 20% !important;
+  }
+
+  .sp2-likeImgWrap--lux{
+    height:420px;
   }
 }
 
@@ -2407,7 +2387,7 @@ img{
   }
 
   .sp2-likeImgWrap--lux{
-    height:320px;
+    height:400px;
   }
 
   .sp2-detailRowPro{
@@ -2433,9 +2413,9 @@ img{
   }
 
   .sp2-thumbBtn{
-    width:72px;
-    min-width:72px;
-    height:70px;
+    width:76px;
+    min-width:76px;
+    height:72px;
   }
 
   .sp2-thumbsNav{
@@ -2458,7 +2438,7 @@ img{
   }
 
   .sp2-likeImgWrap--lux{
-    height:300px;
+    height:420px;
   }
 }
 
@@ -2528,7 +2508,7 @@ img{
   }
 
   .sp2-likeImgWrap--lux{
-    height:280px;
+    height:440px;
   }
 
   .sp2-likeName{
@@ -2578,39 +2558,17 @@ img{
     padding:6px;
   }
 
-  .sp2-badge{
+  .sp2-badges{
     top:10px;
     right:10px;
-    left:auto;
-    font-size:11px;
-    padding:5px 9px;
-  }
-
-  .sp2-stockBadge{
-    right:10px;
-    left:auto;
-    bottom:10px;
-    min-width:unset;
-    width:auto;
+    gap:6px;
     max-width:calc(100% - 20px);
-    padding:8px 10px;
-    gap:8px;
   }
 
-  .sp2-stockBadgeText strong{
-    font-size:12px;
-  }
-
-  .sp2-stockBadgeText span{
-    font-size:10px;
-  }
-
-  .sp2-idHero{
-    padding:12px 10px;
-  }
-
-  .sp2-idHeroValue{
-    font-size:18px;
+  .sp2-badge{
+    min-height:30px;
+    padding:5px 9px;
+    font-size:11px;
   }
 
   .sp2-subCategoryRow{
@@ -2758,6 +2716,24 @@ img{
   .wz-premium-quality-percent{
     justify-self:start;
   }
+
+  .sp2-thumbsRow{
+    grid-template-columns:34px minmax(0, 1fr) 34px;
+    gap:6px;
+    padding:8px;
+  }
+
+  .sp2-thumbsNav{
+    width:34px;
+    height:34px;
+    font-size:16px;
+  }
+
+  .sp2-thumbBtn{
+    width:66px;
+    min-width:66px;
+    height:62px;
+  }
 }
 
 @media (max-width:420px){
@@ -2817,17 +2793,8 @@ img{
     font-size:13px;
   }
 
-  .sp2-stockBadge{
-    padding:7px 9px;
-  }
-
-  .sp2-stockBadgeDot{
-    width:9px;
-    height:9px;
-  }
-
   .sp2-likeImgWrap--lux{
-    height:250px;
+    height:360px;
   }
 
   .sp2-likeMeta{
@@ -2861,6 +2828,18 @@ img{
   }
 
   .sp2-zoomStage:hover .sp2-zoomImg{
+    transform:none;
+  }
+
+  .sp2-thumbBtn:hover{
+    transform:none;
+  }
+
+  .sp2-likeCard--lux:hover{
+    transform:none;
+  }
+
+  .sp2-likeCard--lux:hover .sp2-likeImg--lux{
     transform:none;
   }
 }
