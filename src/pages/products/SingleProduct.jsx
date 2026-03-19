@@ -608,7 +608,7 @@ const TermsModal = ({ open, onClose, title, children, isRTL = true }) => {
         <div className="wz-modal-body">{children}</div>
 
         <div className="wz-modal-footer">
-          <button type="button" className="wz-btn" onClick={onClose}>
+          <button type="button" className="wz-btn " onClick={onClose}>
             حسنًا
           </button>
         </div>

@@ -2336,6 +2336,12 @@ img{
   margin:0 0 6px;
 }
 
+.wz-btn {
+  border-radius: 0 !important;
+}
+
+
+
 /* =========================
    Simple loader
 ========================= */

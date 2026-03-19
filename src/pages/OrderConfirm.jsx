@@ -1,3 +1,4 @@
+// src/pages/OrderConfirm.jsx
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useParams, useLocation, Link } from "react-router-dom";
 import {
@@ -115,16 +116,61 @@ const getPid = (line) => {
   return "";
 };
 
-const pickCategory = (line) =>
-  safeText(line?.productData?.category || line?.productId?.category || line?.product?.category || "");
+const pickLangText = (value) => {
+  if (!value) return "";
+  if (typeof value === "string") return value.trim();
+  if (typeof value === "object") {
+    return safeText(value?.ar || value?.fr || value?.en || "");
+  }
+  return "";
+};
 
-const pickSubCategory = (line) =>
-  safeText(
-    line?.productData?.subCategory ||
+const CATEGORY_AR_MAP = {
+  men: "رجال",
+  women: "نساء",
+  children: "أطفال",
+};
+
+const SUBCATEGORY_AR_MAP = {
+  accessories: "إكسسوارات",
+  costume: "بدلة",
+  vest: "صدريّة",
+  mens_abaya: "عباية رجالية",
+  jebba: "جبّة",
+};
+
+const pickCategory = (line) => {
+  const raw = safeText(
+    line?.category ||
+      line?.productData?.category ||
+      line?.productId?.category ||
+      line?.product?.category ||
+      ""
+  ).toLowerCase();
+
+  return CATEGORY_AR_MAP[raw] || raw || "";
+};
+
+const pickSubCategory = (line) => {
+  const raw = safeText(
+    line?.subCategory ||
+      line?.productData?.subCategory ||
       line?.productId?.subCategory ||
       line?.product?.subCategory ||
       ""
+  ).toLowerCase();
+
+  return SUBCATEGORY_AR_MAP[raw] || raw || "";
+};
+
+const pickEmbroidery = (line) => {
+  return (
+    pickLangText(line?.embroideryCategory) ||
+    pickLangText(line?.productData?.embroideryCategory) ||
+    pickLangText(line?.product?.embroideryCategory) ||
+    ""
   );
+};
 
 /* -----------------------
    ✅ Stable progress key
@@ -224,7 +270,7 @@ const persistOrderSnapshot = (id, order) => {
   } catch (_) {}
 };
 
-export default function OrderTrack() {
+export default function OrderConfirm() {
   const { orderId } = useParams();
   const location = useLocation();
 
@@ -260,7 +306,10 @@ export default function OrderTrack() {
     if (!v) return null;
 
     const rawBase = String(getBaseUrl() || "").trim().replace(/\/$/, "");
-    const url = `${rawBase}/api/orders/track/${encodeURIComponent(v)}`;
+    const emailQuery = safeText(location.state?.order?.email || readAnyStoredOrder(v)?.email || "");
+    const url = emailQuery
+      ? `${rawBase}/api/orders/track/${encodeURIComponent(v)}?email=${encodeURIComponent(emailQuery)}`
+      : `${rawBase}/api/orders/track/${encodeURIComponent(v)}`;
 
     const res = await fetch(url, {
       method: "GET",
@@ -358,7 +407,8 @@ export default function OrderTrack() {
   };
 
   useEffect(() => {
-    if (orderId) runSearch(orderId, { silent: false });
+    if (!orderId) return;
+    runSearch(orderId, { silent: false });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId]);
 
@@ -392,6 +442,10 @@ export default function OrderTrack() {
     const total = order?.totals?.total ?? order?.totalPrice ?? order?.total ?? 0;
     return { subtotal, shipping, total };
   }, [order]);
+
+  const totalOrderedUnits = useMemo(() => {
+    return products.reduce((sum, line) => sum + Math.max(1, Number(line?.quantity || 1)), 0);
+  }, [products]);
 
   const amountDue = useMemo(() => Number(totals?.total || 0) || 0, [totals]);
 
@@ -427,14 +481,26 @@ export default function OrderTrack() {
       const qty = Math.max(1, Number(line?.quantity || 1));
       for (let itemIndex = 0; itemIndex < qty; itemIndex++) {
         const key = buildProgressKey(line, lineIndex, itemIndex);
-        const status = safeText(progressMap?.[key]) || "تم تأكيد الطلب";
+        const rawProgress = progressMap?.[key];
+
+        let status = orderStatus;
+        if (typeof rawProgress === "number") {
+          if (rawProgress >= 100) status = "تم التسليم والدفع";
+          else if (rawProgress >= 60) status = "خارج للتسليم";
+          else if (rawProgress >= 40) status = "قيد التحضير";
+          else status = "تم تأكيد الطلب";
+        } else {
+          const textProgress = safeText(rawProgress);
+          status = STATUSES.includes(textProgress) ? textProgress : orderStatus;
+        }
+
         const idx = statusIndex(status);
         const pct = percentOfStatus(status);
         pieces.push({ key, status, statusIdx: idx, pct, lineIndex, itemIndex });
       }
     });
     return pieces;
-  }, [products, progressMap]);
+  }, [products, progressMap, orderStatus]);
 
   const globalPctPieces = useMemo(() => {
     if (!orderedPieces.length) return 0;
@@ -472,6 +538,7 @@ export default function OrderTrack() {
       const pid = getPid(line);
       const category = pickCategory(line);
       const subCategory = pickSubCategory(line);
+      const embroidery = pickEmbroidery(line);
       const qty = Math.max(1, Number(line?.quantity || 1));
 
       return {
@@ -484,6 +551,7 @@ export default function OrderTrack() {
         pid,
         category,
         subCategory,
+        embroidery,
         
       };
     });
@@ -562,6 +630,10 @@ export default function OrderTrack() {
                       {hasAnyPieceProgress ? "حسب القطع" : "حسب حالة الطلب"}
                     </span>
 
+                    <span className="wz-ot__chip" title="إجمالي القطع المطلوبة">
+                      القطع: {totalOrderedUnits}
+                    </span>
+
                     {silentRefreshing ? (
                       <span className="wz-ot__chip" title="تحديث تلقائي">
                         <Loader2 size={14} className="wz-ot__spin" /> تحديث…
@@ -605,6 +677,10 @@ export default function OrderTrack() {
                   {copied ? <span className="wz-ot__copied">تم النسخ!</span> : null}
                 </div>
 
+                <div style={{ marginTop: 10, fontSize: 14, fontWeight: 800 }}>
+                  إجمالي الكمية المطلوبة في هذا الطلب: <strong>{totalOrderedUnits}</strong>
+                </div>
+
                 <div style={{ display: "flex", gap: 10, marginTop: 12, flexWrap: "wrap" }}>
                   <Link
                     to={`/order-confirm/${effectiveId}`}
@@ -623,7 +699,6 @@ export default function OrderTrack() {
                   <Banknote size={20} className="wz-ot__payIcon" />
                   <div className="wz-ot__payText">
                     <span className="wz-ot__payTitle">الدفع عند الاستلام</span>
-                    
                   </div>
                   <ShieldCheck size={16} className="wz-ot__payShield" />
                 </div>
@@ -710,9 +785,10 @@ export default function OrderTrack() {
                             </div>
 
                             <div className="wz-ot__itemBigMeta">
-                              {it.pid ? <span>Product ID (منتج) : {it.pid}</span> : null}
-                              {it.category ? <span>Category: {it.category}</span> : null}
-                              {it.subCategory ? <span>Sub category: {it.subCategory}</span> : null}
+                              {it.pid ? <span>Product ID (منتج): {it.pid}</span> : null}
+                              {it.category ? <span>الفئة: {it.category}</span> : null}
+                              {it.subCategory ? <span>التصنيف الفرعي: {it.subCategory}</span> : null}
+                              {it.embroidery ? <span>نوع التطريز: {it.embroidery}</span> : null}
                               {it.color ? <span>اللون: {it.color}</span> : null}
                               {it.size ? <span>المقاس: {it.size}</span> : null}
                               <span>الكمية: {it.qty}</span>
@@ -735,6 +811,12 @@ export default function OrderTrack() {
                               ? "مجاني"
                               : `${money(totals.shipping)} د.ت`}
                           </strong>
+                        </div>
+                        <div style={{ marginTop: 6 }}>
+                          إجمالي كل القطع المطلوبة: <strong>{totalOrderedUnits}</strong>
+                        </div>
+                        <div style={{ marginTop: 6 }}>
+                          المبلغ الإجمالي: <strong>{money(amountDue)} د.ت</strong>
                         </div>
                       </div>
                     </div>
