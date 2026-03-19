@@ -368,7 +368,7 @@ VideoShowcase — premium responsive section
      right video -> bottom
   */
   .vz3-lane--left {
-    order: 1;
+    order: 3;
   }
 
   .vz3-lane--center {
@@ -376,7 +376,7 @@ VideoShowcase — premium responsive section
   }
 
   .vz3-lane--right {
-    order: 3;
+    order: 1;
   }
 
   .vz3-videoShell {
