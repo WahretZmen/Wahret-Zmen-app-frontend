@@ -11,7 +11,6 @@ import { useDispatch } from "react-redux";
 import {
   FiFacebook,
   FiTwitter,
-  FiInstagram,
   FiLink,
   FiPhoneCall,
   FiArrowUpRight,
@@ -1631,16 +1630,7 @@ const SingleProduct = () => {
                     <span>WhatsApp</span>
                   </button>
 
-                  <button
-                    type="button"
-                    className="sp2-shareBtn is-ig"
-                    onClick={copyLink}
-                    aria-label="مشاركة على إنستغرام (نسخ الرابط)"
-                    title="Instagram (Copy Link)"
-                  >
-                    <FiInstagram />
-                    <span>Instagram</span>
-                  </button>
+                 
 
                   <button
                     type="button"

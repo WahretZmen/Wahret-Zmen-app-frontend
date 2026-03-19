@@ -499,142 +499,303 @@ img{
   min-width:0;
   width:100%;
 }
+
 /* =========================
-   HIGH QUALITY IMAGE FIX
+   Gallery / images
 ========================= */
+.sp2-imageCard{
+  border:1px solid var(--sp2-border);
+  background:
+    radial-gradient(circle at top center, rgba(212,175,55,.06), transparent 34%),
+    linear-gradient(180deg,#ffffff 0%, #fbfaf8 100%);
+  box-shadow:
+    0 18px 46px rgba(2,6,23,.08),
+    0 6px 18px rgba(166,124,82,.04);
+  overflow:hidden;
+  min-width:0;
+  position:relative;
+}
+
+.sp2-mainImgWrap{
+  position:relative;
+  background:
+    radial-gradient(circle at 50% 14%, rgba(212,175,55,.10), transparent 32%),
+    linear-gradient(180deg,#ffffff 0%, #f9f7f3 100%);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:clamp(440px, 60vw, 760px);
+  overflow:hidden;
+  border-bottom:1px solid rgba(15,23,42,.06);
+  padding:18px;
+  min-width:0;
+  isolation:isolate;
+}
+
+.sp2-mainImgWrap::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.45) 0%, rgba(255,255,255,0) 22%),
+    radial-gradient(circle at 50% 100%, rgba(255,255,255,.55), transparent 40%);
+  pointer-events:none;
+  z-index:1;
+}
 
 .sp2-mainImg{
   width:100%;
   height:100%;
   object-fit:contain;
-
+  display:block;
+  background:transparent;
+  position:relative;
+  z-index:2;
   image-rendering:auto;
   -webkit-backface-visibility:hidden;
   backface-visibility:hidden;
   transform:translateZ(0);
-
-  /* 🔥 ULTRA SHARP */
-  filter: contrast(1.02) saturate(1.05);
+  filter:contrast(1.02) saturate(1.04);
 }
 
-/* Desktop ultra quality */
-@media (min-width:1024px){
-  .sp2-mainImgWrap{
-    height:680px;
-  }
+.sp2-zoomStage{
+  --zoom-x:50%;
+  --zoom-y:50%;
+  cursor:zoom-in;
 }
 
-/* =========================
-   PREMIUM MAIN IMAGE
-========================= */
+.sp2-zoomImg{
+  transform-origin:var(--zoom-x) var(--zoom-y);
+  transform:scale(1);
+  transition:transform .16s ease;
+  will-change:transform;
+}
 
-.sp2-mainImgWrap{
-  position:relative;
+.sp2-zoomStage:hover .sp2-zoomImg{
+  transform:scale(2.15);
+}
+
+.sp2-zoomStage:active{
+  cursor:zoom-out;
+}
+
+.sp2-badges{
+  position:absolute;
+  top:12px;
+  right:12px;
+  z-index:6;
   display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:8px;
+  max-width:calc(100% - 24px);
+}
+
+.sp2-badge{
+  display:inline-flex;
   align-items:center;
   justify-content:center;
-  height:520px;
-  padding:20px;
+  min-height:34px;
+  padding:6px 12px;
+  color:#fff;
+  font-size:12px;
+  font-weight:1000;
+  line-height:1;
+  box-shadow:0 10px 22px rgba(2,6,23,.16);
+  max-width:100%;
+  text-align:center;
+  white-space:nowrap;
+}
 
-  background:
-    radial-gradient(circle at top, rgba(212,175,55,.12), transparent 40%),
-    linear-gradient(180deg,#ffffff,#f9f6f2);
+.sp2-badge--trending{
+  background:#111;
+}
 
-  overflow:hidden;
+.sp2-badge--stock.is-good,
+.sp2-badge--stock.is-mid,
+.sp2-badge--stock.is-low,
+.sp2-badge--stock.is-out{
+  background:#111;
+}
+
+.sp2-imageGlow{
+  position:absolute;
+  inset:auto 6% 0 6%;
+  height:24%;
+  background:radial-gradient(ellipse at center, rgba(212,175,55,.16), transparent 72%);
+  filter:blur(20px);
+  pointer-events:none;
+  z-index:1;
 }
 
 /* =========================
-   PREMIUM CAROUSEL
+   Premium carousel thumbnails
 ========================= */
-
 .sp2-thumbsCarousel{
   display:grid;
-  grid-template-columns:48px 1fr 48px;
+  grid-template-columns:48px minmax(0, 1fr) 48px;
   align-items:center;
   gap:12px;
-  padding:16px;
-}
-
-/* NAV */
-.sp2-thumbsNav{
-  width:44px;
-  height:44px;
-  border:1px solid rgba(0,0,0,.1);
-  background:#fff;
-  font-size:20px;
-  cursor:pointer;
-}
-
-/* VIEWPORT */
-.sp2-thumbsCarouselViewport{
+  padding:16px 14px 14px;
+  background:linear-gradient(180deg,#fff 0%, #fbfaf8 100%);
+  min-width:0;
   overflow:hidden;
-  height:100px;
+}
+
+.sp2-thumbsNav{
+  width:48px;
+  height:48px;
+  border:1px solid rgba(15,23,42,.10);
+  background:linear-gradient(180deg,#fff,#f7f7f7);
+  font-size:20px;
+  font-weight:1000;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 auto;
+  z-index:2;
+  box-shadow:0 10px 24px rgba(2,6,23,.07);
+  transition:
+    transform .22s ease,
+    box-shadow .22s ease,
+    border-color .22s ease,
+    background .22s ease,
+    opacity .22s ease;
+}
+
+.sp2-thumbsNav--carousel{
+  position:relative;
+  z-index:3;
+}
+
+.sp2-thumbsNav:hover{
+  background:#fff;
+  border-color:rgba(15,23,42,.18);
+  transform:translateY(-1px);
+  box-shadow:0 14px 28px rgba(2,6,23,.10);
+}
+
+.sp2-thumbsNav.is-disabled,
+.sp2-thumbsNav:disabled{
+  opacity:.42;
+  cursor:not-allowed;
+  transform:none;
+  box-shadow:none;
+}
+
+.sp2-thumbsCarouselViewport{
+  position:relative;
+  min-width:0;
+  width:100%;
+  overflow-x:auto;
+  overflow-y:hidden;
+  height:112px;
   display:flex;
   align-items:center;
+  justify-content:flex-start;
+  scroll-behavior:smooth;
+  scrollbar-width:none;
+  -ms-overflow-style:none;
 }
 
-/* TRACK */
+.sp2-thumbsCarouselViewport::-webkit-scrollbar{
+  display:none;
+}
+
 .sp2-thumbsCarouselTrack{
   display:flex;
+  align-items:center;
   gap:12px;
-  transition:transform .4s ease;
+  min-width:max-content;
+  padding-inline:calc(50% - 46px);
 }
 
-/* SLIDE */
 .sp2-thumbSlide{
   width:80px;
-  height:90px;
-  opacity:.5;
-  transform:scale(.8);
-  transition:all .3s ease;
+  min-width:80px;
+  height:86px;
+  padding:0;
+  border:0;
+  background:transparent;
   cursor:pointer;
+  opacity:.55;
+  transform:scale(.82);
+  transition:
+    transform .34s cubic-bezier(.22,.8,.22,1),
+    opacity .28s ease,
+    filter .28s ease;
+  filter:blur(.2px);
 }
 
-/* ACTIVE */
-.sp2-thumbSlide.is-active{
-  opacity:1;
-  transform:scale(1.1);
+.sp2-thumbSlideInner{
+  position:relative;
+  display:block;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  border:1px solid rgba(15,23,42,.10);
+  background:linear-gradient(180deg,#ffffff 0%, #f8f7f5 100%);
+  box-shadow:
+    0 10px 22px rgba(2,6,23,.06),
+    0 2px 8px rgba(2,6,23,.03);
+  padding:4px;
 }
 
-/* NEAR */
-.sp2-thumbSlide.is-near{
-  opacity:.8;
-  transform:scale(.95);
+.sp2-thumbSlideInner::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg, rgba(255,255,255,.56), transparent 42%);
+  pointer-events:none;
+  z-index:2;
 }
 
-/* IMAGE */
 .sp2-thumbSlideImg{
   width:100%;
   height:100%;
   object-fit:cover;
+  object-position:center top;
+  display:block;
+  position:relative;
+  z-index:1;
+  image-rendering:auto;
+  -webkit-backface-visibility:hidden;
+  backface-visibility:hidden;
+  transform:translateZ(0);
 }
 
-/* =========================
-   MOBILE OPTIMIZATION
-========================= */
-
-@media (max-width:768px){
-
-  .sp2-mainImgWrap{
-    height:460px;
-  }
-
-  .sp2-thumbSlide{
-    width:70px;
-    height:80px;
-  }
+.sp2-thumbSlide.is-active{
+  opacity:1;
+  transform:scale(1.08);
+  filter:none;
 }
 
-@media (max-width:480px){
+.sp2-thumbSlide.is-active .sp2-thumbSlideInner{
+  border-color:#111;
+  box-shadow:
+    0 18px 34px rgba(2,6,23,.14),
+    0 6px 18px rgba(2,6,23,.05);
+}
 
-  .sp2-mainImgWrap{
-    height:420px;
-  }
+.sp2-thumbSlide.is-near{
+  opacity:.82;
+  transform:scale(.92);
+  filter:none;
+}
 
-  .sp2-thumbSlide{
-    width:60px;
-    height:70px;
-  }
+.sp2-thumbSlide.is-far{
+  opacity:.38;
+  transform:scale(.74);
+}
+
+.sp2-thumbSlide:hover{
+  opacity:1;
+  filter:none;
+}
+
+.sp2-thumbSlide:hover .sp2-thumbSlideInner{
+  border-color:rgba(166,124,82,.28);
 }
 
 /* =========================
@@ -925,7 +1086,6 @@ img{
 
 .sp2-shareBtn.is-fb{ border-color:rgba(59,89,152,.25); }
 .sp2-shareBtn.is-tw{ border-color:rgba(29,161,242,.25); }
-.sp2-shareBtn.is-ig{ border-color:rgba(225,48,108,.22); }
 .sp2-shareBtn.is-link{ border-color:rgba(15,23,42,.18); }
 .sp2-shareBtn.is-wa{ border-color:rgba(37,211,102,.25); }
 
@@ -2214,12 +2374,6 @@ img{
   margin:0 0 6px;
 }
 
-.wz-btn {
-  border-radius: 0 !important;
-}
-
-
-
 /* =========================
    Simple loader
 ========================= */
@@ -2271,9 +2425,20 @@ img{
 /* =========================
    Responsive
 ========================= */
+@media (min-width:1180px){
+  .sp2-mainImgWrap{
+    height:760px;
+    padding:22px;
+  }
+}
+
 @media (max-width:1024px){
   .wz-premium-grid{
     grid-template-columns:1fr;
+  }
+
+  .sp2-mainImgWrap{
+    height:clamp(460px, 74vw, 680px);
   }
 }
 
@@ -2314,18 +2479,12 @@ img{
   }
 
   .sp2-mainImgWrap{
-    height:clamp(460px, 84vw, 760px);
-    padding:20px;
+    height:clamp(440px, 86vw, 700px);
+    padding:18px;
   }
 
-  .sp2-thumbsRow{
+  .sp2-thumbsCarousel{
     grid-template-columns:46px minmax(0, 1fr) 46px;
-  }
-
-  .sp2-thumbBtn{
-    width:112px;
-    min-width:112px;
-    height:106px;
   }
 }
 
@@ -2371,21 +2530,29 @@ img{
   }
 
   .sp2-mainImgWrap{
-    height:clamp(420px, 88vw, 660px);
+    height:clamp(420px, 92vw, 620px);
     padding:16px;
   }
 
-  .sp2-thumbsRow{
+  .sp2-thumbsCarousel{
     grid-template-columns:42px minmax(0, 1fr) 42px;
     gap:10px;
     padding:12px 10px 10px;
   }
 
-  .sp2-thumbBtn{
-    width:92px;
-    min-width:92px;
-    height:92px;
-    padding:4px;
+  .sp2-thumbsCarouselViewport{
+    height:100px;
+  }
+
+  .sp2-thumbsCarouselTrack{
+    gap:10px;
+    padding-inline:calc(50% - 42px);
+  }
+
+  .sp2-thumbSlide{
+    width:72px;
+    min-width:72px;
+    height:78px;
   }
 
   .sp2-thumbsNav{
@@ -2413,24 +2580,29 @@ img{
   }
 
   .sp2-mainImgWrap{
-    height:clamp(400px, 96vw, 620px);
+    height:clamp(400px, 98vw, 560px);
     padding:14px 12px;
   }
 
-  .sp2-thumbsRow{
+  .sp2-thumbsCarousel{
     grid-template-columns:40px minmax(0, 1fr) 40px;
     gap:8px;
     padding:10px 8px 10px;
   }
 
-  .sp2-thumbsTrack{
-    gap:10px;
+  .sp2-thumbsCarouselViewport{
+    height:92px;
   }
 
-  .sp2-thumbBtn{
-    width:84px;
-    min-width:84px;
-    height:86px;
+  .sp2-thumbsCarouselTrack{
+    gap:8px;
+    padding-inline:calc(50% - 39px);
+  }
+
+  .sp2-thumbSlide{
+    width:66px;
+    min-width:66px;
+    height:72px;
   }
 
   .sp2-thumbsNav{
@@ -2723,35 +2895,31 @@ img{
     justify-self:start;
   }
 
-  .sp2-thumbsRow{
+  .sp2-thumbsCarousel{
     grid-template-columns:38px minmax(0, 1fr) 38px;
     gap:8px;
     padding:12px 8px 10px;
+  }
+
+  .sp2-thumbsCarouselViewport{
+    height:88px;
+  }
+
+  .sp2-thumbsCarouselTrack{
+    gap:8px;
+    padding-inline:calc(50% - 37px);
+  }
+
+  .sp2-thumbSlide{
+    width:62px;
+    min-width:62px;
+    height:68px;
   }
 
   .sp2-thumbsNav{
     width:38px;
     height:38px;
     font-size:17px;
-  }
-
-  .sp2-thumbsTrack{
-    gap:8px;
-  }
-
-  .sp2-thumbBtn{
-    width:78px;
-    min-width:78px;
-    height:82px;
-    padding:4px;
-    box-shadow:
-      0 10px 20px rgba(2,6,23,.08),
-      0 2px 8px rgba(2,6,23,.03);
-  }
-
-  .sp2-thumbImg{
-    object-fit:cover;
-    object-position:center top;
   }
 }
 
@@ -2766,10 +2934,19 @@ img{
     padding:10px 8px;
   }
 
-  .sp2-thumbsRow{
+  .sp2-thumbsCarousel{
     grid-template-columns:34px minmax(0, 1fr) 34px;
     padding:10px 6px 8px;
     gap:6px;
+  }
+
+  .sp2-thumbsCarouselViewport{
+    height:82px;
+  }
+
+  .sp2-thumbsCarouselTrack{
+    gap:7px;
+    padding-inline:calc(50% - 34px);
   }
 
   .sp2-thumbsNav{
@@ -2778,15 +2955,10 @@ img{
     font-size:15px;
   }
 
-  .sp2-thumbsTrack{
-    gap:7px;
-  }
-
-  .sp2-thumbBtn{
-    width:68px;
-    min-width:68px;
-    height:72px;
-    padding:3px;
+  .sp2-thumbSlide{
+    width:56px;
+    min-width:56px;
+    height:62px;
   }
 
   .sp2-title{
@@ -2852,10 +3024,18 @@ img{
     height:360px;
   }
 
-  .sp2-thumbBtn{
-    width:62px;
-    min-width:62px;
-    height:66px;
+  .sp2-thumbsCarouselViewport{
+    height:76px;
+  }
+
+  .sp2-thumbsCarouselTrack{
+    padding-inline:calc(50% - 32px);
+  }
+
+  .sp2-thumbSlide{
+    width:50px;
+    min-width:50px;
+    height:56px;
   }
 }
 
@@ -2865,10 +3045,6 @@ img{
   }
 
   .sp2-zoomStage:hover .sp2-zoomImg{
-    transform:none;
-  }
-
-  .sp2-thumbBtn:hover{
     transform:none;
   }
 
@@ -2882,5 +3058,9 @@ img{
 
   .sp2-thumbsNav:hover{
     transform:none;
+  }
+
+  .sp2-thumbSlide:hover{
+    opacity:inherit;
   }
 }
