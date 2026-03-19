@@ -1,4 +1,3 @@
-// src/pages/products/SingleProduct.jsx
 import React, {
   useEffect,
   useMemo,
@@ -12,6 +11,7 @@ import { useDispatch } from "react-redux";
 import {
   FiFacebook,
   FiTwitter,
+  FiInstagram,
   FiLink,
   FiPhoneCall,
   FiArrowUpRight,
@@ -96,136 +96,6 @@ const resolveProductFromList = (list, routeId) => {
     list.find((p) => String(p?.slug || "") === wanted) ||
     null
   );
-};
-
-const isCloudinaryUrl = (url) =>
-  typeof url === "string" && /res\.cloudinary\.com/i.test(url);
-
-const buildCloudinaryUrl = (
-  rawUrl,
-  {
-    width,
-    height,
-    crop = "c_limit",
-    gravity,
-    quality = "auto:good",
-    dpr = "auto",
-    format = "auto",
-    background = "ffffff",
-  } = {}
-) => {
-  if (!rawUrl || !isCloudinaryUrl(rawUrl)) return rawUrl;
-
-  const marker = "/upload/";
-  const idx = rawUrl.indexOf(marker);
-  if (idx === -1) return rawUrl;
-
-  const before = rawUrl.slice(0, idx + marker.length);
-  const after = rawUrl.slice(idx + marker.length);
-
-  const transforms = [];
-
-  if (format) transforms.push(`f_${format}`);
-  if (quality) transforms.push(`q_${quality}`);
-  if (dpr) transforms.push(`dpr_${dpr}`);
-  if (width) transforms.push(`w_${width}`);
-  if (height) transforms.push(`h_${height}`);
-  if (crop) transforms.push(crop);
-  if (gravity) transforms.push(`g_${gravity}`);
-  if (background) transforms.push(`b_rgb:${background}`);
-
-  return `${before}${transforms.join(",")}/${after}`;
-};
-
-const getMainImageSources = (img) => {
-  const base = getImgUrl(img);
-  return {
-    src: buildCloudinaryUrl(base, {
-      width: 1600,
-      crop: "c_limit",
-      quality: "auto:best",
-      dpr: "auto",
-      format: "auto",
-    }),
-    srcSet: [
-      `${buildCloudinaryUrl(base, {
-        width: 640,
-        crop: "c_limit",
-        quality: "auto:good",
-        dpr: "auto",
-        format: "auto",
-      })} 640w`,
-      `${buildCloudinaryUrl(base, {
-        width: 960,
-        crop: "c_limit",
-        quality: "auto:good",
-        dpr: "auto",
-        format: "auto",
-      })} 960w`,
-      `${buildCloudinaryUrl(base, {
-        width: 1280,
-        crop: "c_limit",
-        quality: "auto:best",
-        dpr: "auto",
-        format: "auto",
-      })} 1280w`,
-      `${buildCloudinaryUrl(base, {
-        width: 1600,
-        crop: "c_limit",
-        quality: "auto:best",
-        dpr: "auto",
-        format: "auto",
-      })} 1600w`,
-    ].join(", "),
-    sizes:
-      "(max-width: 520px) 94vw, (max-width: 920px) 96vw, (max-width: 1200px) 54vw, 620px",
-  };
-};
-
-const getThumbImageSources = (img) => {
-  const base = getImgUrl(img);
-  return {
-    src: buildCloudinaryUrl(base, {
-      width: 320,
-      height: 320,
-      crop: "c_fill",
-      gravity: "auto",
-      quality: "auto:good",
-      dpr: "auto",
-      format: "auto",
-    }),
-    srcSet: [
-      `${buildCloudinaryUrl(base, {
-        width: 140,
-        height: 140,
-        crop: "c_fill",
-        gravity: "auto",
-        quality: "auto:good",
-        dpr: "auto",
-        format: "auto",
-      })} 140w`,
-      `${buildCloudinaryUrl(base, {
-        width: 220,
-        height: 220,
-        crop: "c_fill",
-        gravity: "auto",
-        quality: "auto:good",
-        dpr: "auto",
-        format: "auto",
-      })} 220w`,
-      `${buildCloudinaryUrl(base, {
-        width: 320,
-        height: 320,
-        crop: "c_fill",
-        gravity: "auto",
-        quality: "auto:good",
-        dpr: "auto",
-        format: "auto",
-      })} 320w`,
-    ].join(", "),
-    sizes:
-      "(max-width: 420px) 64px, (max-width: 520px) 72px, (max-width: 760px) 82px, 96px",
-  };
 };
 
 function normalizeColor(color) {
@@ -608,7 +478,7 @@ const TermsModal = ({ open, onClose, title, children, isRTL = true }) => {
         <div className="wz-modal-body">{children}</div>
 
         <div className="wz-modal-footer">
-          <button type="button" className="wz-btn " onClick={onClose}>
+          <button type="button" className="wz-btn" onClick={onClose}>
             حسنًا
           </button>
         </div>
@@ -644,6 +514,9 @@ const SingleProduct = () => {
   const checkoutScrollRetryRef = useRef(0);
   const checkoutScrollFrameRef = useRef(0);
 
+  const thumbsTrackRef = useRef(null);
+  const thumbButtonRefs = useRef([]);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [showCheckout, setShowCheckout] = useState(false);
   const [checkoutItems, setCheckoutItems] = useState([]);
@@ -671,8 +544,6 @@ const SingleProduct = () => {
   const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
 
-  const [thumbsPerView, setThumbsPerView] = useState(6);
-  const [thumbStart, setThumbStart] = useState(0);
   const [activeTab, setActiveTab] = useState("desc");
 
   const [formData, setFormData] = useState({
@@ -754,38 +625,6 @@ const SingleProduct = () => {
     return getProductGallery(product, liveSelectedColor);
   }, [product, liveSelectedColor]);
 
-  const activeImageUrl = useMemo(() => {
-    return (
-      activeGallery[selectedImageIndex] ||
-      liveSelectedColor?.image ||
-      liveSelectedColor?.images?.[0] ||
-      product?.coverImage ||
-      ""
-    );
-  }, [activeGallery, selectedImageIndex, liveSelectedColor, product]);
-
-  const activeImageSources = useMemo(
-    () => getMainImageSources(activeImageUrl),
-    [activeImageUrl]
-  );
-
-  useEffect(() => {
-    const handleResize = () => {
-      const w = window.innerWidth;
-      if (w <= 420) {
-        setThumbsPerView(4);
-      } else if (w <= 760) {
-        setThumbsPerView(5);
-      } else {
-        setThumbsPerView(6);
-      }
-    };
-
-    handleResize();
-    window.addEventListener("resize", handleResize, { passive: true });
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
   useEffect(() => {
     if (!product) return;
 
@@ -805,7 +644,6 @@ const SingleProduct = () => {
 
     setSelectedColor(firstColor ? normalizeColor(firstColor) : null);
     setSelectedImageIndex(0);
-    setThumbStart(0);
     setActiveTab("desc");
     setSelectedSize(
       Array.isArray(product?.sizes) && product.sizes.length ? product.sizes[0] : ""
@@ -835,22 +673,24 @@ const SingleProduct = () => {
     const safeIndex = Math.max(0, Math.min(selectedImageIndex, n - 1));
     if (safeIndex !== selectedImageIndex) {
       setSelectedImageIndex(safeIndex);
-      return;
     }
+  }, [selectedImageIndex, activeGallery.length]);
 
-    const min = thumbStart;
-    const max = thumbStart + thumbsPerView - 1;
+  useEffect(() => {
+    const btn = thumbButtonRefs.current[selectedImageIndex];
+    const track = thumbsTrackRef.current;
+    if (!btn || !track) return;
 
-    if (selectedImageIndex < min) {
-      setThumbStart(Math.max(0, selectedImageIndex));
-    } else if (selectedImageIndex > max) {
-      const nextStart = Math.min(
-        Math.max(0, n - thumbsPerView),
-        Math.max(0, selectedImageIndex - (thumbsPerView - 1))
-      );
-      setThumbStart(nextStart);
+    try {
+      btn.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "center",
+      });
+    } catch {
+      // no-op
     }
-  }, [selectedImageIndex, activeGallery.length, thumbStart, thumbsPerView]);
+  }, [selectedImageIndex, activeGallery]);
 
   const filteredProducts = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
@@ -961,16 +801,6 @@ const SingleProduct = () => {
   const coupeText = pickText(product?.coupe);
   const madeInText = pickText(product?.madeIn);
   const isHandmade = Boolean(product?.isHandmade);
-
-  const maxThumbStart = Math.max(0, activeGallery.length - thumbsPerView);
-  const canThumbPrev = thumbStart > 0;
-  const canThumbNext = thumbStart < maxThumbStart;
-
-  const visibleThumbs = activeGallery.slice(thumbStart, thumbStart + thumbsPerView);
-  const onThumbPrev = () =>
-    canThumbPrev && setThumbStart((s) => Math.max(0, s - thumbsPerView));
-  const onThumbNext = () =>
-    canThumbNext && setThumbStart((s) => Math.min(maxThumbStart, s + thumbsPerView));
 
   const productsCategoryUrl = `/products?category=${encodeURIComponent(categoryKey)}`;
   const productsSubCategoryUrl =
@@ -1594,100 +1424,121 @@ const SingleProduct = () => {
 
         <div className="sp2-grid">
           <FadeInSection delay={0.05} yOffset={28}>
-           
-           {/* PREMIUM GALLERY */}
+            <div className="sp2-left">
+              <div className="sp2-imageCard sp2-reveal sp2-reveal--cinema">
+                <div
+                  className="sp2-mainImgWrap sp2-zoomStage"
+                  onMouseMove={setZoomVars}
+                  onMouseEnter={resetZoomVars}
+                  onMouseLeave={resetZoomVars}
+                >
+                  <div className="sp2-badges" aria-label="شارات المنتج">
+                    {isTrending && <span className="sp2-badge sp2-badge--trending">جديد</span>}
 
-<div className="sp2-imageCard">
+                    <span
+                      className={`sp2-badge sp2-badge--stock ${stockBadge.className}`}
+                      aria-label={`حالة المخزون: ${stockBadge.label}`}
+                    >
+                      {stockBadge.badgeLabel}
+                    </span>
+                  </div>
 
-  {/* MAIN IMAGE */}
-  <div className="sp2-mainImgWrap sp2-zoomStage">
-    <img
-      src={getImgUrl(activeGallery[selectedImageIndex])}
-      alt=""
-      className="sp2-mainImg sp2-zoomImg"
-      loading="eager"
-      decoding="async"
-      fetchpriority="high"
-    />
+                  <span className="sp2-imageGlow" aria-hidden="true" />
 
-    {/* BADGES */}
-    <div className="sp2-badges">
-      {product?.isTrending && (
-        <span className="sp2-badge sp2-badge--trending">
-          🔥 Trending
-        </span>
-      )}
+                  <img
+                    src={getImgUrl(
+                      activeGallery[selectedImageIndex] ||
+                        liveSelectedColor?.image ||
+                        liveSelectedColor?.images?.[0] ||
+                        product?.coverImage
+                    )}
+                    alt={translatedTitle}
+                    className="sp2-mainImg sp2-zoomImg"
+                    loading="eager"
+                    decoding="async"
+                    fetchPriority="high"
+                  />
+                </div>
 
-      <span className="sp2-badge sp2-badge--stock is-good">
-        متوفر
-      </span>
-    </div>
-  </div>
+                {activeGallery.length > 1 && (
+                  <div className="sp2-thumbsCarousel" aria-label="صور المنتج">
+                    <button
+                      type="button"
+                      className={`sp2-thumbsNav sp2-thumbsNav--carousel ${
+                        selectedImageIndex > 0 ? "" : "is-disabled"
+                      }`}
+                      onClick={() =>
+                        setSelectedImageIndex((prev) => Math.max(0, prev - 1))
+                      }
+                      disabled={selectedImageIndex <= 0}
+                      aria-label="الصورة السابقة"
+                    >
+                      ‹
+                    </button>
 
-  {/* =========================
-     NEW PREMIUM CAROUSEL
-  ========================= */}
-  {activeGallery.length > 1 && (
-    <div className="sp2-thumbsCarousel">
+                    <div className="sp2-thumbsCarouselViewport">
+                      <div
+                        ref={thumbsTrackRef}
+                        className="sp2-thumbsCarouselTrack"
+                      >
+                        {activeGallery.map((img, idx) => {
+                          const isActive = idx === selectedImageIndex;
+                          const isNear = Math.abs(idx - selectedImageIndex) === 1;
+                          const isFar = Math.abs(idx - selectedImageIndex) > 1;
 
-      {/* LEFT */}
-      <button
-        className="sp2-thumbsNav"
-        onClick={() =>
-          setSelectedImageIndex((prev) => Math.max(0, prev - 1))
-        }
-        disabled={selectedImageIndex === 0}
-      >
-        ‹
-      </button>
+                          return (
+                            <button
+                              key={img + idx}
+                              ref={(el) => {
+                                thumbButtonRefs.current[idx] = el;
+                              }}
+                              type="button"
+                              onClick={() => setSelectedImageIndex(idx)}
+                              className={[
+                                "sp2-thumbSlide",
+                                isActive ? "is-active" : "",
+                                isNear ? "is-near" : "",
+                                isFar ? "is-far" : "",
+                              ]
+                                .filter(Boolean)
+                                .join(" ")}
+                              aria-label={`صورة ${idx + 1}`}
+                              aria-pressed={isActive}
+                            >
+                              <span className="sp2-thumbSlideInner">
+                                <img
+                                  src={getImgUrl(img)}
+                                  alt=""
+                                  className="sp2-thumbSlideImg"
+                                  loading="lazy"
+                                  decoding="async"
+                                />
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
 
-      {/* CENTER TRACK */}
-      <div className="sp2-thumbsCarouselViewport">
-        <div
-          className="sp2-thumbsCarouselTrack"
-          style={{
-            transform: `translateX(calc(50% - ${selectedImageIndex * 90 + 45}px))`,
-          }}
-        >
-          {activeGallery.map((img, i) => {
-            const isActive = i === selectedImageIndex;
-            const isNear = Math.abs(i - selectedImageIndex) === 1;
-
-            return (
-              <button
-                key={i}
-                onClick={() => setSelectedImageIndex(i)}
-                className={`sp2-thumbSlide 
-                  ${isActive ? "is-active" : ""} 
-                  ${isNear ? "is-near" : ""}`}
-              >
-                <img
-                  src={getImgUrl(img)}
-                  alt=""
-                  className="sp2-thumbSlideImg"
-                  loading="lazy"
-                />
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* RIGHT */}
-      <button
-        className="sp2-thumbsNav"
-        onClick={() =>
-          setSelectedImageIndex((prev) =>
-            Math.min(activeGallery.length - 1, prev + 1)
-          )
-        }
-        disabled={selectedImageIndex === activeGallery.length - 1}
-      >
-        ›
-      </button>
-    </div>
-  )}
-</div>
+                    <button
+                      type="button"
+                      className={`sp2-thumbsNav sp2-thumbsNav--carousel ${
+                        selectedImageIndex < activeGallery.length - 1 ? "" : "is-disabled"
+                      }`}
+                      onClick={() =>
+                        setSelectedImageIndex((prev) =>
+                          Math.min(activeGallery.length - 1, prev + 1)
+                        )
+                      }
+                      disabled={selectedImageIndex >= activeGallery.length - 1}
+                      aria-label="الصورة التالية"
+                    >
+                      ›
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           </FadeInSection>
 
           <FadeInSection delay={0.08} yOffset={24}>
@@ -1780,7 +1631,16 @@ const SingleProduct = () => {
                     <span>WhatsApp</span>
                   </button>
 
-                 
+                  <button
+                    type="button"
+                    className="sp2-shareBtn is-ig"
+                    onClick={copyLink}
+                    aria-label="مشاركة على إنستغرام (نسخ الرابط)"
+                    title="Instagram (Copy Link)"
+                  >
+                    <FiInstagram />
+                    <span>Instagram</span>
+                  </button>
 
                   <button
                     type="button"
@@ -1853,18 +1713,14 @@ const SingleProduct = () => {
                               const freshColor = normalizeColor(color);
                               setSelectedColor(freshColor);
                               setSelectedImageIndex(0);
-                              setThumbStart(0);
                               setQuantity(1);
                             }}
                           >
                             <span className="sp2-colorThumbWrap">
                               <img
-                                src={getThumbImageSources(color?.image || product?.coverImage).src}
+                                src={getImgUrl(color?.image || product?.coverImage)}
                                 alt={pickColorLabel(color)}
                                 className="sp2-colorThumb"
-                                loading="lazy"
-                                decoding="async"
-                                draggable="false"
                               />
                             </span>
                             <span className="sp2-colorCardInfo">
