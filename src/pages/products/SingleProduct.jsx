@@ -1594,96 +1594,100 @@ const SingleProduct = () => {
 
         <div className="sp2-grid">
           <FadeInSection delay={0.05} yOffset={28}>
-            <div className="sp2-left">
-              <div className="sp2-imageCard sp2-reveal sp2-reveal--cinema">
-                <div
-                  className="sp2-mainImgWrap sp2-zoomStage"
-                  onMouseMove={setZoomVars}
-                  onMouseEnter={resetZoomVars}
-                  onMouseLeave={resetZoomVars}
-                >
-                  <div className="sp2-badges" aria-label="شارات المنتج">
-                    {isTrending && <span className="sp2-badge sp2-badge--trending">جديد</span>}
+           
+           {/* PREMIUM GALLERY */}
 
-                    <span
-                      className={`sp2-badge sp2-badge--stock ${stockBadge.className}`}
-                      aria-label={`حالة المخزون: ${stockBadge.label}`}
-                    >
-                      {stockBadge.badgeLabel}
-                    </span>
-                  </div>
+<div className="sp2-imageCard">
 
-                  <span className="sp2-imageGlow" aria-hidden="true" />
+  {/* MAIN IMAGE */}
+  <div className="sp2-mainImgWrap sp2-zoomStage">
+    <img
+      src={getImgUrl(activeGallery[selectedImageIndex])}
+      alt=""
+      className="sp2-mainImg sp2-zoomImg"
+      loading="eager"
+      decoding="async"
+      fetchpriority="high"
+    />
 
-                  <img
-                    key={activeImageSources.src}
-                    src={activeImageSources.src}
-                    srcSet={activeImageSources.srcSet}
-                    sizes={activeImageSources.sizes}
-                    alt={translatedTitle}
-                    className="sp2-mainImg sp2-zoomImg"
-                    loading="eager"
-                    fetchPriority="high"
-                    decoding="async"
-                    draggable="false"
-                  />
-                </div>
+    {/* BADGES */}
+    <div className="sp2-badges">
+      {product?.isTrending && (
+        <span className="sp2-badge sp2-badge--trending">
+          🔥 Trending
+        </span>
+      )}
 
-                {activeGallery.length > 1 && (
-                  <div className="sp2-thumbsRow" aria-label="صور المنتج">
-                    <button
-                      type="button"
-                      className={`sp2-thumbsNav ${canThumbPrev ? "" : "is-disabled"}`}
-                      onClick={onThumbPrev}
-                      disabled={!canThumbPrev}
-                      aria-label="السابق"
-                    >
-                      ‹
-                    </button>
+      <span className="sp2-badge sp2-badge--stock is-good">
+        متوفر
+      </span>
+    </div>
+  </div>
 
-                    <div className="sp2-thumbsTrack">
-                      {visibleThumbs.map((img, localIdx) => {
-                        const realIdx = thumbStart + localIdx;
-                        const isActive = realIdx === selectedImageIndex;
-                        const thumbSources = getThumbImageSources(img);
+  {/* =========================
+     NEW PREMIUM CAROUSEL
+  ========================= */}
+  {activeGallery.length > 1 && (
+    <div className="sp2-thumbsCarousel">
 
-                        return (
-                          <button
-                            key={img + realIdx}
-                            type="button"
-                            onClick={() => setSelectedImageIndex(realIdx)}
-                            className={`sp2-thumbBtn ${isActive ? "is-active" : ""}`}
-                            aria-label={`صورة ${realIdx + 1}`}
-                            aria-pressed={isActive}
-                          >
-                            <img
-                              src={thumbSources.src}
-                              srcSet={thumbSources.srcSet}
-                              sizes={thumbSources.sizes}
-                              alt=""
-                              className="sp2-thumbImg"
-                              loading="eager"
-                              decoding="async"
-                              draggable="false"
-                            />
-                          </button>
-                        );
-                      })}
-                    </div>
+      {/* LEFT */}
+      <button
+        className="sp2-thumbsNav"
+        onClick={() =>
+          setSelectedImageIndex((prev) => Math.max(0, prev - 1))
+        }
+        disabled={selectedImageIndex === 0}
+      >
+        ‹
+      </button>
 
-                    <button
-                      type="button"
-                      className={`sp2-thumbsNav ${canThumbNext ? "" : "is-disabled"}`}
-                      onClick={onThumbNext}
-                      disabled={!canThumbNext}
-                      aria-label="التالي"
-                    >
-                      ›
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
+      {/* CENTER TRACK */}
+      <div className="sp2-thumbsCarouselViewport">
+        <div
+          className="sp2-thumbsCarouselTrack"
+          style={{
+            transform: `translateX(calc(50% - ${selectedImageIndex * 90 + 45}px))`,
+          }}
+        >
+          {activeGallery.map((img, i) => {
+            const isActive = i === selectedImageIndex;
+            const isNear = Math.abs(i - selectedImageIndex) === 1;
+
+            return (
+              <button
+                key={i}
+                onClick={() => setSelectedImageIndex(i)}
+                className={`sp2-thumbSlide 
+                  ${isActive ? "is-active" : ""} 
+                  ${isNear ? "is-near" : ""}`}
+              >
+                <img
+                  src={getImgUrl(img)}
+                  alt=""
+                  className="sp2-thumbSlideImg"
+                  loading="lazy"
+                />
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* RIGHT */}
+      <button
+        className="sp2-thumbsNav"
+        onClick={() =>
+          setSelectedImageIndex((prev) =>
+            Math.min(activeGallery.length - 1, prev + 1)
+          )
+        }
+        disabled={selectedImageIndex === activeGallery.length - 1}
+      >
+        ›
+      </button>
+    </div>
+  )}
+</div>
           </FadeInSection>
 
           <FadeInSection delay={0.08} yOffset={24}>

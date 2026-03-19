@@ -3,9 +3,6 @@
 VideoShowcase — premium responsive section
 ============================================================================== */
 
-/* =========================
-   Design tokens
-========================= */
 :root {
   --vz-bg: #ffffff;
   --vz-foreground: #0f172a;
@@ -22,9 +19,7 @@ VideoShowcase — premium responsive section
   --vz-shadow: 0 18px 50px rgba(2, 6, 23, 0.1);
 }
 
-/* =========================
-   Section
-========================= */
+/* Section */
 .vz3-section {
   background: var(--vz-bg);
   color: var(--vz-foreground);
@@ -38,9 +33,7 @@ VideoShowcase — premium responsive section
   margin: 0 auto;
 }
 
-/* =========================
-   Header
-========================= */
+/* Header */
 .vz3-header {
   text-align: center;
   margin-bottom: 18px;
@@ -90,9 +83,7 @@ VideoShowcase — premium responsive section
   padding-inline: 8px;
 }
 
-/* =========================
-   Card / frame
-========================= */
+/* Card / frame */
 .vz3-card {
   width: 100%;
 }
@@ -107,9 +98,7 @@ VideoShowcase — premium responsive section
   box-shadow: var(--vz-shadow);
 }
 
-/* =========================
-   Lanes desktop
-========================= */
+/* Desktop lanes */
 .vz3-lanes {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -163,9 +152,7 @@ VideoShowcase — premium responsive section
   pointer-events: none;
 }
 
-/* =========================
-   Controls
-========================= */
+/* Controls */
 .vz3-controlsWrap {
   position: absolute;
   inset: 0;
@@ -218,9 +205,7 @@ VideoShowcase — premium responsive section
   transform: translateX(1px);
 }
 
-/* =========================
-   CTA
-========================= */
+/* CTA */
 .vz3-ctaRow {
   margin-top: 4px;
   display: flex;
@@ -317,9 +302,7 @@ VideoShowcase — premium responsive section
   transform: translateY(-1px);
 }
 
-/* =========================
-   Tablet
-========================= */
+/* Tablet */
 @media (max-width: 1024px) {
   .vz3-section {
     padding: 44px 14px;
@@ -335,10 +318,7 @@ VideoShowcase — premium responsive section
   }
 }
 
-/* =========================
-   Android / mobile
-   Keep 3 videos visible
-========================= */
+/* Android / mobile */
 @media (max-width: 768px) {
   .vz3-section {
     padding: 34px 12px;
@@ -382,10 +362,21 @@ VideoShowcase — premium responsive section
     border-bottom: 0;
   }
 
-  .vz3-lane--left,
-  .vz3-lane--right,
+  /* exact order on android:
+     left video -> top
+     center video -> middle
+     right video -> bottom
+  */
+  .vz3-lane--left {
+    order: 1;
+  }
+
   .vz3-lane--center {
-    display: block;
+    order: 2;
+  }
+
+  .vz3-lane--right {
+    order: 3;
   }
 
   .vz3-videoShell {
@@ -436,9 +427,7 @@ VideoShowcase — premium responsive section
   }
 }
 
-/* =========================
-   Small phones
-========================= */
+/* Small phones */
 @media (max-width: 480px) {
   .vz3-section {
     padding: 28px 10px;
@@ -489,9 +478,7 @@ VideoShowcase — premium responsive section
   }
 }
 
-/* =========================
-   Very small devices
-========================= */
+/* Very small devices */
 @media (max-width: 360px) {
   .vz3-section {
     padding: 24px 8px;

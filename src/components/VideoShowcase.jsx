@@ -101,7 +101,7 @@ export default function VideoShowcase({
         <div className="vz3-card">
           <div className="vz3-frame">
             <div className="vz3-lanes">
-              {/* LEFT */}
+              {/* LEFT → top on mobile */}
               <div className="vz3-lane vz3-lane--side vz3-lane--left">
                 <div className="vz3-videoShell">
                   <video
@@ -118,7 +118,7 @@ export default function VideoShowcase({
                 </div>
               </div>
 
-              {/* CENTER */}
+              {/* CENTER → middle on mobile */}
               <div className="vz3-lane vz3-lane--center">
                 <div className="vz3-videoShell">
                   <video
@@ -167,7 +167,7 @@ export default function VideoShowcase({
                 </div>
               </div>
 
-              {/* RIGHT */}
+              {/* RIGHT → bottom on mobile */}
               <div className="vz3-lane vz3-lane--side vz3-lane--right">
                 <div className="vz3-videoShell">
                   <video
