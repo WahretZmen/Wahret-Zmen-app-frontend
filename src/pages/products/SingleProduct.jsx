@@ -99,6 +99,136 @@ const resolveProductFromList = (list, routeId) => {
   );
 };
 
+const isCloudinaryUrl = (url) =>
+  typeof url === "string" && /res\.cloudinary\.com/i.test(url);
+
+const buildCloudinaryUrl = (
+  rawUrl,
+  {
+    width,
+    height,
+    crop = "c_limit",
+    gravity,
+    quality = "auto:good",
+    dpr = "auto",
+    format = "auto",
+    background = "ffffff",
+  } = {}
+) => {
+  if (!rawUrl || !isCloudinaryUrl(rawUrl)) return rawUrl;
+
+  const marker = "/upload/";
+  const idx = rawUrl.indexOf(marker);
+  if (idx === -1) return rawUrl;
+
+  const before = rawUrl.slice(0, idx + marker.length);
+  const after = rawUrl.slice(idx + marker.length);
+
+  const transforms = [];
+
+  if (format) transforms.push(`f_${format}`);
+  if (quality) transforms.push(`q_${quality}`);
+  if (dpr) transforms.push(`dpr_${dpr}`);
+  if (width) transforms.push(`w_${width}`);
+  if (height) transforms.push(`h_${height}`);
+  if (crop) transforms.push(crop);
+  if (gravity) transforms.push(`g_${gravity}`);
+  if (background) transforms.push(`b_rgb:${background}`);
+
+  return `${before}${transforms.join(",")}/${after}`;
+};
+
+const getMainImageSources = (img) => {
+  const base = getImgUrl(img);
+  return {
+    src: buildCloudinaryUrl(base, {
+      width: 1600,
+      crop: "c_limit",
+      quality: "auto:best",
+      dpr: "auto",
+      format: "auto",
+    }),
+    srcSet: [
+      `${buildCloudinaryUrl(base, {
+        width: 640,
+        crop: "c_limit",
+        quality: "auto:good",
+        dpr: "auto",
+        format: "auto",
+      })} 640w`,
+      `${buildCloudinaryUrl(base, {
+        width: 960,
+        crop: "c_limit",
+        quality: "auto:good",
+        dpr: "auto",
+        format: "auto",
+      })} 960w`,
+      `${buildCloudinaryUrl(base, {
+        width: 1280,
+        crop: "c_limit",
+        quality: "auto:best",
+        dpr: "auto",
+        format: "auto",
+      })} 1280w`,
+      `${buildCloudinaryUrl(base, {
+        width: 1600,
+        crop: "c_limit",
+        quality: "auto:best",
+        dpr: "auto",
+        format: "auto",
+      })} 1600w`,
+    ].join(", "),
+    sizes:
+      "(max-width: 520px) 94vw, (max-width: 920px) 96vw, (max-width: 1200px) 54vw, 620px",
+  };
+};
+
+const getThumbImageSources = (img) => {
+  const base = getImgUrl(img);
+  return {
+    src: buildCloudinaryUrl(base, {
+      width: 320,
+      height: 320,
+      crop: "c_fill",
+      gravity: "auto",
+      quality: "auto:good",
+      dpr: "auto",
+      format: "auto",
+    }),
+    srcSet: [
+      `${buildCloudinaryUrl(base, {
+        width: 140,
+        height: 140,
+        crop: "c_fill",
+        gravity: "auto",
+        quality: "auto:good",
+        dpr: "auto",
+        format: "auto",
+      })} 140w`,
+      `${buildCloudinaryUrl(base, {
+        width: 220,
+        height: 220,
+        crop: "c_fill",
+        gravity: "auto",
+        quality: "auto:good",
+        dpr: "auto",
+        format: "auto",
+      })} 220w`,
+      `${buildCloudinaryUrl(base, {
+        width: 320,
+        height: 320,
+        crop: "c_fill",
+        gravity: "auto",
+        quality: "auto:good",
+        dpr: "auto",
+        format: "auto",
+      })} 320w`,
+    ].join(", "),
+    sizes:
+      "(max-width: 420px) 64px, (max-width: 520px) 72px, (max-width: 760px) 82px, 96px",
+  };
+};
+
 function normalizeColor(color) {
   if (!color) return null;
 
@@ -542,7 +672,7 @@ const SingleProduct = () => {
   const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
 
-  const THUMBS_PER_VIEW = 6;
+  const [thumbsPerView, setThumbsPerView] = useState(6);
   const [thumbStart, setThumbStart] = useState(0);
   const [activeTab, setActiveTab] = useState("desc");
 
@@ -625,6 +755,38 @@ const SingleProduct = () => {
     return getProductGallery(product, liveSelectedColor);
   }, [product, liveSelectedColor]);
 
+  const activeImageUrl = useMemo(() => {
+    return (
+      activeGallery[selectedImageIndex] ||
+      liveSelectedColor?.image ||
+      liveSelectedColor?.images?.[0] ||
+      product?.coverImage ||
+      ""
+    );
+  }, [activeGallery, selectedImageIndex, liveSelectedColor, product]);
+
+  const activeImageSources = useMemo(
+    () => getMainImageSources(activeImageUrl),
+    [activeImageUrl]
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      const w = window.innerWidth;
+      if (w <= 420) {
+        setThumbsPerView(4);
+      } else if (w <= 760) {
+        setThumbsPerView(5);
+      } else {
+        setThumbsPerView(6);
+      }
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize, { passive: true });
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   useEffect(() => {
     if (!product) return;
 
@@ -678,18 +840,18 @@ const SingleProduct = () => {
     }
 
     const min = thumbStart;
-    const max = thumbStart + THUMBS_PER_VIEW - 1;
+    const max = thumbStart + thumbsPerView - 1;
 
     if (selectedImageIndex < min) {
       setThumbStart(Math.max(0, selectedImageIndex));
     } else if (selectedImageIndex > max) {
       const nextStart = Math.min(
-        Math.max(0, n - THUMBS_PER_VIEW),
-        Math.max(0, selectedImageIndex - (THUMBS_PER_VIEW - 1))
+        Math.max(0, n - thumbsPerView),
+        Math.max(0, selectedImageIndex - (thumbsPerView - 1))
       );
       setThumbStart(nextStart);
     }
-  }, [selectedImageIndex, activeGallery.length, thumbStart]);
+  }, [selectedImageIndex, activeGallery.length, thumbStart, thumbsPerView]);
 
   const filteredProducts = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
@@ -801,15 +963,15 @@ const SingleProduct = () => {
   const madeInText = pickText(product?.madeIn);
   const isHandmade = Boolean(product?.isHandmade);
 
-  const maxThumbStart = Math.max(0, activeGallery.length - THUMBS_PER_VIEW);
+  const maxThumbStart = Math.max(0, activeGallery.length - thumbsPerView);
   const canThumbPrev = thumbStart > 0;
   const canThumbNext = thumbStart < maxThumbStart;
 
-  const visibleThumbs = activeGallery.slice(thumbStart, thumbStart + THUMBS_PER_VIEW);
+  const visibleThumbs = activeGallery.slice(thumbStart, thumbStart + thumbsPerView);
   const onThumbPrev = () =>
-    canThumbPrev && setThumbStart((s) => Math.max(0, s - THUMBS_PER_VIEW));
+    canThumbPrev && setThumbStart((s) => Math.max(0, s - thumbsPerView));
   const onThumbNext = () =>
-    canThumbNext && setThumbStart((s) => Math.min(maxThumbStart, s + THUMBS_PER_VIEW));
+    canThumbNext && setThumbStart((s) => Math.min(maxThumbStart, s + thumbsPerView));
 
   const productsCategoryUrl = `/products?category=${encodeURIComponent(categoryKey)}`;
   const productsSubCategoryUrl =
@@ -1455,16 +1617,16 @@ const SingleProduct = () => {
                   <span className="sp2-imageGlow" aria-hidden="true" />
 
                   <img
-                    src={getImgUrl(
-                      activeGallery[selectedImageIndex] ||
-                        liveSelectedColor?.image ||
-                        liveSelectedColor?.images?.[0] ||
-                        product?.coverImage
-                    )}
+                    key={activeImageSources.src}
+                    src={activeImageSources.src}
+                    srcSet={activeImageSources.srcSet}
+                    sizes={activeImageSources.sizes}
                     alt={translatedTitle}
                     className="sp2-mainImg sp2-zoomImg"
                     loading="eager"
+                    fetchPriority="high"
                     decoding="async"
+                    draggable="false"
                   />
                 </div>
 
@@ -1484,6 +1646,7 @@ const SingleProduct = () => {
                       {visibleThumbs.map((img, localIdx) => {
                         const realIdx = thumbStart + localIdx;
                         const isActive = realIdx === selectedImageIndex;
+                        const thumbSources = getThumbImageSources(img);
 
                         return (
                           <button
@@ -1494,7 +1657,16 @@ const SingleProduct = () => {
                             aria-label={`صورة ${realIdx + 1}`}
                             aria-pressed={isActive}
                           >
-                            <img src={getImgUrl(img)} alt="" className="sp2-thumbImg" />
+                            <img
+                              src={thumbSources.src}
+                              srcSet={thumbSources.srcSet}
+                              sizes={thumbSources.sizes}
+                              alt=""
+                              className="sp2-thumbImg"
+                              loading="eager"
+                              decoding="async"
+                              draggable="false"
+                            />
                           </button>
                         );
                       })}
@@ -1693,9 +1865,12 @@ const SingleProduct = () => {
                           >
                             <span className="sp2-colorThumbWrap">
                               <img
-                                src={getImgUrl(color?.image || product?.coverImage)}
+                                src={getThumbImageSources(color?.image || product?.coverImage).src}
                                 alt={pickColorLabel(color)}
                                 className="sp2-colorThumb"
+                                loading="lazy"
+                                decoding="async"
+                                draggable="false"
                               />
                             </span>
                             <span className="sp2-colorCardInfo">
