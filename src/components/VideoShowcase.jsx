@@ -1,6 +1,5 @@
 // src/components/VideoShowcase.jsx
 
-
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Play, Pause } from "lucide-react";
@@ -27,7 +26,6 @@ export default function VideoShowcase({
 
   const [isPlayingAll, setIsPlayingAll] = useState(false);
 
-  // Ensure autoplay-friendly setup (muted for policy; no mute button)
   useEffect(() => {
     vids.forEach((r) => {
       const v = r.current;
@@ -36,6 +34,9 @@ export default function VideoShowcase({
       v.playsInline = true;
       v.loop = true;
       v.preload = "metadata";
+      v.setAttribute("playsinline", "");
+      v.setAttribute("muted", "");
+      v.setAttribute("webkit-playsinline", "");
     });
   }, [vids]);
 
@@ -50,7 +51,6 @@ export default function VideoShowcase({
   };
 
   const playAll = async () => {
-    // Clean synced start
     vids.forEach((r) => {
       const v = r.current;
       if (!v) return;
@@ -85,7 +85,6 @@ export default function VideoShowcase({
   return (
     <section className="vz3-section" dir={dir}>
       <div className="vz3-container">
-        {/* Heading (TSX-like colors) */}
         <header className="vz3-header">
           <p className="vz3-kickerLine">
             <span className="vz3-kicker">{kicker}</span>
@@ -99,63 +98,90 @@ export default function VideoShowcase({
           <p className="vz3-desc">{subtitle}</p>
         </header>
 
-        {/* Video card */}
         <div className="vz3-card">
           <div className="vz3-frame">
             <div className="vz3-lanes">
               {/* LEFT */}
-              <div className="vz3-lane vz3-lane--side" aria-hidden="true">
-                <video ref={leftRef} className="vz3-video" muted loop playsInline preload="metadata">
-                  <source src={leftVideo} type="video/mp4" />
-                </video>
-                <div className="vz3-sideOverlay" />
+              <div className="vz3-lane vz3-lane--side vz3-lane--left">
+                <div className="vz3-videoShell">
+                  <video
+                    ref={leftRef}
+                    className="vz3-video"
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                  >
+                    <source src={leftVideo} type="video/mp4" />
+                  </video>
+                  <div className="vz3-sideOverlay" />
+                </div>
               </div>
 
               {/* CENTER */}
               <div className="vz3-lane vz3-lane--center">
-                <video ref={centerRef} className="vz3-video" muted loop playsInline preload="auto">
-                  <source src={centerVideo} type="video/mp4" />
-                </video>
+                <div className="vz3-videoShell">
+                  <video
+                    ref={centerRef}
+                    className="vz3-video"
+                    muted
+                    loop
+                    playsInline
+                    preload="auto"
+                  >
+                    <source src={centerVideo} type="video/mp4" />
+                  </video>
 
-                <div className="vz3-centerOverlay" />
+                  <div className="vz3-centerOverlay" />
 
-                {/* Controls (TSX circular) */}
-                <div className="vz3-controlsWrap">
-                  <div className="vz3-fabRow">
-                    <button
-                      type="button"
-                      onClick={togglePlayAll}
-                      className="vz3-fab"
-                      aria-label={isPlayingAll ? "Pause videos" : "Play videos"}
-                      title={isPlayingAll ? "Pause" : "Play"}
-                    >
-                      {isPlayingAll ? (
-                        <Pause className="vz3-fabIcon" />
-                      ) : (
-                        <Play className="vz3-fabIcon vz3-fabIcon--play" fill="currentColor" />
-                      )}
-                    </button>
-                  </div>
+                  <div className="vz3-controlsWrap">
+                    <div className="vz3-fabRow">
+                      <button
+                        type="button"
+                        onClick={togglePlayAll}
+                        className="vz3-fab"
+                        aria-label={isPlayingAll ? "Pause videos" : "Play videos"}
+                        title={isPlayingAll ? "Pause" : "Play"}
+                      >
+                        {isPlayingAll ? (
+                          <Pause className="vz3-fabIcon" />
+                        ) : (
+                          <Play
+                            className="vz3-fabIcon vz3-fabIcon--play"
+                            fill="currentColor"
+                          />
+                        )}
+                      </button>
+                    </div>
 
-                  {/* CTA (Premium) */}
-                  <div className="vz3-ctaRow">
-                    <Link to={ctaTo} className="vz3-cta vz3-cta--premium">
-                      <span className="vz3-ctaText">{ctaLabel}</span>
-                      <span className="vz3-ctaArrow" aria-hidden="true">‹</span>
-                      <span className="vz3-ctaShine" aria-hidden="true" />
-                    </Link>
-
-                   
+                    <div className="vz3-ctaRow">
+                      <Link to={ctaTo} className="vz3-cta vz3-cta--premium">
+                        <span className="vz3-ctaText">{ctaLabel}</span>
+                        <span className="vz3-ctaArrow" aria-hidden="true">
+                          ‹
+                        </span>
+                        <span className="vz3-ctaShine" aria-hidden="true" />
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* RIGHT */}
-              <div className="vz3-lane vz3-lane--side" aria-hidden="true">
-                <video ref={rightRef} className="vz3-video" muted loop playsInline preload="metadata">
-                  <source src={rightVideo} type="video/mp4" />
-                </video>
-                <div className="vz3-sideOverlay" />
+              <div className="vz3-lane vz3-lane--side vz3-lane--right">
+                <div className="vz3-videoShell">
+                  <video
+                    ref={rightRef}
+                    className="vz3-video"
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                  >
+                    <source src={rightVideo} type="video/mp4" />
+                  </video>
+                  <div className="vz3-sideOverlay" />
+                </div>
               </div>
             </div>
           </div>

@@ -1,10 +1,6 @@
 /* src/Styles/StylesVideoShowcase.css
 ==============================================================================
-VideoShowcase — TSX-like premium section (Plain CSS)
-✅ 3 videos SAME dimensions (3 equal columns)
-✅ Headline/subtitle colors like TSX
-✅ TSX circular Play/Pause button
-✅ CTA button upgraded: premium shine + border + glow + micro-interactions
+VideoShowcase — premium responsive section
 ============================================================================== */
 
 /* =========================
@@ -19,123 +15,161 @@ VideoShowcase — TSX-like premium section (Plain CSS)
   --vz-black: #000000;
   --vz-card: #ffffff;
 
-  /* Brand */
   --vz-primary: #8a5d3b;
-  --vz-primary-2: #a8744b; /* subtle highlight */
+  --vz-primary-2: #a8744b;
   --vz-primary-dark: #6f452c;
 
-  /* Shadow */
-  --vz-shadow: 0 18px 50px rgba(2, 6, 23, 0.10);
+  --vz-shadow: 0 18px 50px rgba(2, 6, 23, 0.1);
 }
 
-/* Section */
+/* =========================
+   Section
+========================= */
 .vz3-section {
   background: var(--vz-bg);
   color: var(--vz-foreground);
   padding: 52px 16px;
+  overflow: hidden;
 }
 
 .vz3-container {
-  max-width: 1200px;
+  width: 100%;
+  max-width: 1280px;
   margin: 0 auto;
 }
 
-/* Header */
+/* =========================
+   Header
+========================= */
 .vz3-header {
   text-align: center;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
+  padding-inline: 8px;
 }
 
 .vz3-kickerLine {
   margin: 0 0 10px;
-  font-size: 25px;
+  font-size: clamp(16px, 2vw, 25px);
   font-weight: 800;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--vz-primary);
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
-.vz3-kicker { opacity: 0.95; }
-.vz3-brandDot { opacity: 0.65; }
-.vz3-brand { opacity: 0.9; }
+.vz3-kicker {
+  opacity: 0.95;
+}
+
+.vz3-brandDot {
+  opacity: 0.65;
+}
+
+.vz3-brand {
+  opacity: 0.9;
+}
 
 .vz3-title {
   margin: 0;
   font-size: clamp(24px, 2.6vw, 38px);
   font-weight: 900;
-  line-height: 1.15;
+  line-height: 1.2;
   color: var(--vz-foreground);
 }
 
 .vz3-desc {
   margin: 10px auto 0;
   max-width: 860px;
-  font-size: 16px;
+  font-size: clamp(14px, 1.35vw, 16px);
   line-height: 1.9;
   color: var(--vz-muted-foreground);
+  padding-inline: 8px;
 }
 
+/* =========================
+   Card / frame
+========================= */
+.vz3-card {
+  width: 100%;
+}
 
-
-/* Frame */
 .vz3-frame {
   width: 100%;
-  height: clamp(520px, 62vh, 780px);
+  min-width: 0;
   background: var(--vz-black);
   border-radius: 0;
   overflow: hidden;
-  margin: 14px;
+  margin: 18px 0 0;
+  box-shadow: var(--vz-shadow);
 }
 
-/* 3 lanes SAME DIMENSIONS */
+/* =========================
+   Lanes desktop
+========================= */
 .vz3-lanes {
-  height: 100%;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0;
+  width: 100%;
+  min-width: 0;
 }
 
 .vz3-lane {
   position: relative;
-  height: 100%;
+  min-width: 0;
   background: var(--vz-black);
   overflow: hidden;
 }
 
-/* Videos */
+.vz3-videoShell {
+  position: relative;
+  width: 100%;
+  height: clamp(420px, 58vw, 760px);
+  min-height: 420px;
+  overflow: hidden;
+  background: var(--vz-black);
+}
+
 .vz3-video {
   width: 100%;
   height: 100%;
-  object-fit: cover;
   display: block;
-
+  object-fit: cover;
+  background: var(--vz-black);
   image-rendering: -webkit-optimize-contrast;
   transform: translateZ(0);
   backface-visibility: hidden;
 }
 
-/* Overlays */
 .vz3-sideOverlay {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at center, rgba(0,0,0,0.18), rgba(0,0,0,0.78));
+  background: radial-gradient(
+    circle at center,
+    rgba(0, 0, 0, 0.18),
+    rgba(0, 0, 0, 0.78)
+  );
   pointer-events: none;
 }
 
 .vz3-centerOverlay {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.18);
+  background: rgba(0, 0, 0, 0.18);
   pointer-events: none;
 }
 
-/* Controls */
+/* =========================
+   Controls
+========================= */
 .vz3-controlsWrap {
   position: absolute;
   inset: 0;
+  z-index: 3;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -150,24 +184,26 @@ VideoShowcase — TSX-like premium section (Plain CSS)
   justify-content: center;
 }
 
-/* TSX circular play button */
 .vz3-fab {
   width: 64px;
   height: 64px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.60);
-  background: rgba(15, 23, 42, 0.30);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: rgba(15, 23, 42, 0.3);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 220ms ease, border-color 220ms ease, transform 220ms ease;
+  transition:
+    background 220ms ease,
+    border-color 220ms ease,
+    transform 220ms ease;
 }
 
 .vz3-fab:hover {
-  background: rgba(138, 93, 59, 0.40);
+  background: rgba(138, 93, 59, 0.4);
   border-color: rgba(255, 255, 255, 0.92);
   transform: translateY(-1px);
 }
@@ -183,9 +219,8 @@ VideoShowcase — TSX-like premium section (Plain CSS)
 }
 
 /* =========================
-   PREMIUM CTA BUTTON
+   CTA
 ========================= */
-
 .vz3-ctaRow {
   margin-top: 4px;
   display: flex;
@@ -205,13 +240,17 @@ VideoShowcase — TSX-like premium section (Plain CSS)
   justify-content: center;
   gap: 10px;
 
-  height: 48px;
+  min-height: 48px;
   padding: 0 26px;
   border-radius: 0px;
 
-  /* premium gradient + border */
-  background: linear-gradient(135deg, var(--vz-primary) 0%, var(--vz-primary-2) 45%, var(--vz-primary) 100%);
-  border: 1px solid rgba(255,255,255,0.28);
+  background: linear-gradient(
+    135deg,
+    var(--vz-primary) 0%,
+    var(--vz-primary-2) 45%,
+    var(--vz-primary) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.28);
 
   color: #fff;
   font-weight: 900;
@@ -219,10 +258,13 @@ VideoShowcase — TSX-like premium section (Plain CSS)
 
   box-shadow:
     0 14px 32px rgba(138, 93, 59, 0.35),
-    0 2px 0 rgba(255,255,255,0.22) inset;
+    0 2px 0 rgba(255, 255, 255, 0.22) inset;
 
   transform: translateY(0);
-  transition: transform 180ms ease, filter 180ms ease, box-shadow 180ms ease;
+  transition:
+    transform 180ms ease,
+    filter 180ms ease,
+    box-shadow 180ms ease;
   overflow: hidden;
 }
 
@@ -231,7 +273,7 @@ VideoShowcase — TSX-like premium section (Plain CSS)
   filter: brightness(1.04);
   box-shadow:
     0 18px 42px rgba(138, 93, 59, 0.42),
-    0 2px 0 rgba(255,255,255,0.26) inset;
+    0 2px 0 rgba(255, 255, 255, 0.26) inset;
 }
 
 .vz3-cta--premium:active {
@@ -239,23 +281,26 @@ VideoShowcase — TSX-like premium section (Plain CSS)
   filter: brightness(0.98);
 }
 
-/* shine sweep */
 .vz3-ctaShine {
   position: absolute;
   inset: -40% -30%;
-  background: linear-gradient(110deg,
-    rgba(255,255,255,0.00) 35%,
-    rgba(255,255,255,0.28) 48%,
-    rgba(255,255,255,0.00) 60%);
+  background: linear-gradient(
+    110deg,
+    rgba(255, 255, 255, 0) 35%,
+    rgba(255, 255, 255, 0.28) 48%,
+    rgba(255, 255, 255, 0) 60%
+  );
   transform: translateX(-40%);
-  opacity: 0.0;
+  opacity: 0;
   pointer-events: none;
 }
 
 .vz3-cta--premium:hover .vz3-ctaShine {
   opacity: 1;
   transform: translateX(40%);
-  transition: transform 650ms ease, opacity 250ms ease;
+  transition:
+    transform 650ms ease,
+    opacity 250ms ease;
 }
 
 .vz3-ctaText {
@@ -272,35 +317,200 @@ VideoShowcase — TSX-like premium section (Plain CSS)
   transform: translateY(-1px);
 }
 
-/* subtle under text (premium) */
-.vz3-ctaHint {
-  margin: 0;
-  font-size: 12.5px;
-  color: rgba(255,255,255,0.78);
-  text-shadow: 0 12px 30px rgba(0,0,0,0.45);
+/* =========================
+   Tablet
+========================= */
+@media (max-width: 1024px) {
+  .vz3-section {
+    padding: 44px 14px;
+  }
+
+  .vz3-videoShell {
+    height: clamp(340px, 48vw, 560px);
+    min-height: 340px;
+  }
+
+  .vz3-controlsWrap {
+    padding: 16px;
+  }
 }
 
-/* Responsive: hide side panels */
-@media (max-width: 900px) {
+/* =========================
+   Android / mobile
+   Keep 3 videos visible
+========================= */
+@media (max-width: 768px) {
+  .vz3-section {
+    padding: 34px 12px;
+  }
+
+  .vz3-header {
+    margin-bottom: 14px;
+    padding-inline: 2px;
+  }
+
+  .vz3-kickerLine {
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    gap: 8px;
+  }
+
+  .vz3-title {
+    font-size: clamp(20px, 6vw, 28px);
+    line-height: 1.35;
+  }
+
+  .vz3-desc {
+    font-size: 14px;
+    line-height: 1.85;
+    max-width: 100%;
+  }
+
   .vz3-frame {
-    height: clamp(460px, 58vh, 640px);
-    margin: 12px;
+    margin-top: 14px;
   }
 
   .vz3-lanes {
     grid-template-columns: 1fr;
   }
 
-  .vz3-lane--side {
-    display: none;
+  .vz3-lane {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .vz3-lane:last-child {
+    border-bottom: 0;
+  }
+
+  .vz3-lane--left,
+  .vz3-lane--right,
+  .vz3-lane--center {
+    display: block;
+  }
+
+  .vz3-videoShell {
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 9 / 14;
+  }
+
+  .vz3-video {
+    object-fit: cover;
+  }
+
+  .vz3-sideOverlay {
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.65),
+      rgba(0, 0, 0, 0.18)
+    );
+  }
+
+  .vz3-centerOverlay {
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.38),
+      rgba(0, 0, 0, 0.12)
+    );
   }
 
   .vz3-controlsWrap {
     padding: 14px;
+    gap: 12px;
   }
 
   .vz3-fab {
-    width: 62px;
-    height: 62px;
+    width: 58px;
+    height: 58px;
+  }
+
+  .vz3-fabIcon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .vz3-cta--premium {
+    min-height: 44px;
+    padding: 0 20px;
+    font-size: 14px;
+  }
+}
+
+/* =========================
+   Small phones
+========================= */
+@media (max-width: 480px) {
+  .vz3-section {
+    padding: 28px 10px;
+  }
+
+  .vz3-kickerLine {
+    font-size: 12px;
+    gap: 6px;
+  }
+
+  .vz3-title {
+    font-size: 22px;
+  }
+
+  .vz3-desc {
+    font-size: 13.5px;
+    line-height: 1.8;
+  }
+
+  .vz3-videoShell {
+    aspect-ratio: 9 / 15;
+  }
+
+  .vz3-controlsWrap {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .vz3-fab {
+    width: 54px;
+    height: 54px;
+  }
+
+  .vz3-fabIcon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .vz3-cta--premium {
+    min-height: 42px;
+    padding: 0 18px;
+    font-size: 13px;
+    gap: 8px;
+  }
+
+  .vz3-ctaArrow {
+    font-size: 16px;
+  }
+}
+
+/* =========================
+   Very small devices
+========================= */
+@media (max-width: 360px) {
+  .vz3-section {
+    padding: 24px 8px;
+  }
+
+  .vz3-title {
+    font-size: 20px;
+  }
+
+  .vz3-desc {
+    font-size: 13px;
+  }
+
+  .vz3-videoShell {
+    aspect-ratio: 9 / 16;
+  }
+
+  .vz3-cta--premium {
+    width: 100%;
+    max-width: 220px;
   }
 }
